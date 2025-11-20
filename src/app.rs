@@ -123,13 +123,19 @@ pub struct Calculator {
 
 pub struct App {
     pub buffer: [u8; APP_CACHE_SIZE],
+    pub calculator: Calculator,
+    pub command_area: Rect,
+    pub command_input: Input,
     pub config: Config,
     pub dialog_renderer: Option<fn(&mut App, &mut Frame)>,
     pub dialog_2nd_renderer: Option<fn(&mut App, &mut Frame)>,
+    pub dialog_renderer: Option<fn(&mut App, &mut Frame)>,
     pub editor_view: AppView,
     pub file_info: FileInfo,
     pub hex_view: HexView,
     pub list_state: ListState,
+    pub log_scroll_offset: (u16, u16),
+    pub logs: Vec<String>,
     pub reader: Reader,
     pub running: bool,
     pub state: UIState,
@@ -147,9 +153,12 @@ impl App {
     pub fn new() -> Self {
         App {
             buffer: [0u8; APP_CACHE_SIZE],
+            calculator: Calculator::default(),
+            command_area: Rect::default(),
+            command_input: Input::default(),
             config: Config {
                 hex_mode_bytes_per_line: 16,
-                hex_mode_non_ascii_char: ' ',
+                hex_mode_non_ascii_char: '.',
                 maximum_strings_to_show: 3000,
                 minimum_string_length: 4,
                 theme: VSCODE,
@@ -168,6 +177,8 @@ impl App {
             logs: Vec::with_capacity(100),
             log_scroll_offset: (0, 0),
             list_state: ListState::default(),
+            log_scroll_offset: (0, 0),
+            logs: Vec::with_capacity(100),
             reader: Reader::new(),
             running: true,
             state: UIState::Normal,

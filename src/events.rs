@@ -32,13 +32,12 @@ pub fn handle_events(app: &mut App) -> Result<bool> {
                             AppView::Text => text::events::text_mode_events(app, key)?,
                         }
                     }
-                    UIState::DialogError => handle_dialog_error_events(app, key)?,
                     UIState::DialogHelp => handle_dialog_error_events(app, key)?,
                     UIState::DialogEncoding => {
                         text::dialog_encoding::dialog_encoding_events(app, key)?
                     }
                     UIState::DialogSearch => hex::search::dialog_search_events(app, &event)?,
-                    UIState::DialogGoto => global::goto::dialog_goto_events(app, &event)?,
+                    UIState::Command => global::command::command_events(app, &event)?,
                     UIState::HexEditing => hex::edit::edit_events(app, key)?,
                     UIState::DialogStrings => hex::strings::dialog_strings_events(app, key)?,
                     UIState::DialogStringsRegex => {

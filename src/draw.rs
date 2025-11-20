@@ -22,7 +22,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
 
     let vertical_layout = layout::create_vertical_layout(frame);
 
-    app.command_bar_area = vertical_layout[3];
+    app.command_area = vertical_layout[3];
 
     // Draw ruler at the top
     if app.editor_view == AppView::Hex {

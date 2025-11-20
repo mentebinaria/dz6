@@ -1,4 +1,5 @@
 pub mod calculator;
+pub mod command;
 pub mod events;
 pub mod goto;
 pub mod log;

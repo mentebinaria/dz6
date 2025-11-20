@@ -16,13 +16,10 @@ use crate::{
 pub fn dialog_comment_draw(app: &mut App, frame: &mut Frame) {
     let para = Paragraph::new(format!(";{}", app.hex_view.comment_input.value()));
 
-    frame.render_widget(Clear, app.command_bar_area);
-    frame.render_widget(para, app.command_bar_area);
+    frame.render_widget(Clear, app.command_area);
+    frame.render_widget(para, app.command_area);
     let x = app.hex_view.comment_input.visual_cursor();
-    frame.set_cursor_position((
-        app.command_bar_area.x + 1 + x as u16,
-        app.command_bar_area.y,
-    ));
+    frame.set_cursor_position((app.command_area.x + 1 + x as u16, app.command_area.y));
 }
 
 fn sync_comments(app: &mut App) {
@@ -77,7 +74,7 @@ pub fn comment_show_draw(app: &mut App, frame: &mut Frame) {
         // format comment
         let para = Paragraph::new(format!(";{}", cmt)).style(app.config.theme.main);
 
-        frame.render_widget(Clear, app.command_bar_area);
-        frame.render_widget(para, app.command_bar_area);
+        frame.render_widget(Clear, app.command_area);
+        frame.render_widget(para, app.command_area);
     }
 }

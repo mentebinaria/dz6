@@ -2,7 +2,6 @@ use crate::{
     app::{App, SearchMode},
     config::APP_PAGE_SIZE,
     editor::UIState,
-    global,
     hex::{self, search::hex_string_to_u8},
 };
 
@@ -76,14 +75,7 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             app.goto(app.hex_view.offset + app.config.hex_mode_bytes_per_line);
         }
         // BOL
-        KeyCode::Char('g') => {
-            if key.modifiers.contains(KeyModifiers::CONTROL) {
-                app.state = UIState::DialogGoto;
-                app.dialog_renderer = Some(global::goto::dialog_goto_draw);
-            } else {
-                app.goto(0)
-            }
-        }
+        KeyCode::Char('g') => app.goto(0),
         KeyCode::Home => {
             if key.modifiers.contains(KeyModifiers::CONTROL) {
                 app.goto(0);
@@ -243,11 +235,6 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 app.state = UIState::HexEditing;
                 app.hex_view.changed_bytes.clear();
             }
-        }
-        // goto
-        KeyCode::F(5) | KeyCode::Char(':') => {
-            app.state = UIState::DialogGoto;
-            app.dialog_renderer = Some(global::goto::dialog_goto_draw);
         }
         // strings list
         KeyCode::Char('s') => {

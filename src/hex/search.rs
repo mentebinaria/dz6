@@ -1,5 +1,5 @@
 use crate::app::SearchMode;
-use crate::widgets::{ErrorMessage, ErrorMessageType};
+use crate::widgets::ErrorMessage;
 use crate::{app::App, config::APP_CACHE_SIZE, editor::UIState};
 use ratatui::Frame;
 use ratatui::crossterm::event::{Event, KeyCode};
@@ -50,11 +50,8 @@ pub fn dialog_search_draw(app: &mut App, frame: &mut Frame) {
         }
     };
 
-    frame.render_widget(para, app.command_bar_area);
-    frame.set_cursor_position((
-        app.command_bar_area.x + 1 + x as u16,
-        app.command_bar_area.y,
-    ));
+    frame.render_widget(para, app.command_area);
+    frame.set_cursor_position((app.command_area.x + 1 + x as u16, app.command_area.y));
 }
 
 pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
@@ -67,7 +64,7 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
             // if input is empty, backspace works like Esc; otherwise it's handled by tui-input
             KeyCode::Backspace => match app.hex_view.search.mode {
                 SearchMode::Ascii => {
-                    if app.hex_view.search.input_text.value().len() == 0 {
+                    if app.hex_view.search.input_text.value().is_empty() {
                         app.dialog_renderer = None;
                         app.state = UIState::Normal;
                     } else {
@@ -75,7 +72,7 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
                     }
                 }
                 SearchMode::Hex => {
-                    if app.hex_view.search.input_hex.value().len() == 0 {
+                    if app.hex_view.search.input_hex.value().is_empty() {
                         app.dialog_renderer = None;
                         app.state = UIState::Normal;
                     } else {
@@ -87,20 +84,18 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
                 match app.hex_view.search.mode {
                     SearchMode::Ascii => {
                         let text = app.hex_view.search.input_text.value().to_string();
+                        app.state = UIState::Normal;
 
                         if text.is_empty() {
-                            app.state = UIState::Normal;
                             app.dialog_renderer = None;
                             return Ok(false);
                         }
 
                         if let Some(ofs) = search(app, &text) {
                             app.goto(ofs);
-                            app.state = UIState::Normal;
                             app.dialog_renderer = None;
                         } else {
                             app.dialog_renderer = Some(dialog_search_error_draw);
-                            app.state = UIState::DialogError;
                         }
                     }
                     SearchMode::Hex => {
@@ -109,12 +104,11 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
                         if let Some(bytes) = hex_string_to_u8(&hex_string) {
                             if let Some(ofs) = search(app, &bytes) {
                                 app.goto(ofs);
-                                app.state = UIState::Normal;
                                 app.dialog_renderer = None;
                             } else {
                                 app.dialog_renderer = Some(dialog_search_error_draw);
-                                app.state = UIState::DialogError;
                             }
+                            app.state = UIState::Normal;
                         }
                     }
                 };
@@ -148,7 +142,6 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
 
 pub fn dialog_search_error_draw(app: &mut App, frame: &mut Frame) {
     let mut dialog = ErrorMessage::new();
-    dialog.message_type(ErrorMessageType::OKOnly);
     dialog.buffer = String::from("Pattern not found");
     dialog.render(app, frame);
 }

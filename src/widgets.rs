@@ -6,45 +6,23 @@ use ratatui::{
 use crate::app::App;
 use crate::util::center_widget;
 
-#[derive(PartialEq)]
-pub enum ErrorMessageType {
-    OKOnly,
-    _RetryAbort,
-}
-
 pub struct ErrorMessage {
-    message_type: ErrorMessageType,
     pub buffer: String,
 }
 
 impl ErrorMessage {
     pub fn new() -> Self {
         Self {
-            buffer: String::with_capacity(50),
-            message_type: ErrorMessageType::OKOnly,
+            buffer: String::with_capacity(100),
         }
     }
 
     pub fn render(&mut self, app: &mut App, frame: &mut Frame) {
-        let area = frame.area();
-        let dialog_area = center_widget(area.width / 2, 5, area);
-
-        let block = Block::new()
-            .title(" Error ")
-            .title_alignment(Alignment::Center)
-            .borders(Borders::ALL)
-            .style(app.config.theme.error);
-
         let text = self.buffer.clone();
+        let paragraph = Paragraph::new(text).style(app.config.theme.error);
 
-        let paragraph = Paragraph::new(text).block(block);
-
-        frame.render_widget(Clear, dialog_area);
-        frame.render_widget(paragraph, dialog_area);
-    }
-
-    pub fn message_type(&mut self, new_message_type: ErrorMessageType) {
-        self.message_type = new_message_type;
+        frame.render_widget(Clear, app.command_area);
+        frame.render_widget(paragraph, app.command_area);
     }
 }
 
