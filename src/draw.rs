@@ -5,7 +5,7 @@ use crate::{
     editor::AppView,
     global,
     hex::{self, comment},
-    layout, text,
+    text,
 };
 
 /// This is the main drawing/rendering function that
@@ -20,21 +20,29 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         return;
     }
 
-    let vertical_layout = layout::create_vertical_layout(frame);
-
-    app.command_area = vertical_layout[3];
-
-    // Draw ruler at the top
-    if app.editor_view == AppView::Hex {
-        global::ruler::ruler_draw(app, frame, vertical_layout[0]);
-    }
-
-    // Draw status bar at the bottom
-    global::status_bar::status_bar_draw(app, frame, vertical_layout[2]);
-
-    // Now depending on the mode chosen, draw the right things
+    // Draw things depending on the view
     match app.editor_view {
         AppView::Hex => {
+            let constraints = vec![
+                Constraint::Length(1),       // ruler
+                Constraint::Percentage(100), // middle area (hex content)
+                Constraint::Length(1),       // status bar
+                Constraint::Length(1),       // command bar
+            ];
+
+            let vertical_layout = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints(constraints)
+                .split(frame.area());
+
+            // Draw ruler at the top
+            global::ruler::ruler_draw(app, frame, vertical_layout[0]);
+
+            // Draw status bar at the bottom
+            global::status_bar::status_bar_draw(app, frame, vertical_layout[2]);
+
+            app.command_area = vertical_layout[3];
+
             let horizontal_layout = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints(vec![
@@ -50,10 +58,24 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
             comment::comment_show_draw(app, frame);
         }
         AppView::Text => {
+            let constraints = vec![
+                Constraint::Percentage(100), // middle area (text content)
+                Constraint::Length(1),       // status bar
+                Constraint::Length(1),       // command bar
+            ];
+
+            let vertical_layout = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints(constraints)
+                .split(frame.area());
+
+            // Draw status bar at the bottom
+            global::status_bar::status_bar_draw(app, frame, vertical_layout[1]);
+
             let horizontal_layout = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints(vec![Constraint::Percentage(100)])
-                .split(vertical_layout[1]);
+                .split(vertical_layout[0]);
 
             text::draw::text_contents_draw(app, frame, horizontal_layout[0]);
             app.text_view.area_height = horizontal_layout[0].height;

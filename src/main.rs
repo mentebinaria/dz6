@@ -5,7 +5,6 @@ mod editor;
 mod events;
 mod global;
 mod hex;
-mod layout;
 mod reader;
 mod text;
 mod themes;

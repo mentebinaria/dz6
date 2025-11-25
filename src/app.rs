@@ -196,7 +196,12 @@ impl App {
     }
 
     /// load a file
-    pub fn load_file(&mut self, filepath: &str, initial_offset: usize, read_only: bool) -> io::Result<()> {
+    pub fn load_file(
+        &mut self,
+        filepath: &str,
+        initial_offset: usize,
+        read_only: bool,
+    ) -> io::Result<()> {
         let path = Path::new(&filepath);
 
         if let Some(f) = path.file_name()
