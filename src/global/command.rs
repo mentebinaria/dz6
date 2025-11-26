@@ -20,6 +20,11 @@ pub fn command_draw(app: &mut App, frame: &mut Frame) {
 }
 
 fn parse_command(app: &mut App, cmd: &str) {
+    if cmd.is_empty() {
+        app.dialog_renderer = None;
+        return;
+    }
+
     if cmd == "q" {
         app.running = false;
     }
