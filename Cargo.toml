@@ -1,8 +1,8 @@
 [package]
 name = "dz6"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2024"
-description = "vim-like hexadecimal editor"
+description = "A vim-inspired, TUI-based hexadecimal editor"
 readme = "README.md"
 homepage = "https://menteb.in/dz6"
 repository = "https://github.com/mentebinaria/dz6"
