@@ -40,7 +40,7 @@ pub fn dialog_search_draw(app: &mut App, frame: &mut Frame) {
     let para;
 
     match app.hex_view.search.mode {
-        SearchMode::Ascii => {
+        SearchMode::Utf8 => {
             para = Paragraph::new(format!("/{}", app.hex_view.search.input_text.value()));
             x = app.hex_view.search.input_text.visual_cursor();
         }
@@ -63,7 +63,7 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
             }
             // if input is empty, backspace works like Esc; otherwise it's handled by tui-input
             KeyCode::Backspace => match app.hex_view.search.mode {
-                SearchMode::Ascii => {
+                SearchMode::Utf8 => {
                     if app.hex_view.search.input_text.value().is_empty() {
                         app.dialog_renderer = None;
                         app.state = UIState::Normal;
@@ -82,7 +82,7 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
             },
             KeyCode::Enter => {
                 match app.hex_view.search.mode {
-                    SearchMode::Ascii => {
+                    SearchMode::Utf8 => {
                         let text = app.hex_view.search.input_text.value().to_string();
                         app.state = UIState::Normal;
 
@@ -119,7 +119,7 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
 
             KeyCode::Char(c) => {
                 match app.hex_view.search.mode {
-                    SearchMode::Ascii => app.hex_view.search.input_text.handle_event(event),
+                    SearchMode::Utf8 => app.hex_view.search.input_text.handle_event(event),
                     SearchMode::Hex => {
                         if c.is_ascii_hexdigit() {
                             app.hex_view.search.input_hex.handle_event(event)
@@ -131,7 +131,7 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
             }
             _ => {
                 match app.hex_view.search.mode {
-                    SearchMode::Ascii => app.hex_view.search.input_text.handle_event(event),
+                    SearchMode::Utf8 => app.hex_view.search.input_text.handle_event(event),
                     SearchMode::Hex => app.hex_view.search.input_hex.handle_event(event),
                 };
             }

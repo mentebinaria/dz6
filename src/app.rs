@@ -73,7 +73,7 @@ pub struct Search {
 #[derive(Default, Debug, PartialEq)]
 pub enum SearchMode {
     #[default]
-    Ascii,
+    Utf8,
     // UTF_16,
     // UTF_16_LE,
     Hex,
@@ -81,10 +81,10 @@ pub enum SearchMode {
 
 impl SearchMode {
     pub fn next(&mut self) {
-        if *self == SearchMode::Ascii {
+        if *self == SearchMode::Utf8 {
             *self = SearchMode::Hex;
         } else {
-            *self = SearchMode::Ascii
+            *self = SearchMode::Utf8
         }
     }
 }

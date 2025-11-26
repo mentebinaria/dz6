@@ -259,7 +259,7 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 App::log(app, format!("{:?}", app.hex_view.search.mode));
                 let mut ofs = None;
                 if app.state == UIState::Normal {
-                    if app.hex_view.search.mode == SearchMode::Ascii
+                    if app.hex_view.search.mode == SearchMode::Utf8
                         && !app.hex_view.search.input_text.value().is_empty()
                     {
                         ofs = crate::hex::search::search(
