@@ -10,6 +10,7 @@ use tui_input::backend::crossterm::EventHandler;
 
 use crate::{
     app::{App, Comment},
+    commands::Commands,
     editor::UIState,
 };
 
@@ -34,6 +35,24 @@ fn sync_comments(app: &mut App) {
     }
 }
 
+impl Commands {
+    pub fn comment(app: &mut App, offset: usize, comment: String) {
+        if comment.is_empty() {
+            // remove the comment; no effect if it doesn't exist
+            app.hex_view.comments.remove(&offset);
+            sync_comments(app);
+        } else {
+            app.hex_view.comments.insert(offset, comment.clone());
+            sync_comments(app);
+            app.hex_view
+                .comment_name_list
+                .push(Comment { offset, comment });
+        }
+        app.dialog_renderer = None;
+        app.state = UIState::Normal;
+    }
+}
+
 pub fn dialog_comment_events(app: &mut App, event: &Event) -> Result<bool> {
     if let Event::Key(key) = event {
         match key.code {
@@ -44,21 +63,7 @@ pub fn dialog_comment_events(app: &mut App, event: &Event) -> Result<bool> {
             KeyCode::Enter => {
                 let ofs = app.hex_view.offset;
                 let cmt = app.hex_view.comment_input.value_and_reset();
-
-                if cmt.is_empty() {
-                    // remove the comment; no effect if it doesn't exist
-                    app.hex_view.comments.remove(&ofs);
-                    sync_comments(app);
-                } else {
-                    app.hex_view.comments.insert(ofs, cmt.clone());
-                    sync_comments(app);
-                    app.hex_view.comment_name_list.push(Comment {
-                        offset: ofs,
-                        comment: cmt,
-                    });
-                }
-                app.dialog_renderer = None;
-                app.state = UIState::Normal;
+                Commands::comment(app, ofs, cmt);
             }
             _ => {
                 app.hex_view.comment_input.handle_event(event);

@@ -12,68 +12,13 @@ use std::io::Result;
 
 use crate::{
     app::{App, FoundString},
+    commands::Commands,
     config::APP_CACHE_SIZE,
     editor::UIState,
     util::center_widget,
 };
 
 use regex::{Regex, RegexBuilder};
-
-impl App {
-    pub fn load_strings(&mut self, force_read: bool) {
-        // If the string list is already filled, just reuse it
-        if force_read {
-            self.strings.clear();
-        }
-
-        if !self.strings.is_empty() {
-            return;
-        }
-
-        let mut siz = 0;
-        let mut candidate = String::new();
-
-        // Save the original loaded block number (will be restored later)
-        let original_block_number = self.reader.cache_block_number;
-
-        // Read the entire file by blocks and find strings in them
-
-        let default_regex = Regex::new(".*").unwrap();
-        // let re = Regex::new(&self.string_regex).unwrap_or(default_regex);
-        let re = RegexBuilder::new(&self.string_regex)
-            .case_insensitive(true)
-            .build()
-            .unwrap_or(default_regex);
-
-        'outer: for block in 0..self.reader.cache_blocks {
-            let _ = self.read_chunk_from_file(block);
-            for (i, byte) in self.buffer.iter().enumerate() {
-                if byte.is_ascii_graphic() || *byte == b' ' {
-                    candidate.push(*byte as char);
-                    siz += 1;
-                } else {
-                    if siz >= self.config.minimum_string_length && re.is_match(&candidate) {
-                        let ofs = i + APP_CACHE_SIZE * block - siz;
-                        self.strings.push(FoundString {
-                            offset: ofs,
-                            content: candidate.clone(),
-                            size: siz,
-                        });
-                        if self.strings.len() >= self.config.maximum_strings_to_show {
-                            // too many strings :(
-                            break 'outer;
-                        }
-                    }
-                    candidate.clear();
-                    siz = 0;
-                }
-            }
-        }
-
-        // Restore previously loaded block
-        let _ = self.read_chunk_from_file(original_block_number);
-    }
-}
 
 pub fn dialog_strings_draw(app: &mut App, frame: &mut Frame) {
     let mut items = Vec::new();
@@ -167,16 +112,16 @@ pub fn dialog_strings_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         }
         KeyCode::Char('+') => {
             app.config.minimum_string_length += 1;
-            app.load_strings(true);
+            Commands::load_strings(app, true);
         }
         KeyCode::Char('-') => {
             if app.config.minimum_string_length > 1 {
                 app.config.minimum_string_length -= 1;
-                app.load_strings(true);
+                Commands::load_strings(app, true);
             }
         }
         KeyCode::Char('R') => {
-            app.load_strings(true);
+            Commands::load_strings(app, true);
         }
         KeyCode::Char('f') => {
             app.state = UIState::DialogStringsRegex;
@@ -216,7 +161,7 @@ pub fn dialog_strings_regex_events(app: &mut App, event: &Event) -> Result<bool>
                 app.string_regex = String::from(app.hex_view.strings_regex_input.value());
                 app.dialog_2nd_renderer = None;
                 app.state = UIState::DialogStrings;
-                app.load_strings(true);
+                Commands::load_strings(app, true);
             }
             _ => {
                 app.hex_view.strings_regex_input.handle_event(event);
@@ -224,4 +169,66 @@ pub fn dialog_strings_regex_events(app: &mut App, event: &Event) -> Result<bool>
         }
     }
     Ok(false)
+}
+
+impl Commands {
+    pub fn strings(app: &mut App) {
+        Commands::load_strings(app, false);
+        app.state = UIState::DialogStrings;
+        app.dialog_renderer = Some(dialog_strings_draw);
+    }
+
+    pub fn load_strings(app: &mut App, force_read: bool) {
+        // If the string list is already filled, just reuse it
+        if force_read {
+            app.strings.clear();
+        }
+
+        if !app.strings.is_empty() {
+            return;
+        }
+
+        let mut siz = 0;
+        let mut candidate = String::new();
+
+        // Save the original loaded block number (will be restored later)
+        let original_block_number = app.reader.cache_block_number;
+
+        // Read the entire file by blocks and find strings in them
+
+        let default_regex = Regex::new(".*").unwrap();
+        // let re = Regex::new(&self.string_regex).unwrap_or(default_regex);
+        let re = RegexBuilder::new(&app.string_regex)
+            .case_insensitive(true)
+            .build()
+            .unwrap_or(default_regex);
+
+        'outer: for block in 0..app.reader.cache_blocks {
+            let _ = app.read_chunk_from_file(block);
+            for (i, byte) in app.buffer.iter().enumerate() {
+                if byte.is_ascii_graphic() || *byte == b' ' {
+                    candidate.push(*byte as char);
+                    siz += 1;
+                } else {
+                    if siz >= app.config.minimum_string_length && re.is_match(&candidate) {
+                        let ofs = i + APP_CACHE_SIZE * block - siz;
+                        app.strings.push(FoundString {
+                            offset: ofs,
+                            content: candidate.clone(),
+                            size: siz,
+                        });
+                        if app.strings.len() >= app.config.maximum_strings_to_show {
+                            // too many strings :(
+                            break 'outer;
+                        }
+                    }
+                    candidate.clear();
+                    siz = 0;
+                }
+            }
+        }
+
+        // Restore previously loaded block
+        let _ = app.read_chunk_from_file(original_block_number);
+    }
 }

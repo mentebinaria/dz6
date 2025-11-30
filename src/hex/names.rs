@@ -9,7 +9,7 @@ use ratatui::{
 use ratatui::crossterm::event::{Event, KeyCode};
 use std::io::Result;
 
-use crate::{app::App, editor::UIState, util::center_widget};
+use crate::{app::App, commands::Commands, editor::UIState, util::center_widget};
 
 pub fn dialog_names_draw(app: &mut App, frame: &mut Frame) {
     let n = app.hex_view.comment_name_list.len();
@@ -147,7 +147,7 @@ pub fn dialog_names_regex_events(app: &mut App, event: &Event) -> Result<bool> {
                 app.hex_view.names_regex = String::from(app.hex_view.names_regex_input.value());
                 app.dialog_2nd_renderer = None;
                 app.state = UIState::DialogNames;
-                app.load_strings(true);
+                Commands::load_strings(app, true);
             }
             _ => (),
         }

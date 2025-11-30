@@ -1,5 +1,6 @@
 use crate::{
     app::{App, SearchMode},
+    commands::Commands,
     config::APP_PAGE_SIZE,
     editor::UIState,
     hex::{self, search::hex_string_to_u8},
@@ -64,7 +65,7 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Right | KeyCode::Char('l') if !key.modifiers.contains(KeyModifiers::ALT) => {
             app.goto(app.hex_view.offset + 1);
         }
-        // Move up
+        // move up
         KeyCode::Up | KeyCode::Char('k') => {
             if app.hex_view.offset >= app.config.hex_mode_bytes_per_line {
                 app.goto(app.hex_view.offset - app.config.hex_mode_bytes_per_line);
@@ -229,26 +230,27 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             app.state = UIState::DialogHelp;
             app.dialog_renderer = Some(hex::help::dialog_help_draw);
         }
-        // edit
-        KeyCode::F(3) | KeyCode::Char('r') => {
-            if !app.file_info.is_read_only && app.hex_view.offset < app.file_info.size {
+        // reaplce
+        KeyCode::Char('r') => {
+            if app.file_info.is_read_only {
+                print!("\x07"); // beep
+            } else if app.hex_view.offset < app.file_info.size {
                 app.state = UIState::HexEditing;
                 app.hex_view.changed_bytes.clear();
             }
         }
         // strings list
         KeyCode::Char('s') => {
-            app.load_strings(false);
-            app.state = UIState::DialogStrings;
-            app.dialog_renderer = Some(hex::strings::dialog_strings_draw);
+            Commands::strings(app);
         }
         // search
         KeyCode::F(7) | KeyCode::Char('/') => {
             app.state = UIState::DialogSearch;
             app.dialog_renderer = Some(hex::search::dialog_search_draw);
         }
-        // search next and cycle mode
+        // names and search next
         KeyCode::Char('n') => {
+            // names
             if key.modifiers.contains(KeyModifiers::ALT) {
                 app.state = UIState::DialogNames;
                 app.dialog_renderer = Some(hex::names::dialog_names_draw);
@@ -256,7 +258,7 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                     app.hex_view.names_list_state.select_first();
                 }
             } else {
-                App::log(app, format!("{:?}", app.hex_view.search.mode));
+                // search next
                 let mut ofs = None;
                 if app.state == UIState::Normal {
                     if app.hex_view.search.mode == SearchMode::Utf8

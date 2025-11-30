@@ -1,6 +1,6 @@
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use crate::{app::App, editor::UIState, global};
+use crate::{app::App, commands, editor::UIState, global};
 
 use std::io::Result;
 
@@ -16,7 +16,7 @@ pub fn handle_global_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         // command bar
         KeyCode::Char(':') => {
             app.state = UIState::Command;
-            app.dialog_renderer = Some(global::command::command_draw);
+            app.dialog_renderer = Some(commands::command_draw);
         }
         KeyCode::Char('?') => {
             app.state = UIState::DialogCalculator;
