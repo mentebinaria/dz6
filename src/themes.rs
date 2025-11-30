@@ -78,9 +78,7 @@ pub const LIGHT: Theme = Theme {
         .fg(Color::from_u32(0x000000))
         .bg(Color::from_u32(0xadd6ff)),
 
-    byte_highlight: Style::new()
-        .fg(Color::Black)
-        .bg(Color::from_u32(0xffb3b3)),
+    byte_highlight: Style::new().fg(Color::Black).bg(Color::from_u32(0xffb3b3)),
 
     topbar: Style::new()
         .fg(Color::from_u32(0x333333))
