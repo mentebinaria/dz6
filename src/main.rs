@@ -1,4 +1,5 @@
 mod app;
+mod commands;
 mod config;
 mod draw;
 mod editor;
@@ -36,7 +37,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
     let mut app = App::new();
-    let cursor_offset = util::parse_goto_expression(&args.offset).unwrap_or_default();
+    let cursor_offset = util::parse_offset(&args.offset).unwrap_or_default();
 
     app.load_file(&args.file, cursor_offset, args.readonly)
         .unwrap_or_else(|e| {

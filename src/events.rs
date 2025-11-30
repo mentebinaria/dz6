@@ -3,6 +3,7 @@ use std::io::Result;
 use std::time::Duration;
 
 use crate::app::App;
+use crate::commands;
 use crate::editor::{AppView, UIState};
 use crate::global;
 use crate::hex;
@@ -37,7 +38,7 @@ pub fn handle_events(app: &mut App) -> Result<bool> {
                         text::dialog_encoding::dialog_encoding_events(app, key)?
                     }
                     UIState::DialogSearch => hex::search::dialog_search_events(app, &event)?,
-                    UIState::Command => global::command::command_events(app, &event)?,
+                    UIState::Command => commands::command_events(app, &event)?,
                     UIState::HexEditing => hex::edit::edit_events(app, key)?,
                     UIState::DialogStrings => hex::strings::dialog_strings_events(app, key)?,
                     UIState::DialogStringsRegex => {
