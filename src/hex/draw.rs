@@ -56,8 +56,10 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
         let mut byte_content = format!("{byte:02X}");
         byte_style = if app.hex_view.highlihts.contains(byte) {
             app.config.theme.byte_highlight
-        } else if *byte == b'\0' {
-            app.config.theme.zeroes
+        } else if *byte == b'\0' && app.config.dim_zeroes {
+            app.config.theme.dimmed
+        } else if !byte.is_ascii_graphic() && app.config.dim_control_chars {
+            app.config.theme.dimmed
         } else {
             app.config.theme.main
         };
@@ -149,7 +151,7 @@ pub fn draw_hex_ascii(app: &mut App, frame: &mut Frame, area: Rect) {
         let c = if (*byte).is_ascii_graphic() {
             *byte as char
         } else {
-            app.config.hex_mode_non_ascii_char
+            app.config.hex_mode_non_graphic_char
         };
 
         // O conteúdo e o estilo da célula agora vai depender se

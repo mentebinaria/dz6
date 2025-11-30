@@ -7,8 +7,10 @@ pub const APP_CACHE_SIZE: usize = 4096;
 pub const APP_PAGE_SIZE: usize = APP_CACHE_SIZE / 4;
 
 pub struct Config {
+    pub dim_control_chars: bool,
+    pub dim_zeroes: bool,
     pub hex_mode_bytes_per_line: usize,
-    pub hex_mode_non_ascii_char: char,
+    pub hex_mode_non_graphic_char: char,
     pub maximum_strings_to_show: usize,
     pub minimum_string_length: usize,
     pub theme: Theme,
