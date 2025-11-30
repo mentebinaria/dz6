@@ -27,6 +27,7 @@ pub fn status_bar_draw(app: &mut App, frame: &mut Frame, area: Rect) {
     }
 
     let mode = match app.state {
+        UIState::Normal => "NORMAL",
         UIState::HexEditing => "REPLACE",
         UIState::DialogSearch => {
             if app.hex_view.search.mode == SearchMode::Hex {
@@ -35,7 +36,8 @@ pub fn status_bar_draw(app: &mut App, frame: &mut Frame, area: Rect) {
                 "SEARCH/UTF-8"
             }
         }
-        _ => "NORMAL",
+        UIState::Command => "COMMAND",
+        _ => "",
     };
 
     let fname = app.file_info.name.clone();
