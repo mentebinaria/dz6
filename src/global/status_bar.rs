@@ -17,7 +17,7 @@ pub fn status_bar_draw(app: &mut App, frame: &mut Frame, area: Rect) {
     }
 
     if !app.hex_view.bookmarks.is_empty() {
-        bookmarks_string.push('*');
+        bookmarks_string.push('★');
     }
 
     for i in 0..8 {
@@ -29,6 +29,7 @@ pub fn status_bar_draw(app: &mut App, frame: &mut Frame, area: Rect) {
     let mode = match app.state {
         UIState::Normal => "NORMAL",
         UIState::HexEditing => "REPLACE",
+        UIState::HexSelection => "SELECT",
         UIState::DialogSearch => {
             if app.hex_view.search.mode == SearchMode::Hex {
                 "SEARCH/HEX"

@@ -290,6 +290,14 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 app.dialog_renderer = Some(hex::comment::dialog_comment_draw);
             }
         }
+        // selection
+        KeyCode::Char('v') => {
+            if app.file_info.size > 0 {
+                app.state = UIState::HexSelection;
+                app.hex_view.selection.start = app.hex_view.offset;
+                app.hex_view.selection.end = app.hex_view.offset;
+            }
+        }
         _ => {}
     }
     Ok(false)

@@ -87,6 +87,7 @@ Once you load a file in **dz6**, you can use the commands below.
 | `z`                     | Enter replace mode and set the byte under the cursor zero                          |                                                                   |
 | `Ctrl+a`                | Enter replace mode and increment byte under the cursor                             |                                                                   |
 | `Ctrl+x`                | Enter replace mode and decrement byte under the cursor                             |                                                                   |
+| `v`                     | Enter selection mode(#hex-selection-mode)                                          |                                                                   |
 | `/`                     | Search                                                                             | Search the entire file. `Tab` cycles between ASCII and hex search |
 | `n`                     | Search next                                                                        |                                                                   |
 | `s`                     | Open [Strings](#strings) window                                                    |                                                                   |
@@ -100,6 +101,16 @@ Once you load a file in **dz6**, you can use the commands below.
 | `;`                     | Add a comment to the selected offset                                               |                                                                   |
 | `Ant+n`                 | Open [Names](#names) window. Added comments will be there.                         |                                                                   |
 | `?`                     | Open [Calculator](#calculator)                                                     |                                                                   |
+
+#### Hex selection mode
+
+| Key        | Action                           | Tips                                                                             |
+| ---------- | -------------------------------- | -------------------------------------------------------------------------------- |
+| Arrow keys | Navigation (left and right only) | vim-like `h`, `l` also work                                                      |
+| `n`        | Fill selected bytes with NOPs    | This puts dz6 in replace mode; press `Enter` to save the buffer; `Esc` to cancel |
+| `z`        | Fill selected bytes with zeroes  | Same as above                                                                    |
+| `y`        | Copy bytes to system's clipboard | There is no paste command yet                                                    |
+| `Esc`      | Go back to normal mode           |                                                                                  |
 
 #### Hex replace mode
 

@@ -27,5 +27,6 @@ pub enum UIState {
     DialogStrings,
     DialogStringsRegex,
     HexEditing,
+    HexSelection,
     Normal,
 }

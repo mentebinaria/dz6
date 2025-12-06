@@ -40,6 +40,7 @@ pub fn handle_events(app: &mut App) -> Result<bool> {
                     UIState::DialogSearch => hex::search::dialog_search_events(app, &event)?,
                     UIState::Command => commands::command_events(app, &event)?,
                     UIState::HexEditing => hex::edit::edit_events(app, key)?,
+                    UIState::HexSelection => hex::selection::select_events(app, key)?,
                     UIState::DialogStrings => hex::strings::dialog_strings_events(app, key)?,
                     UIState::DialogStringsRegex => {
                         hex::strings::dialog_strings_regex_events(app, &event)?

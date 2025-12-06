@@ -54,18 +54,23 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
         let offset = i + app.reader.page_start;
 
         let mut byte_content = format!("{byte:02X}");
-        byte_style = if app.hex_view.highlihts.contains(byte) {
-            app.config.theme.byte_highlight
-        } else if *byte == b'\0' && app.config.dim_zeroes {
-            app.config.theme.dimmed
-        } else if !byte.is_ascii_graphic() && app.config.dim_control_chars {
-            app.config.theme.dimmed
-        } else {
-            app.config.theme.main
-        };
+        byte_style =
+            if app.state == UIState::HexSelection && app.hex_view.selection.contains(offset) {
+                app.config.theme.highlight
+            } else if app.hex_view.highlihts.contains(byte) {
+                app.config.theme.byte_highlight
+            } else if *byte == b'\0' && app.config.dim_zeroes {
+                app.config.theme.dimmed
+            } else if !byte.is_ascii_graphic() && app.config.dim_control_chars {
+                app.config.theme.dimmed
+            } else {
+                app.config.theme.main
+            };
 
         if app.state == UIState::HexEditing && app.hex_view.editing_hex {
             cell_hl_style = app.config.theme.editing;
+        } else if app.state == UIState::HexSelection {
+            cell_hl_style = app.config.theme.highlight;
         }
 
         if app.hex_view.changed_bytes.contains_key(&offset) {
@@ -101,10 +106,17 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
         .table_state
         .select_column(Some(app.hex_view.cursor.x));
 
-    let constraints = vec![Constraint::Length(2); app.config.hex_mode_bytes_per_line];
+    // small trick to make selection looks better
+    let col_len = if app.state == UIState::HexSelection {
+        3
+    } else {
+        2
+    };
+
+    let constraints = vec![Constraint::Length(col_len); app.config.hex_mode_bytes_per_line];
 
     let table = Table::new(rows, constraints)
-        .column_spacing(1)
+        .column_spacing(3 - col_len)
         .style(byte_style)
         .cell_highlight_style(cell_hl_style);
 

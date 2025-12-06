@@ -12,6 +12,7 @@ categories = ["command-line-utilities", "security"]
 
 
 [dependencies]
+arboard = { version = "3", default-features = false }
 clap = { version = "4.5.49", features = ["derive"] }
 crossterm = "0.29.0"
 encoding_rs = "0.8.35"
