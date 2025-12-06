@@ -56,21 +56,21 @@ Once you load a file in **dz6**, you can use the commands below.
 
 #### Commands
 
-| Command        | Action                                                           | Parameters             | Tips/Examples                                                                                      |
-| -------------- | ---------------------------------------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------- |
-| `<number`      | Go to offset                                                     |                        | hex default; `t` suffix = decimal; `+` prefix = incremental jump                                   |
-| `cmt`          | Comment                                                          | `<offset>` `<comment>` | `cmt 1000 "my comment"` (offset obeys the same rules above)                                        |
-| `set byteline` | Set the number of bytes per line                                 | `<number>`             | `set byteline 8` (default is 16; range from 1 to 48)                                               |
-| `set ctrlchar` | Set the character shown in the ASCII dump for non-graphic values | `<char>`               | `set ctrlchar " "` would set a blankspace (default: `.`)                                           |
-| `set db`       | Turn on database file saving/loading (default)                   |                        | A database file with a `.dz6` extension will be used to store state, bookmarks, comments, and more |
-| `set nodb`     | Turn off database file saving/loading                            |                        |                                                                                                    |
-| `set dimzero`  | Dim (gray out) null bytes only (default)                         |                        |                                                                                                    |
-| `set dimctrl`  | Dim all control characters                                       |                        | all non-graphic characters will be dimmed                                                          |
-| `set nodim`    | Turn off byte dimming                                            |                        |                                                                                                    |
-| `set theme`    | Set the theme                                                    | `dark` or `light`      | `set theme light` (default: `dark`)                                                                |
-| `w`            | Write changes to file                                            |                        |                                                                                                    |
-| `wq` or `x`    | Write changes to file and quit                                   |                        |                                                                                                    |
-| `q`            | Quit without saving changes                                      |                        | In replace mode, `T` (truncate) is an exception because it modifies the file immediately.          |
+| Command        | Action                                                           | Parameters             | Tips/Examples                                                                                     |
+| -------------- | ---------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------- |
+| `<number`      | Go to offset                                                     |                        | hex default; `t` suffix = decimal; `+` prefix = incremental jump                                  |
+| `cmt`          | Comment                                                          | `<offset>` `<comment>` | `cmt 1000 "my comment"` (offset obeys the same rules above)                                       |
+| `set byteline` | Set the number of bytes per line                                 | `<number>`             | `set byteline 8` (default is 16; range from 1 to 48)                                              |
+| `set ctrlchar` | Set the character shown in the ASCII dump for non-graphic values | `<char>`               | `set ctrlchar " "` would set a blankspace (default: `.`)                                          |
+| `set db`       | Turn on database file saving/loading (default)                   |                        | A database file with a `.dz6` extension will be used to store bookmarks and comments for the file |
+| `set nodb`     | Turn off database file saving/loading                            |                        |                                                                                                   |
+| `set dimzero`  | Dim (gray out) null bytes only (default)                         |                        |                                                                                                   |
+| `set dimctrl`  | Dim all control characters                                       |                        | all non-graphic characters will be dimmed                                                         |
+| `set nodim`    | Turn off byte dimming                                            |                        |                                                                                                   |
+| `set theme`    | Set the theme                                                    | `dark` or `light`      | `set theme light` (default: `dark`)                                                               |
+| `w`            | Write changes to file                                            |                        |                                                                                                   |
+| `wq` or `x`    | Write changes to file and quit                                   |                        |                                                                                                   |
+| `q`            | Quit without saving changes                                      |                        | In replace mode, `T` (truncate) is an exception because it modifies the file immediately.         |
 
 ### Hex view
 
