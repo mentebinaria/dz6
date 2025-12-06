@@ -237,7 +237,7 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             Commands::strings(app);
         }
         // search
-        KeyCode::F(7) | KeyCode::Char('/') => {
+        KeyCode::Char('/') => {
             app.state = UIState::DialogSearch;
             app.dialog_renderer = Some(hex::search::dialog_search_draw);
         }
