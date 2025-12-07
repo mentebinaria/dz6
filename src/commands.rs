@@ -51,7 +51,7 @@ fn try_goto(app: &mut App, offset: &str) {
     }
 }
 
-fn parse_command(app: &mut App, cmdline: &str) {
+pub fn parse_command(app: &mut App, cmdline: &str) {
     if cmdline.is_empty() {
         app.dialog_renderer = None;
         return;

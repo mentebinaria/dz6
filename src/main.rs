@@ -7,6 +7,7 @@ mod editor;
 mod events;
 mod global;
 mod hex;
+mod initfile;
 mod reader;
 mod ruler;
 mod text;
@@ -40,6 +41,9 @@ fn main() {
     let args = Args::parse();
     let mut app = App::new();
     let cursor_offset = util::parse_offset(&args.offset).unwrap_or_default();
+
+    // read init file ignoring errors
+    let _ = app.read_initfile();
 
     app.load_file(&args.file, cursor_offset, args.readonly)
         .unwrap_or_else(|e| {
