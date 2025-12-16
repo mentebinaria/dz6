@@ -1,15 +1,12 @@
-use std::collections::HashSet;
-
+use std::collections::VecDeque; // VecDeque seems better
 use tui_input::Input;
-
 use crate::config::CMD_INPUT_HIST_SIZE;
 
 #[derive(Default)]
 pub struct InputHistory {
     pub input: Input,
-    pub history: Vec<String>,
+    pub history: VecDeque<String>,
     pub history_index: Option<usize>,
-    history_set: HashSet<String>,
 }
 
 impl InputHistory {
@@ -17,15 +14,14 @@ impl InputHistory {
         if entry.trim().is_empty() {
             return;
         }
-        if !self.history_set.insert(entry.clone()) {
+        // O(n) but n=50 max, avoids extra allocations?
+        if self.history.contains(&entry) {
             return;
         }
-        self.history.push(entry);
-        // limit size
-        if self.history.len() > CMD_INPUT_HIST_SIZE {
-            let old = self.history.remove(0);
-            self.history_set.remove(&old);
+        if self.history.len() >= CMD_INPUT_HIST_SIZE {
+            self.history.pop_front();
         }
+        self.history.push_back(entry);
         self.history_index = None;
     }
 
