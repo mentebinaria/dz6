@@ -14,6 +14,7 @@ mod text;
 mod themes;
 mod util;
 mod widgets;
+mod input_history;
 
 use std::process;
 

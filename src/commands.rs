@@ -181,11 +181,11 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
 // command bar
 
 pub fn command_draw(app: &mut App, frame: &mut Frame) {
-    let para = Paragraph::new(format!(":{}", app.command_input.value()));
+    let para = Paragraph::new(format!(":{}", app.command_input.input.value()));
 
     frame.render_widget(Clear, app.command_area);
     frame.render_widget(para, app.command_area);
-    let x = app.command_input.visual_cursor();
+    let x = app.command_input.input.visual_cursor();
     frame.set_cursor_position((app.command_area.x + 1 + x as u16, app.command_area.y));
 }
 
@@ -197,12 +197,18 @@ pub fn command_events(app: &mut App, event: &Event) -> Result<bool> {
                 app.state = UIState::Normal;
             }
             KeyCode::Enter => {
-                let v = app.command_input.value_and_reset();
+                let v = app.command_input.input.value_and_reset();                
                 parse_command(app, &v);
-                // app.state = UIState::Normal;
+                app.command_input.push(v);
+            }
+            KeyCode::Up => {
+                app.command_input.up();
+            }
+            KeyCode::Down => {
+                app.command_input.down();
             }
             _ => {
-                app.command_input.handle_event(event);
+                app.command_input.input.handle_event(event);
             }
         }
     }

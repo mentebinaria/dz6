@@ -7,13 +7,13 @@ use std::{
 
 use arboard::Clipboard;
 use ratatui::{Frame, layout::Rect, widgets::ListState};
-use tui_input::Input;
 
 use crate::{
     config::*,
     editor::*,
     global::calculator::Calculator,
     hex::{hex_view::HexView, strings::FoundString},
+    input_history::InputHistory,
     reader::Reader,
     themes::*,
 };
@@ -41,7 +41,7 @@ pub struct App {
     pub calculator: Calculator,
     pub clipboard: Result<Clipboard, arboard::Error>,
     pub command_area: Rect,
-    pub command_input: Input,
+    pub command_input: InputHistory,
     pub config: Config,
     pub dialog_2nd_renderer: Option<fn(&mut App, &mut Frame)>,
     pub dialog_renderer: Option<fn(&mut App, &mut Frame)>,
@@ -66,7 +66,7 @@ impl App {
             calculator: Calculator::default(),
             clipboard: Clipboard::new(),
             command_area: Rect::default(),
-            command_input: Input::default(),
+            command_input: InputHistory::default(),
             config: Config {
                 database: true,
                 dim_control_chars: false,
