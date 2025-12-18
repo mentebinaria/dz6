@@ -6,7 +6,9 @@ use std::io::Result;
 
 pub fn handle_global_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
-        KeyCode::Enter => app.switch_editor_mode(),
+        // switch views
+        KeyCode::Enter => app.switch_editor_view(),
+        // log window
         KeyCode::Char('l') => {
             if key.modifiers.contains(KeyModifiers::ALT) {
                 app.state = UIState::DialogLog;
@@ -18,6 +20,7 @@ pub fn handle_global_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             app.state = UIState::Command;
             app.dialog_renderer = Some(commands::command_draw);
         }
+        // calculator
         KeyCode::Char('?') => {
             app.state = UIState::DialogCalculator;
             app.dialog_renderer = Some(global::calculator::dialog_calculator_draw);
