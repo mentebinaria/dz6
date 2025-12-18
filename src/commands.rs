@@ -54,6 +54,7 @@ fn try_goto(app: &mut App, offset: &str) {
 
 pub fn parse_command(app: &mut App, cmdline: &str) {
     if cmdline.is_empty() {
+        app.state = UIState::Normal;
         app.dialog_renderer = None;
         return;
     }
