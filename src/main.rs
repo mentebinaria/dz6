@@ -43,9 +43,6 @@ fn main() {
     let mut app = App::new();
     let cursor_offset = util::parse_offset(&args.offset).unwrap_or_default();
 
-    // read init file ignoring errors
-    let _ = app.read_initfile();
-
     app.load_file(&args.file, cursor_offset, args.readonly)
         .unwrap_or_else(|e| {
             eprintln!("{}: {}", args.file, e);
@@ -53,6 +50,9 @@ fn main() {
         });
 
     app.list_state.select_first();
+
+    // read init file ignoring errors
+    let _ = app.read_initfile();
 
     let mut terminal = ratatui::init();
 
