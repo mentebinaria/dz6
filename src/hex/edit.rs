@@ -121,10 +121,6 @@ pub fn edit_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             }
         }
         KeyCode::Enter => {
-            // Escreve no arquivo somente se houver algo para escrever
-            if !app.hex_view.changed_bytes.is_empty() {
-                app.write_to_buffer(app.hex_view.changed_bytes.clone());
-            }
             app.state = UIState::Normal;
             app.hex_view.editing_hex = true; // just in case it was in ASCII before
         }

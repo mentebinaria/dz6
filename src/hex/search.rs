@@ -1,5 +1,5 @@
 use crate::widgets::{Message, MessageType};
-use crate::{app::App, config::APP_CACHE_SIZE, editor::UIState};
+use crate::{app::App, editor::UIState};
 use ratatui::Frame;
 use ratatui::crossterm::event::{Event, KeyCode};
 use ratatui::widgets::Paragraph;
@@ -44,18 +44,13 @@ pub fn hex_string_to_u8(hex_string: &str) -> Option<Vec<u8>> {
 pub fn search<T: AsRef<[u8]>>(app: &mut App, needle: T) -> Option<usize> {
     let text = needle.as_ref();
     let siz = text.len();
-    let nblock = app.reader.cache_block_number;
-    for block in nblock..=app.reader.cache_blocks {
-        for (i, win) in app.buffer.windows(siz).enumerate() {
-            let ofs = i + app.reader.cache_block_number * APP_CACHE_SIZE;
-            if win == text && ofs > app.hex_view.offset {
-                return Some(ofs);
-            }
+    let buffer = app.file_info.get_buffer();
+    for (i, win) in buffer[app.hex_view.offset + 1..].windows(siz).enumerate() {
+        if win == text {
+            return Some(app.hex_view.offset + i + 1);
         }
-        let _ = app.read_chunk_from_file(block);
     }
-    // restore previous block to buffer
-    let _ = app.read_chunk_from_file(nblock);
+
     None
 }
 

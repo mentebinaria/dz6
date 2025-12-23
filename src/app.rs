@@ -1,11 +1,12 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     fs::{File, OpenOptions},
-    io::{self, Read, Seek, SeekFrom, Write},
+    io::{self, Seek, SeekFrom, Write},
     path::Path,
 };
 
 use arboard::Clipboard;
+use mmap_io::{MemoryMappedFile, MmapMode};
 use ratatui::{Frame, layout::Rect, widgets::ListState};
 
 use crate::{
@@ -26,6 +27,25 @@ pub struct FileInfo {
     pub name: String,
     pub r#type: &'static str,
     pub size: usize,
+    pub mmap: Option<MemoryMappedFile>,
+}
+
+impl FileInfo {
+    /// Get memory mapped file buffer.
+    ///
+    /// This slice appears to have all file, but beware it is just a mapping from it and every
+    /// time you access a page that is not mapped it will load from disk to memory by the OS,
+    /// which also takes care of unloading it if memory constrained.
+    pub fn get_buffer(&mut self) -> &[u8] {
+        if let Some(mmap) = self.mmap.as_mut() {
+            match mmap.as_slice(0, self.size as u64) {
+                Ok(slice) => return slice,
+                Err(_) => (), // TODO: panic ? (file was deleted or changed)
+            }
+        }
+
+        return &[];
+    }
 }
 
 #[derive(Debug)]
@@ -37,7 +57,6 @@ pub struct TextView {
 }
 
 pub struct App {
-    pub buffer: [u8; APP_CACHE_SIZE],
     pub calculator: Calculator,
     pub clipboard: Result<Clipboard, arboard::Error>,
     pub command_area: Rect,
@@ -62,7 +81,6 @@ pub struct App {
 impl App {
     pub fn new() -> Self {
         App {
-            buffer: [0u8; APP_CACHE_SIZE],
             calculator: Calculator::default(),
             clipboard: Clipboard::new(),
             command_area: Rect::default(),
@@ -107,7 +125,8 @@ impl App {
 
     /// this function tries to identify a file type; this is a boilerplate implementation.
     fn id_file(&mut self) {
-        self.file_info.r#type = match self.buffer[0] {
+        let buffer = self.file_info.get_buffer();
+        self.file_info.r#type = match buffer[0] {
             0x7f => "ELF",
             0xca | 0xcf => "Mach-O",
             0x4d => "PE",
@@ -133,27 +152,31 @@ impl App {
 
         let meta = path.metadata()?;
 
-        // try to open the file with write permissions. Fallback to read-only otherise.
+        // We try to open file readwrite to use this later for saving
         if !read_only && let Ok(file) = OpenOptions::new().read(true).write(true).open(path) {
             self.file_info.file = Some(file);
         } else {
-            let file = OpenOptions::new().read(true).open(path)?;
-            self.file_info.file = Some(file);
             self.file_info.is_read_only = true;
         }
 
-        if let Some(f) = self.file_info.file.as_mut() {
-            self.file_info.size = meta.len() as usize;
-            self.reader.cache_blocks = self.file_info.size.div_ceil(APP_CACHE_SIZE);
-            self.reader.pages = self.file_info.size.div_ceil(APP_PAGE_SIZE);
-            self.reader.page_last = self.reader.pages.saturating_sub(1);
-            let _bytes_read = f.read(&mut self.buffer)?;
-            self.id_file();
-            self.log(format!(
-                "filesize: {} (0x{:x})",
-                self.file_info.size, self.file_info.size
-            ));
+        // We map it on memory readonly as changed to mapped memory also changes it on disk
+        if let Ok(mmap) = MemoryMappedFile::builder(path)
+            .mode(MmapMode::ReadOnly)
+            .open()
+        {
+            self.file_info.mmap = Some(mmap);
+        } else {
+            return Err(std::io::Error::other("could not open file"));
         }
+
+        self.file_info.size = meta.len() as usize;
+
+        self.id_file();
+        self.log(format!(
+            "filesize: {} (0x{:x})",
+            self.file_info.size, self.file_info.size
+        ));
+
         if initial_offset != 0 {
             self.goto(0);
         }
@@ -170,44 +193,6 @@ impl App {
         let fp = self.file_info.path.clone();
         self.load_file(&fp, self.hex_view.offset, self.file_info.is_read_only)
             .expect("could not reload the file");
-    }
-
-    /// read one cache page from the file to the cache
-    pub fn read_chunk_from_file(&mut self, nblock: usize) -> io::Result<()> {
-        if self.file_info.file.is_none() {
-            return Err(std::io::Error::other("file not open"));
-        }
-
-        if let Some(f) = &mut self.file_info.file {
-            f.seek(SeekFrom::Start((nblock * APP_CACHE_SIZE) as u64))?;
-            let _ = f.read(&mut self.buffer)?;
-            self.reader.cache_block_number = nblock;
-            self.log(format!("read_chunk_from_file({nblock})"));
-        }
-        Ok(())
-    }
-
-    /// write what's cached to the buffer, but not to the file yet
-    pub fn write_to_buffer(&mut self, changed: HashMap<usize, String>) {
-        let ofs = self.hex_view.offset;
-        let mut total_written = 0usize;
-
-        for (k, v) in &changed {
-            self.read_chunk_for_offset(*k);
-            if let Ok(b) = u8::from_str_radix(v, 16) {
-                let buf_ofs = k % APP_CACHE_SIZE;
-                self.buffer[buf_ofs] = b;
-                total_written += 1;
-            }
-        }
-
-        App::log(
-            self,
-            format!("{} bytes written to buffer: {:?}", total_written, changed),
-        );
-
-        // restore state
-        self.goto(ofs);
     }
 
     /// write what's cached to the actual file
@@ -240,135 +225,108 @@ impl App {
     }
 
     pub fn read_u8(&mut self, offset: usize) -> Option<u8> {
-        let ofs = offset % APP_CACHE_SIZE;
-
         if offset >= self.file_info.size {
             return None;
         }
 
-        Some(self.buffer[ofs])
+        let buffer = self.file_info.get_buffer();
+        Some(buffer[offset])
     }
 
     pub fn read_i8(&mut self, offset: usize) -> Option<i8> {
-        let ofs = offset % APP_CACHE_SIZE;
-
         if offset >= self.file_info.size {
             return None;
         }
 
-        Some(self.buffer[ofs] as i8)
+        let buffer = self.file_info.get_buffer();
+        Some(buffer[offset] as i8)
     }
 
     pub fn read_u16(&mut self, offset: usize) -> Option<u16> {
-        let ofs = offset % APP_CACHE_SIZE;
-
         if offset + 1 >= self.file_info.size {
             return None;
         }
 
-        let b1 = self.buffer[ofs];
-        let b2 = self.buffer[ofs + 1];
+        let buffer = self.file_info.get_buffer();
+        let b1 = buffer[offset];
+        let b2 = buffer[offset + 1];
 
         Some(u16::from_le_bytes([b1, b2]))
     }
 
     pub fn read_i16(&mut self, offset: usize) -> Option<i16> {
-        let ofs = offset % APP_CACHE_SIZE;
-
         if offset + 1 >= self.file_info.size {
             return None;
         }
 
-        let b1 = self.buffer[ofs];
-        let b2 = self.buffer[ofs + 1];
+        let buffer = self.file_info.get_buffer();
+        let b1 = buffer[offset];
+        let b2 = buffer[offset + 1];
 
         Some(i16::from_le_bytes([b1, b2]))
     }
 
     pub fn read_u32(&mut self, offset: usize) -> Option<u32> {
-        let ofs = offset % APP_CACHE_SIZE;
-
         if offset + 3 >= self.file_info.size {
             return None;
         }
 
-        let b1 = self.buffer[ofs];
-        let b2 = self.buffer[ofs + 1];
-        let b3 = self.buffer[ofs + 2];
-        let b4 = self.buffer[ofs + 3];
+        let buffer = self.file_info.get_buffer();
+        let b1 = buffer[offset];
+        let b2 = buffer[offset + 1];
+        let b3 = buffer[offset + 2];
+        let b4 = buffer[offset + 3];
 
         Some(u32::from_le_bytes([b1, b2, b3, b4]))
     }
 
     pub fn read_i32(&mut self, offset: usize) -> Option<i32> {
-        let ofs = offset % APP_CACHE_SIZE;
-
         if offset + 3 >= self.file_info.size {
             return None;
         }
 
-        let b1 = self.buffer[ofs];
-        let b2 = self.buffer[ofs + 1];
-        let b3 = self.buffer[ofs + 2];
-        let b4 = self.buffer[ofs + 3];
+        let buffer = self.file_info.get_buffer();
+        let b1 = buffer[offset];
+        let b2 = buffer[offset + 1];
+        let b3 = buffer[offset + 2];
+        let b4 = buffer[offset + 3];
 
         Some(i32::from_le_bytes([b1, b2, b3, b4]))
     }
 
     pub fn read_u64(&mut self, offset: usize) -> Option<u64> {
-        let ofs = offset % APP_CACHE_SIZE;
-
         if offset + 7 >= self.file_info.size {
             return None;
         }
 
-        let b1 = self.buffer[ofs];
-        let b2 = self.buffer[ofs + 1];
-        let b3 = self.buffer[ofs + 2];
-        let b4 = self.buffer[ofs + 3];
-        let b5 = self.buffer[ofs + 4];
-        let b6 = self.buffer[ofs + 5];
-        let b7 = self.buffer[ofs + 6];
-        let b8 = self.buffer[ofs + 7];
+        let buffer = self.file_info.get_buffer();
+        let b1 = buffer[offset];
+        let b2 = buffer[offset + 1];
+        let b3 = buffer[offset + 2];
+        let b4 = buffer[offset + 3];
+        let b5 = buffer[offset + 4];
+        let b6 = buffer[offset + 5];
+        let b7 = buffer[offset + 6];
+        let b8 = buffer[offset + 7];
 
         Some(u64::from_le_bytes([b1, b2, b3, b4, b5, b6, b7, b8]))
     }
 
     pub fn read_i64(&mut self, offset: usize) -> Option<i64> {
-        let ofs = offset % APP_CACHE_SIZE;
-
         if offset + 7 >= self.file_info.size {
             return None;
         }
 
-        let b1 = self.buffer[ofs];
-        let b2 = self.buffer[ofs + 1];
-        let b3 = self.buffer[ofs + 2];
-        let b4 = self.buffer[ofs + 3];
-        let b5 = self.buffer[ofs + 4];
-        let b6 = self.buffer[ofs + 5];
-        let b7 = self.buffer[ofs + 6];
-        let b8 = self.buffer[ofs + 7];
+        let buffer = self.file_info.get_buffer();
+        let b1 = buffer[offset];
+        let b2 = buffer[offset + 1];
+        let b3 = buffer[offset + 2];
+        let b4 = buffer[offset + 3];
+        let b5 = buffer[offset + 4];
+        let b6 = buffer[offset + 5];
+        let b7 = buffer[offset + 6];
+        let b8 = buffer[offset + 7];
 
         Some(i64::from_le_bytes([b1, b2, b3, b4, b5, b6, b7, b8]))
-    }
-
-    pub fn read_chunk_for_offset(&mut self, offset: usize) {
-        let nblock = offset / APP_CACHE_SIZE;
-
-        if offset > self.reader.cache_end {
-            self.read_chunk_from_file(nblock).unwrap();
-            self.reader.cache_start += nblock * APP_CACHE_SIZE;
-            self.reader.cache_end += nblock * APP_CACHE_SIZE;
-        } else if offset < self.reader.cache_start {
-            self.read_chunk_from_file(nblock).unwrap();
-            self.reader.cache_start -= APP_CACHE_SIZE;
-            self.reader.cache_end -= APP_CACHE_SIZE;
-        } else if offset == 0 {
-            self.reader.cache_start = 0;
-            self.reader.cache_end = APP_CACHE_SIZE - 1;
-            self.reader.page_start = 0;
-            self.reader.page_end = APP_PAGE_SIZE - 1;
-        }
     }
 }

@@ -4,19 +4,16 @@ use ratatui::{
     widgets::{Cell, Clear, Row, Table},
 };
 
-use crate::{app::App, config::APP_PAGE_SIZE, editor::UIState};
+use crate::{app::App, editor::UIState};
 
 // Left column with offsets
 pub fn draw_hex_offsets(app: &mut App, frame: &mut Frame, area: Rect) {
     // Offset lines
-    let mut rows: Vec<Row> = Vec::with_capacity(APP_PAGE_SIZE / app.config.hex_mode_bytes_per_line);
+    let mut rows: Vec<Row> =
+        Vec::with_capacity(app.reader.page_current_size / app.config.hex_mode_bytes_per_line);
     let mut ofs = app.reader.page_start;
-    let num_offsets = app
-        .reader
-        .page_current_size
-        .div_ceil(app.config.hex_mode_bytes_per_line);
 
-    for _ in 0..num_offsets {
+    for _ in 0..frame.area().height {
         rows.push(Row::new([format!("{ofs:08X}")]));
         ofs += app.config.hex_mode_bytes_per_line;
     }
@@ -33,16 +30,17 @@ pub fn draw_hex_offsets(app: &mut App, frame: &mut Frame, area: Rect) {
 // Middle area with the actual hex dump
 // TODO: refactor this as I did for draw_hex_ascii()
 pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
-    let mut rows: Vec<Row> = Vec::with_capacity(APP_PAGE_SIZE / app.config.hex_mode_bytes_per_line);
+    let mut rows: Vec<Row> =
+        Vec::with_capacity(app.reader.page_current_size / app.config.hex_mode_bytes_per_line);
     // A cell for each byte as they need different styles when edited
-    let mut byte_row: Vec<Cell> = Vec::with_capacity(APP_PAGE_SIZE);
+    let mut byte_row: Vec<Cell> = Vec::with_capacity(app.reader.page_current_size);
     let mut cell_hl_style = app.config.theme.highlight;
     let mut byte_style = app.config.theme.main;
 
-    for (i, byte) in app
-        .buffer
+    let buffer = app.file_info.get_buffer();
+    for (i, byte) in buffer
         .iter()
-        .skip(app.reader.offset_location_in_cache)
+        .skip(app.reader.page_start)
         .take(app.reader.page_current_size)
         .enumerate()
     {
@@ -149,10 +147,10 @@ pub fn draw_hex_ascii(app: &mut App, frame: &mut Frame, area: Rect) {
         app.config.theme.highlight
     };
 
-    for (i, byte) in app
-        .buffer
+    let buffer = app.file_info.get_buffer();
+    for (i, byte) in buffer
         .iter()
-        .skip(app.reader.offset_location_in_cache)
+        .skip(app.reader.page_start)
         .take(app.reader.page_current_size)
         .enumerate()
     {

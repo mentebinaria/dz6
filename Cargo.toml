@@ -25,6 +25,7 @@ serde = { version = "1.0.228", features = ["derive"] }
 shell-words = "1.1.0"
 toml = "0.9.8"
 tui-input = "0.14.0"
+mmap-io = { version = "0.9.4" }
 
 # The profile that 'dist' will build with
 [profile.dist]

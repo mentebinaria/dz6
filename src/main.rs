@@ -58,7 +58,16 @@ fn main() {
 
     while app.running {
         terminal
-            .draw(|f| draw::draw(f, &mut app))
+            .draw(|f| {
+                // Page size is dynamic calculated as:
+                // frame height - (command line + status line + header) * bytes per line
+                let page_size = (f.area().height - 3) as usize * app.config.hex_mode_bytes_per_line;
+                if page_size != app.reader.page_current_size {
+                    app.reader.page_current_size = page_size;
+                    app.reader.page_end = app.reader.page_start + page_size - 1;
+                }
+                draw::draw(f, &mut app)
+            })
             .expect("failed to draw frame");
 
         events::handle_events(&mut app).expect("unable to read events");

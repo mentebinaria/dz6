@@ -1,11 +1,5 @@
 use crate::themes::*;
 
-// cache block size
-pub const APP_CACHE_SIZE: usize = 4096;
-
-// page size (amount of bytes)
-pub const APP_PAGE_SIZE: usize = APP_CACHE_SIZE / 4;
-
 // command input history size
 pub const CMD_INPUT_HIST_SIZE: usize = 50;
 

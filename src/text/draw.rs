@@ -4,13 +4,17 @@ use ratatui::{
     widgets::{Clear, Paragraph, Wrap},
 };
 
-use crate::{app::App, config::APP_CACHE_SIZE};
+use crate::app::App;
 
 // FIXME: Show the entire file contents in text view. Currently,
 // it only shows up to APP_CACHE_SIZE bytes from the file.
 pub fn text_contents_draw(app: &mut App, frame: &mut Frame, area: Rect) {
-    let limit = app.file_info.size.min(APP_CACHE_SIZE);
-    let (mut text, _, had_error) = app.text_view.table.decode(&app.buffer[..limit]);
+    let buffer = app.file_info.get_buffer();
+    let limit = (area.height * area.width) as usize;
+    let (mut text, _, had_error) = app
+        .text_view
+        .table
+        .decode(&buffer[app.reader.page_start..app.reader.page_start + limit]);
 
     if had_error {
         text = text

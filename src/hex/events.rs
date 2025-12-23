@@ -1,4 +1,4 @@
-use crate::{app::App, commands::Commands, config::APP_PAGE_SIZE, editor::UIState, hex};
+use crate::{app::App, commands::Commands, editor::UIState, hex};
 
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use std::io::Result;
@@ -25,11 +25,7 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 app.goto(0);
                 break;
             }
-            app.read_chunk_for_offset(ofs);
         }
-
-        // restore original chunk
-        app.read_chunk_for_offset(app.hex_view.offset);
     }
 
     // it is important to call goto as it looks for the offset in the
@@ -101,12 +97,12 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         }
         // go down one page
         KeyCode::PageDown => {
-            app.goto(app.hex_view.offset + APP_PAGE_SIZE);
+            app.goto(app.hex_view.offset + app.reader.page_current_size);
         }
         // go up one page
         KeyCode::PageUp => {
-            if app.hex_view.offset > APP_PAGE_SIZE {
-                app.goto(app.hex_view.offset - APP_PAGE_SIZE);
+            if app.hex_view.offset > app.reader.page_current_size {
+                app.goto(app.hex_view.offset - app.reader.page_current_size);
             } else {
                 app.goto(0);
             }

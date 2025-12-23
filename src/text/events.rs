@@ -2,7 +2,7 @@ use std::io::Result;
 
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use crate::{app::App, config::*, editor::UIState, text};
+use crate::{app::App, editor::UIState, text};
 
 pub fn text_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
@@ -25,14 +25,14 @@ pub fn text_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             App::log(app, format!("{:#?}", app.text_view));
         }
         KeyCode::PageUp => {
-            if app.hex_view.offset < APP_CACHE_SIZE {
+            if app.hex_view.offset < app.reader.page_current_size {
                 app.goto(0);
             } else {
-                app.goto(app.hex_view.offset - APP_CACHE_SIZE);
+                app.goto(app.hex_view.offset - app.reader.page_current_size);
             }
         }
         KeyCode::PageDown => {
-            app.goto(app.hex_view.offset + APP_CACHE_SIZE);
+            app.goto(app.hex_view.offset + app.reader.page_current_size);
         }
         KeyCode::Left => {
             if app.text_view.scroll_offset.1 > 0 {

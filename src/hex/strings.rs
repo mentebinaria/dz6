@@ -10,9 +10,7 @@ use tui_input::backend::crossterm::EventHandler;
 
 use std::io::Result;
 
-use crate::{
-    app::App, commands::Commands, config::APP_CACHE_SIZE, editor::UIState, util::center_widget,
-};
+use crate::{app::App, commands::Commands, editor::UIState, util::center_widget};
 
 use regex::{Regex, RegexBuilder};
 
@@ -193,9 +191,6 @@ impl Commands {
         let mut siz = 0;
         let mut candidate = String::new();
 
-        // Save the original loaded block number (will be restored later)
-        let original_block_number = app.reader.cache_block_number;
-
         // Read the entire file by blocks and find strings in them
 
         let default_regex = Regex::new(".*").unwrap();
@@ -205,32 +200,26 @@ impl Commands {
             .build()
             .unwrap_or(default_regex);
 
-        'outer: for block in 0..app.reader.cache_blocks {
-            let _ = app.read_chunk_from_file(block);
-            for (i, byte) in app.buffer.iter().enumerate() {
-                if byte.is_ascii_graphic() || *byte == b' ' {
-                    candidate.push(*byte as char);
-                    siz += 1;
-                } else {
-                    if siz >= app.config.minimum_string_length && re.is_match(&candidate) {
-                        let ofs = i + APP_CACHE_SIZE * block - siz;
-                        app.strings.push(FoundString {
-                            offset: ofs,
-                            content: candidate.clone(),
-                            size: siz,
-                        });
-                        if app.strings.len() >= app.config.maximum_strings_to_show {
-                            // too many strings :(
-                            break 'outer;
-                        }
+        let buffer = app.file_info.get_buffer();
+        for (offset, byte) in buffer.iter().enumerate() {
+            if byte.is_ascii_graphic() || *byte == b' ' {
+                candidate.push(*byte as char);
+                siz += 1;
+            } else {
+                if siz >= app.config.minimum_string_length && re.is_match(&candidate) {
+                    app.strings.push(FoundString {
+                        offset: offset - siz,
+                        content: candidate.clone(),
+                        size: siz,
+                    });
+                    if app.strings.len() >= app.config.maximum_strings_to_show {
+                        // too many strings :(
+                        break;
                     }
-                    candidate.clear();
-                    siz = 0;
                 }
+                candidate.clear();
+                siz = 0;
             }
         }
-
-        // Restore previously loaded block
-        let _ = app.read_chunk_from_file(original_block_number);
     }
 }
