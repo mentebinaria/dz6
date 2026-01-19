@@ -44,13 +44,14 @@ impl App {
 
         self.reader.page_end = self.reader.page_start + self.reader.page_current_size - 1;
 
-        if self.reader.page_end > self.file_info.size {
-            self.reader.page_start = (self.file_info.size - self.reader.page_current_size
-                + self.config.hex_mode_bytes_per_line)
-                / self.config.hex_mode_bytes_per_line
-                * self.config.hex_mode_bytes_per_line;
-            self.reader.page_end = self.reader.page_start + self.reader.page_current_size - 1;
-        }
+        // This seem to be preventing navigation in small files (size < screen height)
+        // if self.reader.page_end > self.file_info.size {
+        //     self.reader.page_start = (self.file_info.size - self.reader.page_current_size
+        //         + self.config.hex_mode_bytes_per_line)
+        //         / self.config.hex_mode_bytes_per_line
+        //         * self.config.hex_mode_bytes_per_line;
+        //     self.reader.page_end = self.reader.page_start + self.reader.page_current_size - 1;
+        // }
 
         // Update the cursor
         self.hex_view.cursor.y =
