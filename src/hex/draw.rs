@@ -12,10 +12,22 @@ pub fn draw_hex_offsets(app: &mut App, frame: &mut Frame, area: Rect) {
     let mut rows: Vec<Row> =
         Vec::with_capacity(app.reader.page_current_size / app.config.hex_mode_bytes_per_line);
     let mut ofs = app.reader.page_start;
+    let height = frame.area().height as usize;
 
-    for _ in 0..frame.area().height {
+    for _ in 0..height {
         rows.push(Row::new([format!("{ofs:08X}")]));
         ofs += app.config.hex_mode_bytes_per_line;
+
+        // Prevent further offsets to appear
+        // TODO: Fix bug if the window is resized
+        if ofs >= app.file_info.size {
+            break;
+        }
+    }
+
+    // Show filesize as last offset
+    if app.file_info.size > 0 {
+        rows.push(Row::new([format!("{:08X}", app.file_info.size)]));
     }
 
     app.hex_view
