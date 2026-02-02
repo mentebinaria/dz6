@@ -288,6 +288,12 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 app.hex_view.selection.end = app.hex_view.offset;
             }
         }
+        // undo
+        KeyCode::Char('u') => {
+            if let Some(ofs) = app.hex_view.changed_history.pop() {
+                let _ = app.hex_view.changed_bytes.remove(&ofs);
+            }
+        }
         _ => {}
     }
     Ok(false)

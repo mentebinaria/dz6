@@ -21,6 +21,8 @@ pub struct HexView {
     #[serde(skip)]
     pub changed_bytes: HashMap<usize, String>,
     #[serde(skip)]
+    pub changed_history: Vec<usize>,
+    #[serde(skip)]
     pub comment_input: Input, // the input comment widget (tui-input)
 
     // `comment_name_list` is used to show comments in Names list
