@@ -98,13 +98,14 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 | `End` or `$`            | Set the cursor to the end of the current line                                      |                                                                   |
 | `Ctrl+Home` or `G`      | Go to the first offset                                                             |                                                                   |
 | `Ctrl+End` or `Shift+G` | Go to the last offset in the file                                                  |                                                                   |
-| `Page Down`             | Move down one page                                                                 | A page has 1KB by default                                         |
+| `Page Down`             | Move down one page                                                                 |                                                                   |
 | `Page Up`               | Move up one page                                                                   |                                                                   |
 | `r`                     | Enter [replace mode](#hex-replace-mode)                                            |                                                                   |
 | `z`                     | Enter replace mode and set the byte under the cursor zero                          |                                                                   |
 | `Ctrl+a`                | Enter replace mode and increment byte under the cursor                             |                                                                   |
 | `Ctrl+x`                | Enter replace mode and decrement byte under the cursor                             |                                                                   |
-| `v`                     | Enter [selection mode](#hex-selection-mode)                                        |                                                                   |
+| `v`                     | Enter [select mode](#hex-selection-mode)                                           |                                                                   |
+| `u`                     | Undo a change                                                                      |                                                                   |
 | `/`                     | Search                                                                             | Search the entire file. `Tab` cycles between ASCII and hex search |
 | `n`                     | Search next                                                                        |                                                                   |
 | `s`                     | Open [Strings](#strings) window                                                    |                                                                   |
@@ -131,17 +132,16 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 
 #### Hex replace mode
 
-| Key         | Action                                                     | Tips                          |
-| ----------- | ---------------------------------------------------------- | ----------------------------- |
-| Arrow keys  | Navigation                                                 |                               |
-| `Backspace` | The same as navigating left                                |                               |
-| `z`         | Set the byte to zero                                       |                               |
-| `Ctrl+a`    | Increment byte                                             |                               |
-| `Ctrl+x`    | Decrement byte                                             |                               |
-| `Enter`     | Save changes to file                                       |                               |
-| `Esc`       | Cancel changes                                             |                               |
-| `Tab`       | Cycle through hex and ASCII dump to edit the file in ASCII |                               |
-| `T`         | Truncate the file at the selected offset                   | Be aware this can't be undone |
+| Key         | Action                                                     | Tips                                                     |
+| ----------- | ---------------------------------------------------------- | -------------------------------------------------------- |
+| Arrow keys  | Navigation                                                 |                                                          |
+| `Backspace` | The same as navigating left                                |                                                          |
+| `z`         | Set byte to zero                                           |                                                          |
+| `Ctrl+a`    | Increment byte                                             |                                                          |
+| `Ctrl+x`    | Decrement byte                                             |                                                          |
+| `Esc`       | Go back to normal mode                                     | Changes are saved to buffer, but not written to file yet |
+| `Tab`       | Cycle through hex and ASCII dump to edit the file in ASCII |                                                          |
+| `T`         | Truncate the file at the selected offset                   | Be aware this can't be undone                            |
 
 #### Names
 
