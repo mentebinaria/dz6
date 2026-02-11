@@ -217,7 +217,7 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             app.state = UIState::DialogHelp;
             app.dialog_renderer = Some(hex::help::dialog_help_draw);
         }
-        // reaplce
+        // replace
         KeyCode::Char('r') => {
             if app.file_info.is_read_only {
                 print!("\x07"); // beep
@@ -289,6 +289,8 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Char('u') => {
             if let Some(ofs) = app.hex_view.changed_history.pop() {
                 let _ = app.hex_view.changed_bytes.remove(&ofs);
+            } else {
+                print!("\x07"); // beep if there's nothing to undo
             }
         }
         _ => {}
