@@ -2,13 +2,13 @@
 
 # dz6
 
-A vim-inspired, TUI-based hexadecimal editor
+A Vim-inspired, TUI-based hexadecimal editor
 
 ## Features
 
 - Fast, even when editing large files
 - Runs in the terminal / Text User Interface (TUI)
-- vim-like key bindings
+- Vim-like key bindings
 - Configurable options
 - Edit in hex or ASCII
 - String list with regex filtering
@@ -91,7 +91,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 
 | Key                     | Action                                                                             | Tips                                                              |
 | ----------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Arrow keys              | Navigation                                                                         | vim-like `h`, `j`, `k`, `l` also work                             |
+| Arrow keys              | Navigation                                                                         | Vim-like `h`, `j`, `k`, `l` also work                             |
 | `w` `d` `q`             | Advance by a word (2 bytes), a dword (4 bytes), or a qword (8 bytes), respectively | Use the capital letters `W`, `D`, and `Q` to move backwards       |
 | `o`                     | Go to the next other byte (the one that differs from the byte under the cursor)    | `O` goes backwards                                                |
 | `Home` or `0`           | Set the cursor to the beginning of the current line                                |                                                                   |
@@ -124,7 +124,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 
 | Key        | Action                           | Tips                                                                             |
 | ---------- | -------------------------------- | -------------------------------------------------------------------------------- |
-| Arrow keys | Navigation (left and right only) | vim-like `h`, `l` also work                                                      |
+| Arrow keys | Navigation (left and right only) | Vim-like `h`, `l` also work                                                      |
 | `n`        | Fill selected bytes with NOPs    | This puts dz6 in replace mode; press `Enter` to save the buffer; `Esc` to cancel |
 | `z`        | Fill selected bytes with zeroes  | Same as above                                                                    |
 | `y`        | Copy bytes to system's clipboard | There is no paste command yet                                                    |
@@ -202,9 +202,9 @@ Use the up and down arrow keys to navigate through the history.
 
 iTerm2 users: go to `Settings → Profiles → (your profile) → Keys` and set the `Left Option key` to `Esc+`. This will make the `Option` key work like `Alt`.
 
-**2. Do all vim commands work in dz6?**
+**2. Do all Vim commands work in dz6?**
 
-No. Some key bindings behave similarly, but dz6 is not meant to be 100% compatible with vim. For example, `o` in dz6 moves to the next other byte, while the same key in vim opens a new line below the current one.
+No. Some key bindings behave similarly, but dz6 is not meant to be 100% compatible with Vim. For example, `o` in dz6 moves to the next other byte, while the same key in Vim opens a new line below the current one.
 
 **3. Is dz6 stable yet?**
 
@@ -212,4 +212,4 @@ No. Stability is expected only at v1.0.0. Until then, breaking changes are expec
 
 ## Motivation
 
-After changing jobs and returning to Linux, I wanted something similar to [Hiew](https://hiew.io) that I could run on my machine. Since I like vim, I tried to combine features from both editors in dz6. VSCode, IDA, x64dbg, GDB, and [Hex-Patch](https://etto48.github.io/HexPatch/) also served as inspiration. Hats off to the authors of these great tools!
+After changing jobs and returning to Linux, I wanted something similar to [Hiew](https://hiew.io) that I could run on my machine. Since I like Vim, I tried to combine features from both editors in dz6. VSCode, IDA, x64dbg, GDB, and [Hex-Patch](https://etto48.github.io/HexPatch/) also served as inspiration. Hats off to the authors of these great tools!
