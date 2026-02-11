@@ -186,7 +186,12 @@ pub fn draw_hex_ascii(app: &mut App, frame: &mut Frame, area: Rect) {
             // Converte para um u8 numérico. Se não rolar, é porque deu uma
             // merda muito grande pois só deveria ter hex strings no hashmap.
             let num = u8::from_str_radix(s, 16).unwrap();
-            let c = num as char;
+            // If changed byte is not printable use the non graphic char instead
+            let c = if (num as char).is_ascii_graphic() {
+                num as char
+            } else {
+                app.config.hex_mode_non_graphic_char
+            };
             // Agora cria uma string a partir do char `c`
             // Parece doido, mas isso faz "41" -> 0x41 -> "A"
             let s = String::from(c);
