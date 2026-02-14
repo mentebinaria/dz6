@@ -113,7 +113,7 @@ pub fn edit_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 } else if c == 'T' {
                     // truncate the file
                     if let Some(f) = &app.file_info.file {
-                        f.set_len((app.hex_view.offset + 1) as u64).unwrap();
+                        f.set_len((app.hex_view.offset + 1) as u64)?;
                         app.reload_file();
                         app.state = UIState::Normal;
                         app.hex_view.editing_hex = true;
