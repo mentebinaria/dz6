@@ -109,11 +109,24 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
             Some(Command::Set { option, value }) => match option.as_str() {
                 // bytes per line
                 "byteline" => {
-                    if let Some(val) = value
-                        && let Ok(bpl) = val.parse::<usize>()
-                    {
-                        if bpl > 0 {
-                            app.config.hex_mode_bytes_per_line = bpl.min(48);
+                    if let Some(val) = value {
+                        if let Ok(bpl) = val.parse::<usize>() {
+                            // Bound user typed value by `max` - 1
+                            if app.screen.width > 0 {
+                                let max = ((app.screen.width - 9) / 4) as usize;
+                                app.config.hex_mode_bytes_per_line = bpl.min(max - 1);
+                            } else {
+                                app.config.hex_mode_bytes_per_line = bpl.min(64);
+                            }
+                            app.config.hex_mode_bytes_per_line_auto = false;
+                        } else if let Ok(bpl) = val.parse::<String>()
+                            && bpl == "auto"
+                        {
+                            app.config.hex_mode_bytes_per_line_auto = true;
+                            if app.screen.width > 0 {
+                                let max = ((app.screen.width - 9) / 4) as usize;
+                                app.config.hex_mode_bytes_per_line = max - 1;
+                            }
                         }
                     }
                     app.dialog_renderer = None;

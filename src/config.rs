@@ -8,6 +8,7 @@ pub struct Config {
     pub dim_control_chars: bool,
     pub dim_zeroes: bool,
     pub hex_mode_bytes_per_line: usize,
+    pub hex_mode_bytes_per_line_auto: bool,
     pub hex_mode_non_graphic_char: char,
     pub maximum_strings_to_show: usize,
     pub minimum_string_length: usize,

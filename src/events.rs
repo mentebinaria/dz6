@@ -56,6 +56,12 @@ pub fn handle_events(app: &mut App) -> Result<bool> {
                     }
                 };
             }
+            Event::Resize(width, _height) => {
+                if app.config.hex_mode_bytes_per_line_auto {
+                    let max = ((width - 9) / 4) as usize;
+                    app.config.hex_mode_bytes_per_line = max - 1;
+                }
+            }
             _ => {}
         }
     }
