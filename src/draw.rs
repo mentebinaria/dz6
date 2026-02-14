@@ -11,11 +11,11 @@ use crate::{
 /// This is the main drawing/rendering function that
 /// draws the layout areas and renders all Ratatui
 /// widgets by calling the right functions to do so.
-/// It it passed as callback function to terminal.draw()
+/// It is passed as callback function to terminal.draw()
 /// in the main() loop.
 pub fn draw(frame: &mut Frame, app: &mut App) {
-    if frame.area().width < 75 || frame.area().height < 10 {
-        let err = Paragraph::new("dz6 needs at least a 75x10 terminal.");
+    if frame.area().width < 68 || frame.area().height < 10 {
+        let err = Paragraph::new("dz6 needs at least a 68x10 terminal.");
         frame.render_widget(err, frame.area());
         return;
     }
