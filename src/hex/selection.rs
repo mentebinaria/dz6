@@ -30,15 +30,20 @@ impl Selection {
     pub fn contains(&self, offset: usize) -> bool {
         offset >= self.start && offset <= self.end
     }
+    pub fn clear(&mut self) {
+        self.start = 0;
+        self.end = 0;
+        self.direction = None;
+    }
 }
 
 pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
         KeyCode::Esc => {
             app.state = UIState::Normal;
-            app.hex_view.changed_bytes.clear();
             app.dialog_renderer = None;
             app.hex_view.editing_hex = true;
+            app.hex_view.selection.clear();
         }
 
         KeyCode::Left | KeyCode::Char('h') => {
@@ -92,6 +97,7 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Enter => {
             app.state = UIState::Normal;
             app.hex_view.editing_hex = true; // just in case it was in ASCII before
+            app.hex_view.selection.clear();
         }
 
         // actions
@@ -106,6 +112,7 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             for offset in app.hex_view.selection {
                 app.hex_view.changed_bytes.insert(offset, s.clone());
             }
+            app.hex_view.selection.clear();
         }
         // fill with NOPs
         KeyCode::Char('n') => {
@@ -118,6 +125,7 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             for offset in app.hex_view.selection {
                 app.hex_view.changed_bytes.insert(offset, s.clone());
             }
+            app.hex_view.selection.clear();
         }
         // yank
         KeyCode::Char('y') => {
@@ -132,8 +140,10 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 let _ = clip.set_text(s);
             }
             app.state = UIState::Normal;
+            app.hex_view.selection.clear();
         }
         _ => {}
     }
+
     Ok(false)
 }
