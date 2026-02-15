@@ -201,7 +201,11 @@ pub fn draw_hex_ascii(app: &mut App, frame: &mut Frame, area: Rect) {
             // Parece doido, mas isso faz "41" -> 0x41 -> "A"
             let s = String::from(c);
             // Por fim, retorna a célula
-            Cell::new(s.clone()).style(char_style)
+            Cell::new(s).style(char_style)
+        } else if app.state == UIState::HexSelection && app.hex_view.selection.contains(offset) {
+            char_style = app.config.theme.highlight;
+            let s = String::from(c);
+            Cell::new(s).style(char_style)
         } else {
             // Se não for um byte alterado, usa o estilo padrão do tema
             char_style = app.config.theme.main;
