@@ -33,7 +33,10 @@ impl App {
         let target_db: PathBuf = target_dir.join(&cwd_db);
         let data = fs::read_to_string(&cwd_db).or_else(|_| fs::read_to_string(&target_db))?;
 
+        // TODO: Although we're only interested in comments and bookmarks, other fields might
+        // be loaded if they are defined in the TOML file. How to prevent that?
         self.hex_view = toml::from_str(&data)?;
+        self.hex_view.editing_hex = true; // otherwise it defaults to false if a .dz6 file exists for the target
         Ok(())
     }
 }
