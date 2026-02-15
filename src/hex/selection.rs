@@ -35,39 +35,52 @@ impl Selection {
         self.end = 0;
         self.direction = None;
     }
+    pub fn select_left(&mut self, offset: usize) {
+        // unset direction if at the selection origin
+        if self.start == self.end {
+            self.direction = None;
+        }
+
+        match self.direction {
+            None => {
+                self.direction = Some(Direction::Left);
+                self.start = offset;
+            }
+            Some(Direction::Left) => self.start = offset,
+            Some(Direction::Right) => self.end = offset.saturating_sub(1),
+        }
+    }
+    pub fn select_right(&mut self, offset: usize) {
+        // unset direction if at the selection origin
+        if self.start == self.end {
+            self.direction = None;
+        }
+
+        match self.direction {
+            None => {
+                self.direction = Some(Direction::Right);
+                self.end = offset;
+            }
+            Some(Direction::Left) => self.start = offset + 1,
+            Some(Direction::Right) => self.end = offset,
+        }
+    }
 }
 
 pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
-        KeyCode::Esc => {
+        KeyCode::Esc | KeyCode::Enter => {
             app.state = UIState::Normal;
             app.dialog_renderer = None;
             app.hex_view.editing_hex = true;
             app.hex_view.selection.clear();
         }
 
+        // Navigation
         KeyCode::Left | KeyCode::Char('h') => {
             let new_offset = app.hex_view.offset.saturating_sub(1);
 
-            // return if at the first offset
-            if new_offset == 0 {
-                return Ok(true);
-            }
-
-            // unset direction if at the selection origin
-            if app.hex_view.selection.start == app.hex_view.selection.end {
-                app.hex_view.selection.direction = None;
-            }
-
-            match app.hex_view.selection.direction {
-                None => {
-                    app.hex_view.selection.direction = Some(Direction::Left);
-                    app.hex_view.selection.start = new_offset;
-                }
-                Some(Direction::Left) => app.hex_view.selection.start = new_offset,
-                Some(Direction::Right) => app.hex_view.selection.end = new_offset - 1,
-            }
-
+            app.hex_view.selection.select_left(new_offset);
             app.goto(new_offset);
         }
         KeyCode::Right | KeyCode::Char('l') => {
@@ -78,29 +91,35 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 return Ok(true);
             }
 
-            // unset direction if at the selection origin
-            if app.hex_view.selection.start == app.hex_view.selection.end {
-                app.hex_view.selection.direction = None;
-            }
-
-            match app.hex_view.selection.direction {
-                None => {
-                    app.hex_view.selection.direction = Some(Direction::Right);
-                    app.hex_view.selection.end = new_offset;
-                }
-                Some(Direction::Left) => app.hex_view.selection.start = new_offset + 1,
-                Some(Direction::Right) => app.hex_view.selection.end = new_offset,
-            }
-
+            app.hex_view.selection.select_right(new_offset);
             app.goto(new_offset);
         }
-        KeyCode::Enter => {
-            app.state = UIState::Normal;
-            app.hex_view.editing_hex = true; // just in case it was in ASCII before
-            app.hex_view.selection.clear();
+        KeyCode::Up | KeyCode::Char('k') => {
+            let new_offset = app
+                .hex_view
+                .offset
+                .saturating_sub(app.config.hex_mode_bytes_per_line);
+
+            // return if at the first offset
+            if new_offset == 0 {
+                return Ok(true);
+            }
+
+            app.hex_view.selection.select_left(new_offset);
+            app.goto(new_offset);
+        }
+        KeyCode::Down | KeyCode::Char('j') => {
+            let new_offset = app
+                .hex_view
+                .offset
+                .saturating_add(app.config.hex_mode_bytes_per_line)
+                .min(app.file_info.size - 1);
+
+            app.hex_view.selection.select_right(new_offset);
+            app.goto(new_offset);
         }
 
-        // actions
+        // Actions
         // fill with zero
         KeyCode::Char('z') => {
             if app.file_info.is_read_only {
