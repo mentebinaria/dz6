@@ -1,6 +1,6 @@
 use crate::{app::App, commands::Commands, editor::UIState, hex};
 
-use crate::hex::selection::SearchDirection;
+use crate::hex::search::SearchDirection;
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use std::io::Result;
 

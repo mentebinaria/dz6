@@ -1,4 +1,3 @@
-use crate::hex::selection::SearchDirection;
 use crate::widgets::{Message, MessageType};
 use crate::{app::App, editor::UIState};
 use ratatui::Frame;
@@ -33,6 +32,13 @@ impl SearchMode {
             *self = SearchMode::Utf8
         }
     }
+}
+
+#[derive(Default, PartialEq, Debug)]
+pub enum SearchDirection {
+    #[default]
+    Forward,
+    Backward,
 }
 
 pub fn hex_string_to_u8(hex_string: &str) -> Option<Vec<u8>> {

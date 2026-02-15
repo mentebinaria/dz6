@@ -10,13 +10,6 @@ pub enum Direction {
     Right,
 }
 
-#[derive(Default, PartialEq, Debug)]
-pub enum SearchDirection {
-    #[default]
-    Forward,
-    Backward,
-}
-
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Selection {
     pub start: usize,
