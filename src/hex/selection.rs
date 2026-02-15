@@ -6,8 +6,8 @@ use crate::editor::UIState;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Direction {
-    Left,
-    Right,
+    LeftOrUp,
+    RightOrDown,
 }
 
 #[derive(Default, Debug, Clone, Copy)]
@@ -35,28 +35,28 @@ impl Selection {
         self.end = 0;
         self.direction = None;
     }
-    pub fn select_left(&mut self, step: usize) {
+    pub fn select_left_or_up(&mut self, step: usize) {
         match self.direction {
             None => {
-                self.direction = Some(Direction::Left);
+                self.direction = Some(Direction::LeftOrUp);
                 self.start = self.start.saturating_sub(step);
             }
-            Some(Direction::Left) => self.start = self.start.saturating_sub(step),
-            Some(Direction::Right) => self.end = self.end.saturating_sub(step),
+            Some(Direction::LeftOrUp) => self.start = self.start.saturating_sub(step),
+            Some(Direction::RightOrDown) => self.end = self.end.saturating_sub(step),
         }
 
         if self.start == self.end {
             self.direction = None;
         }
     }
-    pub fn select_right(&mut self, offset_max: usize, step: usize) {
+    pub fn select_right_or_down(&mut self, offset_max: usize, step: usize) {
         match self.direction {
             None => {
-                self.direction = Some(Direction::Right);
+                self.direction = Some(Direction::RightOrDown);
                 self.end = (self.start + step).min(offset_max);
             }
-            Some(Direction::Left) => self.start = (self.start + step).min(offset_max),
-            Some(Direction::Right) => self.end = (self.end + step).min(offset_max),
+            Some(Direction::LeftOrUp) => self.start = (self.start + step).min(offset_max),
+            Some(Direction::RightOrDown) => self.end = (self.end + step).min(offset_max),
         }
         if self.start == self.end {
             self.direction = None;
@@ -77,7 +77,7 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Left | KeyCode::Char('h') => {
             let new_offset = app.hex_view.offset.saturating_sub(1);
 
-            app.hex_view.selection.select_left(1);
+            app.hex_view.selection.select_left_or_up(1);
             app.goto(new_offset);
         }
         KeyCode::Right | KeyCode::Char('l') => {
@@ -88,7 +88,7 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 return Ok(true);
             }
 
-            app.hex_view.selection.select_right(app.file_info.size, 1);
+            app.hex_view.selection.select_right_or_down(app.file_info.size, 1);
             app.goto(new_offset);
         }
         KeyCode::Up | KeyCode::Char('k') => {
@@ -97,9 +97,13 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 .offset
                 .saturating_sub(app.config.hex_mode_bytes_per_line);
 
+            if app.hex_view.selection.direction == Some(Direction::RightOrDown) && new_offset < app.hex_view.selection.start {
+                return Ok(true);
+            }
+
             app.hex_view
                 .selection
-                .select_left(app.config.hex_mode_bytes_per_line);
+                .select_left_or_up(app.config.hex_mode_bytes_per_line);
             app.goto(new_offset);
         }
         KeyCode::Down | KeyCode::Char('j') => {
@@ -109,9 +113,13 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 .saturating_add(app.config.hex_mode_bytes_per_line)
                 .min(app.file_info.size - 1);
 
+            if app.hex_view.selection.direction == Some(Direction::LeftOrUp) && new_offset > app.hex_view.selection.end {
+                return Ok(true);
+            }
+
             app.hex_view
                 .selection
-                .select_right(app.file_info.size, app.config.hex_mode_bytes_per_line);
+                .select_right_or_down(app.file_info.size, app.config.hex_mode_bytes_per_line);
             app.goto(new_offset);
         }
 
