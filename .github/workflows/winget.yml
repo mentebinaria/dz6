@@ -1,0 +1,35 @@
+name: WinGet submission on release
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  winget:
+    name: Publish winget package
+
+    # winget-create is only supported on Windows
+    runs-on: windows-latest
+
+    # winget-create will read the following environment variable to access the GitHub token needed for submitting a PR
+    # See https://aka.ms/winget-create-token
+    env:
+      WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_PAT }}
+
+    # Only submit stable releases
+    if: ${{ !github.event.release.prerelease }}
+    steps:
+      - name: Submit mentebinaria.dz6 package to Windows Package Manager Community Repository
+        run: |
+            # Get installer info from release event
+	        $assets = '${{ toJSON(github.event.release.assets) }}' | ConvertFrom-Json
+            $installerUrl = $assets | Where-Object -Property name -eq 'dz6-x86_64-pc-windows-msvc.zip' | Select-Object -ExpandProperty browser_download_url
+            $packageVersion = (${{ toJSON(github.event.release.tag_name) }}).Trim('v')
+
+	        curl.exe -JLO https://aka.ms/wingetcreate/latest
+            .\wingetcreate.exe update mentebinaria.dz6 `
+                --version $packageVersion `
+                --urls $installerUrl `
+	            --release-notes-url "https://github.com/mentebinaria/dz6/releases/tag/v$packageVersion" `
+                --submit
