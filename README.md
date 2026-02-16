@@ -129,7 +129,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 
 | Key        | Action                           | Tips                                                                             |
 |------------|----------------------------------|----------------------------------------------------------------------------------|
-| Arrow keys | Navigation (left and right only) | Vim-like `h`, `l` also work                                                      |
+| Arrow keys | Navigation                       | Vim-like `h`, `j`, `k`, `l` also work                                            |
 | `n`        | Fill selected bytes with NOPs    | This puts dz6 in replace mode; press `Enter` to save the buffer; `Esc` to cancel |
 | `z`        | Fill selected bytes with zeroes  | Same as above                                                                    |
 | `y`        | Copy bytes to system's clipboard | There is no paste command yet                                                    |
