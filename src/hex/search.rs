@@ -51,40 +51,27 @@ pub fn hex_string_to_u8(hex_string: &str) -> Option<Vec<u8>> {
 
 pub fn search<T: AsRef<[u8]>>(app: &mut App, needle: T) -> Option<usize> {
     let text = needle.as_ref();
-    let siz = text.len();
     let filesize = app.file_info.size;
     let buffer = app.file_info.get_buffer();
 
-    if filesize == 0 {
+    if filesize == 0 || text.is_empty() {
         return None;
     }
 
-    let search_forward = || {
-        for (i, win) in buffer[app.hex_view.offset + 1..].windows(siz).enumerate() {
-            if win == text {
-                return Some(app.hex_view.offset + i + 1);
-            }
-        }
-        None
-    };
-
-    let search_backward = || {
-        for (i, win) in buffer[0..app.hex_view.offset]
-            .windows(siz)
-            .rev()
-            .enumerate()
-        {
-            if win == text {
-                return Some(app.hex_view.offset - i - text.len());
-            }
-        }
-        None
-    };
-
     let ofs = if app.hex_view.search.direction == SearchDirection::Forward {
-        search_forward()
+        let start = app.hex_view.offset.checked_add(1)?;
+        if start < filesize {
+            memchr::memmem::find(buffer.get(start..)?, text).map(|pos| start + pos)
+        } else {
+            None
+        }
     } else {
-        search_backward()
+        let end = app.hex_view.offset;
+        if end > 0 {
+            memchr::memmem::rfind(buffer.get(..end)?, text)
+        } else {
+            None
+        }
     };
 
     if ofs.is_some() {
@@ -93,28 +80,10 @@ pub fn search<T: AsRef<[u8]>>(app: &mut App, needle: T) -> Option<usize> {
 
     // ofs is None, check wrap setting
     if app.config.search_wrap {
-        let search_wrap_forward = || {
-            for (i, win) in buffer.windows(siz).enumerate() {
-                if win == text {
-                    return Some(i);
-                }
-            }
-            None
-        };
-
-        let search_wrap_backward = || {
-            for (i, win) in buffer.windows(siz).rev().enumerate() {
-                if win == text {
-                    return Some(filesize - i - text.len());
-                }
-            }
-            None
-        };
-
         let ofs = if app.hex_view.search.direction == SearchDirection::Forward {
-            search_wrap_forward()
+            memchr::memmem::find(buffer, text)
         } else {
-            search_wrap_backward()
+            memchr::memmem::rfind(buffer, text)
         };
 
         if ofs.is_some() {
@@ -125,24 +94,6 @@ pub fn search<T: AsRef<[u8]>>(app: &mut App, needle: T) -> Option<usize> {
     crate::beep!();
     None
 }
-
-// pub fn search_back<T: AsRef<[u8]>>(app: &mut App, needle: T) -> Option<usize> {
-//     let text = needle.as_ref();
-//     let siz = text.len();
-//     let buffer = app.file_info.get_buffer();
-//     for (i, win) in buffer[0..app.hex_view.offset]
-//         .windows(siz)
-//         .rev()
-//         .enumerate()
-//     {
-//         if win == text {
-//             return Some(app.hex_view.offset - i - 1);
-//         }
-//     }
-//
-//     crate::beep!();
-//     None
-// }
 
 // string
 // hex

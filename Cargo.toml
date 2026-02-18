@@ -10,7 +10,6 @@ license = "GPL-3.0-or-later"
 keywords = ["hex-editor", "reverse-engineering", "binary", "pe", "elf"]
 categories = ["command-line-utilities", "security"]
 
-
 [dependencies]
 arboard = { version = "3", default-features = false }
 clap = { version = "4.5.49", features = ["derive"] }
@@ -19,13 +18,14 @@ directories-next = "2.0.0"
 encoding_rs = "0.8.35"
 evalexpr = "13.1.*"
 hex = "0.4.3"
+memchr = "2.8.0"
+mmap-io = "0.9.4"
 ratatui = "0.30.0"
 regex = "1.11.2"
 serde = { version = "1.0.228", features = ["derive"] }
 shell-words = "1.1.0"
-tui-input = "0.15.0"
-mmap-io = { version = "0.9.4" }
 toml = "1.0.1"
+tui-input = "0.15.0"
 
 # The profile that 'dist' will build with
 [profile.dist]

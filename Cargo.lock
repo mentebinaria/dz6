@@ -446,6 +446,7 @@ dependencies = [
  "encoding_rs",
  "evalexpr",
  "hex",
+ "memchr",
  "mmap-io",
  "ratatui",
  "regex",
