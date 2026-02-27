@@ -2,7 +2,7 @@
 
 # dz6
 
-A Vim-inspired, TUI-based hexadecimal editor
+Fast Vim-inspired TUI hex editor
 
 ## Features
 
@@ -17,9 +17,9 @@ A Vim-inspired, TUI-based hexadecimal editor
 - Cross-platform
 - Open source
 
-## Screenshot
+## Demo
 
-![Initial window](assets/dz_ss_initial.png)
+[![asciicast](https://asciinema.org/a/801539.svg)](https://asciinema.org/a/801539)
 
 ## Installation
 
@@ -61,16 +61,16 @@ Once you load a file in **dz6**, you can use the commands below.
 
 ### Global key bindings
 
-| Key     | Action                         | Tips                      |
-|---------|--------------------------------|---------------------------|
-| `Enter` | Switch views                   | Currently Hex and Text    |
-| `Alt+l` | Open log window                |                           |
-| `:`     | Open command bar               | See [Commands](#commands) |
+| Key     | Action           | Tips                      |
+| ------- | ---------------- | ------------------------- |
+| `Enter` | Switch views     | Currently Hex and Text    |
+| `Alt+l` | Open log window  |                           |
+| `:`     | Open command bar | See [Commands](#commands) |
 
 #### Commands
 
 | Command          | Action                                                           | Parameters             | Tips/Examples                                                                                     |
-|------------------|------------------------------------------------------------------|------------------------|---------------------------------------------------------------------------------------------------|
+| ---------------- | ---------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------- |
 | `<number>`       | Go to offset                                                     |                        | hex default; `t` suffix = decimal; `+` prefix = incremental jump; `-` prefix = decremental jump   |
 | `cmt`            | Add `<comment>` to `<offset>`                                    | `<offset>` `<comment>` | `cmt 1000 "my comment"` (comment at offset 0x1000; offset obeys the same rules above)             |
 | `sel`            | Select `<length>` bytes from `<offset>`                          | `<offset>` `<length>`  | `sel 40 10t` (select 10 bytes from offset 0x40)                                                   |
@@ -93,7 +93,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 ### Hex view
 
 | Key                     | Action                                                                             | Tips                                                              |
-|-------------------------|------------------------------------------------------------------------------------|-------------------------------------------------------------------|
+| ----------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | Arrow keys              | Navigation                                                                         | Vim-like `h`, `j`, `k`, `l` also work                             |
 | `w` `d` `q`             | Advance by a word (2 bytes), a dword (4 bytes), or a qword (8 bytes), respectively | Use the capital letters `W`, `D`, and `Q` to move backwards       |
 | `o`                     | Go to the next other byte (the one that differs from the byte under the cursor)    | `O` goes backwards                                                |
@@ -108,7 +108,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 | `Ctrl+a`                | Enter replace mode and increment byte under the cursor                             |                                                                   |
 | `Ctrl+x`                | Enter replace mode and decrement byte under the cursor                             |                                                                   |
 | `v`                     | Enter [select mode](#hex-selection-mode)                                           |                                                                   |
-| `u`                     | Undo the last change made to the buffer                                            | Use it *before* writing to the file (`:w`)                        |
+| `u`                     | Undo the last change made to the buffer                                            | Use it _before_ writing to the file (`:w`)                        |
 | `/`                     | Search (forward)                                                                   | Search the entire file. `Tab` cycles between ASCII and hex search |
 | `n`                     | Search next (forward)                                                              |                                                                   |
 | `?`                     | Search (backward)                                                                  | Search the entire file. `Tab` cycles between ASCII and hex search |
@@ -128,7 +128,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 #### Hex selection mode
 
 | Key        | Action                           | Tips                                                                             |
-|------------|----------------------------------|----------------------------------------------------------------------------------|
+| ---------- | -------------------------------- | -------------------------------------------------------------------------------- |
 | Arrow keys | Navigation                       | Vim-like `h`, `j`, `k`, `l` also work                                            |
 | `n`        | Fill selected bytes with NOPs    | This puts dz6 in replace mode; press `Enter` to save the buffer; `Esc` to cancel |
 | `z`        | Fill selected bytes with zeroes  | Same as above                                                                    |
@@ -138,7 +138,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 #### Hex replace mode
 
 | Key         | Action                                                     | Tips                                                     |
-|-------------|------------------------------------------------------------|----------------------------------------------------------|
+| ----------- | ---------------------------------------------------------- | -------------------------------------------------------- |
 | Arrow keys  | Navigation                                                 |                                                          |
 | `Backspace` | The same as navigating left                                |                                                          |
 | `z`         | Set byte to zero                                           |                                                          |
@@ -151,7 +151,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 #### Names
 
 | Key         | Action                                           | Tips         |
-|-------------|--------------------------------------------------|--------------|
+| ----------- | ------------------------------------------------ | ------------ |
 | Arrow keys  | Navigation                                       | Up/Down only |
 | `f`         | Filter names using a regular expression          |              |
 | `D`         | Delete all names                                 |              |
@@ -167,7 +167,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 #### Strings
 
 | Key         | Action                                             | Tips                           |
-|-------------|----------------------------------------------------|--------------------------------|
+| ----------- | -------------------------------------------------- | ------------------------------ |
 | Arrow keys  | Navigation                                         | Up/Down only                   |
 | `f`         | Filter strings using a regular expression          |                                |
 | `R`         | Re-read strings from file                          | Useful if you changed the file |
@@ -185,7 +185,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 64-bit calculator. Default base is decimal, but you can prefix hex numbers with 0x. Pre-defined variables:
 
 | Variable | Value                       | Length                                                    |
-|----------|-----------------------------|-----------------------------------------------------------|
+| -------- | --------------------------- | --------------------------------------------------------- |
 | `@x`     | Signed value under cursor   | `x` is `b` (byte), `w` (word), `d` (dword) or `q` (qword) |
 | `@X`     | Unsigned value under cursor | `X` is `B` (byte), `W` (word), `D` (dword) or `Q` (qword) |
 | `@o`     | Current offset              | dword on 32-bit systems; qword on 64                      |
@@ -198,7 +198,7 @@ Use the up and down arrow keys to navigate through the history.
 > This view hasn’t received much attention yet. This view still has several issues.
 
 | Key | Action                         |
-|-----|--------------------------------|
+| --- | ------------------------------ |
 | `e` | Open encoding selection dialog |
 
 ## FAQ
@@ -214,7 +214,3 @@ No. Some key bindings behave similarly, but dz6 is not meant to be 100% compatib
 **3. Is dz6 stable yet?**
 
 No. Stability is expected only at v1.0.0. Until then, breaking changes are expected.
-
-## Motivation
-
-After changing jobs and returning to Linux, I wanted something similar to [Hiew](https://hiew.io) that I could run on my machine. Since I like Vim, I tried to combine features from both editors in dz6. VSCode, IDA, x64dbg, GDB, and [Hex-Patch](https://etto48.github.io/HexPatch/) also served as inspiration. Hats off to the authors of these great tools!
