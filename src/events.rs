@@ -2,11 +2,11 @@ use ratatui::crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use std::io::Result;
 
 use crate::app::App;
-use crate::commands;
 use crate::editor::{AppView, UIState};
 use crate::global;
 use crate::hex;
 use crate::text;
+use crate::{commands, header};
 
 pub fn handle_dialog_error_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
@@ -29,6 +29,7 @@ pub fn handle_events(app: &mut App) -> Result<bool> {
                     match app.editor_view {
                         AppView::Hex => hex::events::hex_mode_events(app, key)?,
                         AppView::Text => text::events::text_mode_events(app, key)?,
+                        AppView::Header => header::events::header_view_events(app, key)?,
                     }
                 }
                 UIState::DialogHelp => handle_dialog_error_events(app, key)?,

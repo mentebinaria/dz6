@@ -2,13 +2,15 @@
 pub enum AppView {
     Text,
     Hex,
+    Header,
 }
 
 impl AppView {
     pub fn next(&mut self) {
         match self {
-            AppView::Text => *self = AppView::Hex,
             AppView::Hex => *self = AppView::Text,
+            AppView::Text => *self = AppView::Header,
+            AppView::Header => *self = AppView::Hex,
         }
     }
 }

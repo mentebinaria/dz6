@@ -7,7 +7,7 @@ use std::io::Result;
 pub fn handle_global_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
         // switch views
-        KeyCode::Enter => app.switch_editor_view(),
+        KeyCode::Tab => app.switch_editor_view(),
         // log window
         KeyCode::Char('l') => {
             if key.modifiers.contains(KeyModifiers::ALT) {

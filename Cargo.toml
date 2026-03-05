@@ -12,11 +12,13 @@ categories = ["command-line-utilities", "security"]
 
 [dependencies]
 arboard = { version = "3", default-features = false }
+capstone = "0.14.0"
 clap = { version = "4.5.49", features = ["derive"] }
 crossterm = "0.29.0"
 directories-next = "2.0.0"
 encoding_rs = "0.8.35"
 evalexpr = "13.1.*"
+goblin = "0.10.5"
 hex = "0.4.3"
 memchr = "2.8.0"
 mmap-io = "0.9.4"

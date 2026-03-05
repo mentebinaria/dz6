@@ -3,7 +3,7 @@ use ratatui::{Frame, prelude::*, widgets::Paragraph};
 use crate::{
     app::App,
     editor::AppView,
-    global,
+    global, header,
     hex::{self, comment},
     ruler, text,
 };
@@ -78,6 +78,29 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
                 .split(vertical_layout[0]);
 
             text::draw::text_contents_draw(app, frame, horizontal_layout[0]);
+            app.text_view.area_height = horizontal_layout[0].height;
+        }
+        AppView::Header => {
+            let constraints = vec![
+                Constraint::Percentage(100), // middle area (text content)
+                Constraint::Length(1),       // status bar
+                Constraint::Length(1),       // command bar
+            ];
+
+            let vertical_layout = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints(constraints)
+                .split(frame.area());
+
+            // Draw status bar at the bottom
+            global::status_bar::status_bar_draw(app, frame, vertical_layout[1]);
+
+            let horizontal_layout = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints(vec![Constraint::Percentage(100)])
+                .split(vertical_layout[0]);
+
+            header::draw::header_contents_draw(app, frame, horizontal_layout[0]);
             app.text_view.area_height = horizontal_layout[0].height;
         }
     }

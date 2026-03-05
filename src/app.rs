@@ -6,6 +6,8 @@ use std::{
 };
 
 use arboard::Clipboard;
+use goblin::Object;
+use goblin::error;
 use mmap_io::{MemoryMappedFile, MmapMode};
 use ratatui::{Frame, layout::Rect, widgets::ListState};
 
@@ -13,6 +15,7 @@ use crate::{
     config::*,
     editor::*,
     global::calculator::Calculator,
+    header::header_view::HeaderView,
     hex::{hex_view::HexView, strings::FoundString},
     input_history::InputHistory,
     reader::Reader,
@@ -68,7 +71,9 @@ pub struct App {
     pub dialog_renderer: Option<fn(&mut App, &mut Frame)>,
     pub editor_view: AppView,
     pub file_info: FileInfo,
+    pub header_view: HeaderView,
     pub hex_view: HexView,
+    pub last_error: Dz6Error,
     pub list_state: ListState,
     pub log_scroll_offset: (u16, u16),
     pub logs: Vec<String>,
@@ -79,7 +84,6 @@ pub struct App {
     pub string_regex: String,
     pub strings: Vec<FoundString>,
     pub text_view: TextView,
-    pub last_error: Dz6Error,
 }
 
 impl App {
@@ -107,6 +111,7 @@ impl App {
             dialog_2nd_renderer: None,
             editor_view: AppView::Hex,
             file_info: FileInfo::default(),
+            header_view: HeaderView::default(),
             hex_view: HexView {
                 editing_hex: true,
                 highlights: HashSet::with_capacity(8),
@@ -134,14 +139,26 @@ impl App {
     }
 
     /// this function tries to identify a file type; this is a boilerplate implementation.
-    fn id_file(&mut self) {
+    fn id_file(&mut self) -> error::Result<()> {
         let buffer = self.file_info.get_buffer();
-        self.file_info.r#type = match buffer[0] {
-            0x7f => "ELF",
-            0xca | 0xcf => "Mach-O",
-            0x4d => "PE",
+
+        self.file_info.r#type = match Object::parse(&buffer)? {
+            Object::COFF(_coff) => "COFF",
+            Object::Elf(_elf) => "ELF",
+            Object::Mach(_mach) => "Mach-O",
+            Object::PE(_pe) => "PE",
+            Object::TE(_magic) => "TE",
             _ => "",
-        }
+        };
+
+        // self.file_info.r#type = match buffer[0] {
+        //     0x7f => "ELF",
+        //     0xca | 0xcf => "Mach-O",
+        //     0x4d => "PE",
+        //     _ => "",
+        // };
+
+        Ok(())
     }
 
     /// load a file
@@ -182,7 +199,7 @@ impl App {
         self.file_info.size = meta.len() as usize;
 
         if self.file_info.size > 0 {
-            self.id_file();
+            _ = self.id_file();
         }
 
         self.log(format!(
@@ -199,6 +216,9 @@ impl App {
         if self.config.database {
             let _ = self.load_database();
         }
+
+        self.header_view.list_state.select_first();
+
         Ok(())
     }
 

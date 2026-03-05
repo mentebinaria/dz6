@@ -6,6 +6,7 @@ mod draw;
 mod editor;
 mod events;
 mod global;
+mod header;
 mod hex;
 mod initfile;
 mod input_history;
