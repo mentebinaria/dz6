@@ -2,8 +2,9 @@ use std::fmt::{Display, LowerHex};
 
 use ratatui::{
     Frame,
-    layout::Rect,
-    widgets::{Block, Borders, Clear, List, ListItem},
+    layout::{Constraint, Layout, Rect},
+    style::Style,
+    widgets::{Block, Borders, Cell, Clear, List, ListItem, Row, Table},
 };
 
 use crate::app::App;
@@ -43,8 +44,8 @@ fn header_contents_pe_draw(app: &mut App, frame: &mut Frame, area: Rect) -> erro
                 //TODO check over/underflow
                 app.header_view.entrypoint = ep_rva - sec.virtual_address + sec.pointer_to_raw_data;
             }
-        } 
-        
+        }
+
         add_to_list_hex(
             &mut items,
             "Entrypoint",
@@ -63,23 +64,59 @@ fn header_contents_pe_draw(app: &mut App, frame: &mut Frame, area: Rect) -> erro
         );
     }
 
+    let block = Block::new().borders(Borders::all());
+
+    // section table
+
+    let mut rows = Vec::new();
+
     for sec in &pe.sections {
+        let mut cells = Vec::new();
         if let Ok(name) = sec.name() {
-            items.push(ListItem::new(name.to_string()));
+            // items.push(ListItem::new(name.to_string()));
+            cells.push(Cell::new(name));
         }
+        cells.push(Cell::new(sec.virtual_address.to_string()));
+        cells.push(Cell::new(sec.virtual_size.to_string()));
+        cells.push(Cell::new(sec.pointer_to_raw_data.to_string()));
+        cells.push(Cell::new(sec.size_of_raw_data.to_string()));
+        cells.push(Cell::new(sec.characteristics.to_string()));
+
+        rows.push(Row::new(cells));
     }
 
-    for lib in pe.libraries {
-        items.push(ListItem::new(lib));
-    }
+    let widths = [Constraint::Length(15); 6];
+    let table = Table::new(rows, widths)
+        .column_spacing(1)
+        .style(app.config.theme.main)
+        .header(
+            Row::new(vec![
+                "Name",
+                "VirtualAddress",
+                "VirtualSize",
+                "PtrToRawData",
+                "SizeOfRawData",
+                "Characteristics",
+            ])
+            .style(Style::new().bold()),
+        )
+        .row_highlight_style(Style::new().reversed())
+        .column_highlight_style(Style::new().red())
+        .cell_highlight_style(Style::new().blue());
 
     let list = List::new(items)
         .style(app.config.theme.main)
         .highlight_style(app.config.theme.highlight)
-        .block(Block::new().borders(Borders::all()));
+        .block(block);
 
     frame.render_widget(Clear, area);
-    frame.render_stateful_widget(list, area, &mut app.header_view.list_state);
+
+    let layout = Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]);
+    let area1 = area.layout_vec(&layout);
+
+    frame.render_stateful_widget(list, area1[0], &mut app.header_view.list_state);
+
+    frame.render_widget(table, area1[1]);
 
     Ok(())
 }
