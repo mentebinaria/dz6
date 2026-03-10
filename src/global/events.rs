@@ -1,11 +1,13 @@
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use crate::{app::App, commands, editor::UIState, global};
+use crate::{app::App, beep, commands, editor::UIState, global};
 
 use std::io::Result;
 
 pub fn handle_global_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
+        // beep in NORMAL mode
+        KeyCode::Esc => beep!(),
         // switch views
         KeyCode::Tab => app.switch_editor_view(),
         // log window
