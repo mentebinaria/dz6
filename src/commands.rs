@@ -244,6 +244,26 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                         app.config.search_wrap = false;
                         app.dialog_renderer = None;
                     }
+                    // theme
+                    "view" => {
+                        if let Some(val) = value {
+                            match val.as_str() {
+                                "text" => {
+                                    app.editor_view = crate::editor::AppView::Text;
+                                    app.dialog_renderer = None;
+                                }
+                                "hex" => {
+                                    app.editor_view = crate::editor::AppView::Hex;
+                                    app.dialog_renderer = None;
+                                }
+                                "header" => {
+                                    app.editor_view = crate::editor::AppView::Header;
+                                    app.dialog_renderer = None;
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
                     _ => {
                         app.dialog_renderer = None;
                     }
