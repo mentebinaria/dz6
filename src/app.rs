@@ -6,16 +6,23 @@ use std::{
 };
 
 use arboard::Clipboard;
-use goblin::Object;
 use goblin::error;
+use goblin::{
+    Object,
+    pe::header::{COFF_MACHINE_ARM, COFF_MACHINE_ARM64, COFF_MACHINE_X86, COFF_MACHINE_X86_64},
+};
 use mmap_io::{MemoryMappedFile, MmapMode};
-use ratatui::{Frame, layout::Rect, widgets::ListState};
+use ratatui::{
+    Frame,
+    layout::Rect,
+    widgets::{ListState, TableState},
+};
 
 use crate::{
     config::*,
     editor::*,
     global::calculator::Calculator,
-    header::header_view::HeaderView,
+    header::header_view::{Elf, HeaderView},
     hex::{hex_view::HexView, strings::FoundString},
     input_history::InputHistory,
     reader::Reader,
@@ -111,7 +118,10 @@ impl App {
             dialog_2nd_renderer: None,
             editor_view: AppView::Hex,
             file_info: FileInfo::default(),
-            header_view: HeaderView::default(),
+            header_view: HeaderView {
+                // elf_header_table_state: TableState::new().with_selected_cell(Some((0, 1))),
+                ..Default::default()
+            },
             hex_view: HexView {
                 editing_hex: true,
                 highlights: HashSet::with_capacity(8),
@@ -144,19 +154,94 @@ impl App {
 
         self.file_info.r#type = match Object::parse(&buffer)? {
             Object::COFF(_coff) => "COFF",
-            Object::Elf(_elf) => "ELF",
+            Object::Elf(elf) => {
+                self.header_view.elf = Some(Elf {
+                    header: elf.header.clone(),
+                    phdrs: elf.program_headers.clone(),
+                    header_table_state: TableState::default(),
+                });
+                "ELF"
+            }
             Object::Mach(_mach) => "Mach-O",
-            Object::PE(_pe) => "PE",
+            Object::PE(pe) => {
+                let coff_header = crate::header::header_view::PECoffHeader {
+                    characteristics: pe.header.coff_header.characteristics,
+                    machine: pe.header.coff_header.machine,
+                    time_date_stamp: pe.header.coff_header.time_date_stamp,
+                };
+
+                let optional_header = pe.header.optional_header.as_ref().map(|opt| {
+                    crate::header::header_view::PEStandardFields {
+                        address_of_entry_point: opt.standard_fields.address_of_entry_point,
+                        magic: opt.standard_fields.magic,
+                        minor_linker_version: opt.standard_fields.minor_linker_version,
+                        major_linker_version: opt.standard_fields.major_linker_version,
+                    }
+                });
+
+                let mut sections = Vec::new();
+                for sec in &pe.sections {
+                    sections.push(crate::header::header_view::PESection {
+                        name: sec.name().unwrap_or_default().to_string(),
+                        virtual_address: sec.virtual_address,
+                        virtual_size: sec.virtual_size,
+                        pointer_to_raw_data: sec.pointer_to_raw_data,
+                        size_of_raw_data: sec.size_of_raw_data,
+                        characteristics: sec.characteristics,
+                    });
+                }
+                let number_of_sections = sections.len();
+
+                // Calculate entrypoint
+                if let Some(opt) = pe.header.optional_header {
+                    let ep_rva = opt.standard_fields.address_of_entry_point;
+                    for sec in &pe.sections {
+                        if ep_rva >= sec.virtual_address
+                            && ep_rva < sec.virtual_address + sec.virtual_size
+                        {
+                            //TODO check over/underflow
+                            self.header_view.entrypoint =
+                                ep_rva - sec.virtual_address + sec.pointer_to_raw_data;
+                        }
+                    }
+                }
+
+                let bitness = if pe.is_64 {
+                    "PE32+ (64-bit)"
+                } else {
+                    "PE32 (32-bit)"
+                };
+                let kind = if pe.is_lib { "DLL" } else { "EXE" };
+                let machine = get_pe_machine_string(pe.header.coff_header.machine);
+
+                let mut imports = Vec::new();
+                for imp in pe.imports {
+                    imports.push(crate::header::header_view::PEImport {
+                        dll: imp.dll.to_string(),
+                        name: imp.name.to_string(),
+                        offset: imp.offset,
+                        ordinal: imp.ordinal,
+                        rva: imp.rva,
+                        _size: imp.size,
+                    });
+                }
+
+                let number_of_imports = imports.len();
+                self.header_view.pe = Some(crate::header::header_view::Pe {
+                    summary: format!("{} {} {}", bitness, machine, kind),
+                    coff_header,
+                    optional_header,
+                    sections,
+                    imports,
+                    number_of_sections,
+                    number_of_imports,
+                });
+
+                "PE"
+            }
             Object::TE(_magic) => "TE",
             _ => "",
         };
-
-        // self.file_info.r#type = match buffer[0] {
-        //     0x7f => "ELF",
-        //     0xca | 0xcf => "Mach-O",
-        //     0x4d => "PE",
-        //     _ => "",
-        // };
 
         Ok(())
     }
@@ -217,7 +302,7 @@ impl App {
             let _ = self.load_database();
         }
 
-        self.header_view.list_state.select_first();
+        self.header_view.header_list_state.select_first();
 
         Ok(())
     }
@@ -361,5 +446,15 @@ impl App {
         let b8 = buffer[offset + 7];
 
         Some(i64::from_le_bytes([b1, b2, b3, b4, b5, b6, b7, b8]))
+    }
+}
+
+fn get_pe_machine_string(mach: u16) -> &'static str {
+    match mach {
+        COFF_MACHINE_ARM => "ARM",
+        COFF_MACHINE_ARM64 => "AARCH64",
+        COFF_MACHINE_X86 => "x86",
+        COFF_MACHINE_X86_64 => "x86-64",
+        _ => "",
     }
 }

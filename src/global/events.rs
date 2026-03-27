@@ -9,7 +9,7 @@ pub fn handle_global_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         // beep in NORMAL mode
         KeyCode::Esc => beep!(),
         // switch views
-        KeyCode::Tab => app.switch_editor_view(),
+        KeyCode::Enter => app.switch_editor_view(),
         // log window
         KeyCode::Char('l') => {
             if key.modifiers.contains(KeyModifiers::ALT) {
