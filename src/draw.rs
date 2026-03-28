@@ -72,6 +72,8 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
             // Draw status bar at the bottom
             global::status_bar::status_bar_draw(app, frame, vertical_layout[1]);
 
+            app.command_area = vertical_layout[2];
+
             let horizontal_layout = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints(vec![Constraint::Percentage(100)])
@@ -94,6 +96,8 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
 
             // Draw status bar at the bottom
             global::status_bar::status_bar_draw(app, frame, vertical_layout[1]);
+
+            app.command_area = vertical_layout[2];
 
             let horizontal_layout = Layout::default()
                 .direction(Direction::Horizontal)
