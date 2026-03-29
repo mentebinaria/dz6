@@ -1,4 +1,9 @@
-use goblin::elf::{header::*, program_header::pt_to_str};
+use goblin::elf::{
+    header::*,
+    program_header::pt_to_str,
+    section_header::sht_to_str,
+    sym::{bind_to_str, type_to_str, visibility_to_str},
+};
 use ratatui::{
     Frame,
     layout::{Constraint, Layout, Rect},
@@ -192,6 +197,96 @@ fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
     }
 }
 
+fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
+    if let Some(elf) = &app.header_view.elf {
+        let mut rows = Vec::new();
+
+        let strtab = elf.sections.get(elf.header.e_shstrndx as usize);
+        let buf = app.file_info.get_buffer();
+
+        for (i, section) in elf.sections.iter().enumerate() {
+            let mut name_cell = Cell::default();
+            if let Some(strtab) = strtab {
+                let bytes: Vec<u8> = buf
+                    .iter()
+                    .skip(strtab.sh_offset as usize + section.sh_name)
+                    .take_while(|b| **b != 0)
+                    .copied()
+                    .collect();
+
+                let name = String::from_utf8(bytes).unwrap_or_default();
+                name_cell = Cell::new(name);
+            }
+
+            rows.push(Row::new(vec![
+                Cell::new(format!("{:X}", i)),
+                name_cell,
+                Cell::new(format!("{:08X}", section.sh_name)),
+                Cell::new(format!("{}", sht_to_str(section.sh_type))),
+                Cell::new(format!("{:08X}", section.sh_flags)),
+                Cell::new(format!("{:08X}", section.sh_addr)),
+                Cell::new(format!("{:08X}", section.sh_offset)),
+                Cell::new(format!("{:08X}", section.sh_size)),
+                Cell::new(format!("{:08X}", section.sh_link)),
+                Cell::new(format!("{:08X}", section.sh_info)),
+                Cell::new(format!("{:08X}", section.sh_addralign)),
+                Cell::new(format!("{:08X}", section.sh_entsize)),
+            ]));
+        }
+
+        let widths = [Constraint::Ratio(1, 8); 8];
+
+        let header_table = Table::new(rows, widths)
+            .column_spacing(1)
+            .style(app.config.theme.main)
+            .header(Row::new(vec![
+                "Idx", "Name", "NameIdx", "Type", "Flags", "Addr", "Offset", "Size", "Link",
+                "Info", "Align", "EntSize",
+            ]))
+            .style(Style::new().bold())
+            .cell_highlight_style(app.config.theme.highlight);
+
+        frame.render_widget(header_table, area);
+    }
+}
+
+fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
+    if let Some(elf) = &app.header_view.elf {
+        let mut rows = Vec::new();
+
+        for symbol in &elf.symtab {
+            rows.push(Row::new(vec![
+                Cell::new(format!("{:X}", symbol.st_name)),
+                Cell::new(format!("{}", bind_to_str(symbol.st_bind()))),
+                Cell::new(format!("{}", type_to_str(symbol.st_type()))),
+                Cell::new(format!("{}", visibility_to_str(symbol.st_visibility()))),
+                Cell::new(format!("{:08X}", symbol.st_shndx)),
+                Cell::new(format!("{:08X}", symbol.st_value)),
+                Cell::new(format!("{:08X}", symbol.st_size)),
+            ]));
+        }
+
+        let widths = [Constraint::Ratio(1, 8); 8];
+
+        let header_table = Table::new(rows, widths)
+            .column_spacing(1)
+            .style(app.config.theme.main)
+            .header(Row::new(vec![
+                "Name",
+                "Bind",
+                "Type",
+                "Visibility",
+                "SecHdrIdx",
+                "Value",
+                "Size",
+            ]))
+            .style(Style::new().bold())
+            .cell_highlight_style(app.config.theme.highlight);
+
+        frame.render_widget(header_table, area);
+    }
+}
+
 pub fn elf_draw(app: &mut App, frame: &mut Frame, area: Rect) {
     let tabs = Tabs::new(vec!["Header", "Program", "Sections", "Symbols"])
         .style(app.config.theme.main)
@@ -209,6 +304,8 @@ pub fn elf_draw(app: &mut App, frame: &mut Frame, area: Rect) {
     match app.header_view.tab_index {
         0 => draw_header(app, frame, main),
         1 => draw_program_header(app, frame, main),
+        2 => draw_section_header(app, frame, main),
+        3 => draw_symbols(app, frame, main),
         _ => {}
     }
 }

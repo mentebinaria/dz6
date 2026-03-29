@@ -49,7 +49,9 @@ pub struct Pe {
 #[derive(Debug, Clone)]
 pub struct Elf {
     pub header: goblin::elf::Header,
-    pub phdrs: Vec<goblin::elf::ProgramHeader>,
+    pub phdrs: goblin::elf::ProgramHeaders,
+    pub sections: goblin::elf::SectionHeaders,
+    pub symtab: Vec<goblin::elf::Sym>,
     pub header_table_state: TableState,
     // pub program_header: Option<PEStandardFields>,
     // pub section_header: Vec<PESection>,

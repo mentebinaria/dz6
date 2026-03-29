@@ -244,7 +244,7 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                         app.config.search_wrap = false;
                         app.dialog_renderer = None;
                     }
-                    // theme
+                    // view
                     "view" => {
                         if let Some(val) = value {
                             match val.as_str() {

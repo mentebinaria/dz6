@@ -158,6 +158,8 @@ impl App {
                 self.header_view.elf = Some(Elf {
                     header: elf.header.clone(),
                     phdrs: elf.program_headers.clone(),
+                    sections: elf.section_headers.clone(),
+                    symtab: elf.syms.to_vec(),
                     header_table_state: TableState::default(),
                 });
                 "ELF"
