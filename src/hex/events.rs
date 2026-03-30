@@ -210,7 +210,6 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         // zero out byte
         KeyCode::Char('z') => {
             if !app.file_info.is_read_only && app.hex_view.offset < app.file_info.size {
-                app.state = UIState::HexEditing;
                 hex::edit::fill_with(app, 0x00, true);
             }
         }
@@ -221,7 +220,6 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 && app.hex_view.offset < app.file_info.size
                 && key.modifiers.contains(KeyModifiers::CONTROL)
             {
-                app.state = UIState::HexEditing;
                 let ofs = app.hex_view.offset;
                 if let Some(s) = app.hex_view.changed_bytes.get(&ofs) {
                     if let Ok(b) = u8::from_str_radix(s, 16) {
@@ -239,7 +237,6 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 && app.hex_view.offset < app.file_info.size
                 && key.modifiers.contains(KeyModifiers::CONTROL)
             {
-                app.state = UIState::HexEditing;
                 let ofs = app.hex_view.offset;
                 if let Some(s) = app.hex_view.changed_bytes.get(&ofs) {
                     if let Ok(b) = u8::from_str_radix(s, 16) {
