@@ -124,12 +124,26 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::PageDown => {
             app.goto(app.hex_view.offset + app.reader.page_current_size);
         }
+        KeyCode::Char('f') => {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                app.goto(app.hex_view.offset + app.reader.page_current_size);
+            }
+        }
         // go up one page
         KeyCode::PageUp => {
-            if app.hex_view.offset > app.reader.page_current_size {
-                app.goto(app.hex_view.offset - app.reader.page_current_size);
-            } else {
-                app.goto(0);
+            app.goto(
+                app.hex_view
+                    .offset
+                    .saturating_sub(app.reader.page_current_size),
+            );
+        }
+        KeyCode::Char('b') => {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                app.goto(
+                    app.hex_view
+                        .offset
+                        .saturating_sub(app.reader.page_current_size),
+                );
             }
         }
         // go to last visited offset

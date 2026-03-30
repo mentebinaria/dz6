@@ -99,10 +99,10 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 | `o`                     | Go to the next other byte (the one that differs from the byte under the cursor)    | `O` goes backwards                                                |
 | `Home` or `0`           | Set the cursor to the beginning of the current line                                |                                                                   |
 | `End` or `$`            | Set the cursor to the end of the current line                                      |                                                                   |
-| `Ctrl+Home` or `G`      | Go to the first offset                                                             |                                                                   |
-| `Ctrl+End` or `Shift+G` | Go to the last offset in the file                                                  |                                                                   |
-| `Page Down`             | Move down one page                                                                 |                                                                   |
-| `Page Up`               | Move up one page                                                                   |                                                                   |
+| `Ctrl+Home` or `g`      | Go to the first offset                                                             |                                                                   |
+| `Ctrl+End` or `G`       | Go to the last offset in the file                                                  |                                                                   |
+| `Ctrl+f` or `Page Down` | Move down one page                                                                 |                                                                   |
+| `Ctrl+b`or `Page Up`    | Move up one page                                                                   |                                                                   |
 | `r`                     | Enter [replace mode](#hex-replace-mode)                                            |                                                                   |
 | `z`                     | Enter replace mode and set the byte under the cursor zero                          |                                                                   |
 | `Ctrl+a`                | Enter replace mode and increment byte under the cursor                             |                                                                   |
