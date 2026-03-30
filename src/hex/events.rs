@@ -1,3 +1,4 @@
+use crate::beep;
 use crate::{app::App, commands::Commands, editor::UIState, hex};
 
 use crate::hex::search::SearchDirection;
@@ -244,6 +245,21 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                     }
                 } else if let Some(b) = app.read_u8(ofs) {
                     hex::edit::fill_with(app, b.wrapping_sub(1), false);
+                }
+            }
+        }
+
+        // change case
+        KeyCode::Char('~') => {
+            if !app.file_info.is_read_only && app.hex_view.offset < app.file_info.size {
+                if let Some(b) = app.read_u8(app.hex_view.offset) {
+                    if b.is_ascii_lowercase() {
+                        hex::edit::fill_with(app, b.to_ascii_uppercase(), true);
+                    } else if b.is_ascii_uppercase() {
+                        hex::edit::fill_with(app, b.to_ascii_lowercase(), true);
+                    } else {
+                        beep!();
+                    }
                 }
             }
         }
