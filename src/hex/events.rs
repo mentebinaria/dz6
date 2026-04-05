@@ -1,3 +1,4 @@
+use crate::beep;
 use crate::{app::App, commands::Commands, editor::UIState, hex};
 
 use crate::hex::search::SearchDirection;
@@ -124,12 +125,26 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::PageDown => {
             app.goto(app.hex_view.offset + app.reader.page_current_size);
         }
+        KeyCode::Char('f') => {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                app.goto(app.hex_view.offset + app.reader.page_current_size);
+            }
+        }
         // go up one page
         KeyCode::PageUp => {
-            if app.hex_view.offset > app.reader.page_current_size {
-                app.goto(app.hex_view.offset - app.reader.page_current_size);
-            } else {
-                app.goto(0);
+            app.goto(
+                app.hex_view
+                    .offset
+                    .saturating_sub(app.reader.page_current_size),
+            );
+        }
+        KeyCode::Char('b') => {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                app.goto(
+                    app.hex_view
+                        .offset
+                        .saturating_sub(app.reader.page_current_size),
+                );
             }
         }
         // go to last visited offset
@@ -196,7 +211,6 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         // zero out byte
         KeyCode::Char('z') => {
             if !app.file_info.is_read_only && app.hex_view.offset < app.file_info.size {
-                app.state = UIState::HexEditing;
                 hex::edit::fill_with(app, 0x00, true);
             }
         }
@@ -207,7 +221,6 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 && app.hex_view.offset < app.file_info.size
                 && key.modifiers.contains(KeyModifiers::CONTROL)
             {
-                app.state = UIState::HexEditing;
                 let ofs = app.hex_view.offset;
                 if let Some(s) = app.hex_view.changed_bytes.get(&ofs) {
                     if let Ok(b) = u8::from_str_radix(s, 16) {
@@ -225,7 +238,6 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 && app.hex_view.offset < app.file_info.size
                 && key.modifiers.contains(KeyModifiers::CONTROL)
             {
-                app.state = UIState::HexEditing;
                 let ofs = app.hex_view.offset;
                 if let Some(s) = app.hex_view.changed_bytes.get(&ofs) {
                     if let Ok(b) = u8::from_str_radix(s, 16) {
@@ -233,6 +245,21 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                     }
                 } else if let Some(b) = app.read_u8(ofs) {
                     hex::edit::fill_with(app, b.wrapping_sub(1), false);
+                }
+            }
+        }
+
+        // change case
+        KeyCode::Char('~') => {
+            if !app.file_info.is_read_only && app.hex_view.offset < app.file_info.size {
+                if let Some(b) = app.read_u8(app.hex_view.offset) {
+                    if b.is_ascii_lowercase() {
+                        hex::edit::fill_with(app, b.to_ascii_uppercase(), true);
+                    } else if b.is_ascii_uppercase() {
+                        hex::edit::fill_with(app, b.to_ascii_lowercase(), true);
+                    } else {
+                        beep!();
+                    }
                 }
             }
         }

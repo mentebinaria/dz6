@@ -99,14 +99,15 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 | `o`                     | Go to the next other byte (the one that differs from the byte under the cursor)    | `O` goes backwards                                                |
 | `Home` or `0`           | Set the cursor to the beginning of the current line                                |                                                                   |
 | `End` or `$`            | Set the cursor to the end of the current line                                      |                                                                   |
-| `Ctrl+Home` or `G`      | Go to the first offset                                                             |                                                                   |
-| `Ctrl+End` or `Shift+G` | Go to the last offset in the file                                                  |                                                                   |
-| `Page Down`             | Move down one page                                                                 |                                                                   |
-| `Page Up`               | Move up one page                                                                   |                                                                   |
+| `Ctrl+Home` or `g`      | Go to the first offset                                                             |                                                                   |
+| `Ctrl+End` or `G`       | Go to the last offset in the file                                                  |                                                                   |
+| `Ctrl+f` or `Page Down` | Move down one page                                                                 |                                                                   |
+| `Ctrl+b`or `Page Up`    | Move up one page                                                                   |                                                                   |
 | `r`                     | Enter [replace mode](#hex-replace-mode)                                            |                                                                   |
-| `z`                     | Enter replace mode and set the byte under the cursor zero                          |                                                                   |
-| `Ctrl+a`                | Enter replace mode and increment byte under the cursor                             |                                                                   |
-| `Ctrl+x`                | Enter replace mode and decrement byte under the cursor                             |                                                                   |
+| `z`                     | Set the byte under the cursor zero                                                 |                                                                   |
+| `~`                     | Change case if applicable                                                          | Only works with bytes within the ASCII alphabetic range           |
+| `Ctrl+a`                | Increment byte under the cursor                                                    |                                                                   |
+| `Ctrl+x`                | Decrement byte under the cursor                                                    |                                                                   |
 | `v`                     | Enter [select mode](#hex-selection-mode)                                           |                                                                   |
 | `u`                     | Undo the last change made to the buffer                                            | Use it _before_ writing to the file (`:w`)                        |
 | `/`                     | Search (forward)                                                                   | Search the entire file. `Tab` cycles between ASCII and hex search |
@@ -130,6 +131,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 | Key        | Action                           | Tips                                                                             |
 | ---------- | -------------------------------- | -------------------------------------------------------------------------------- |
 | Arrow keys | Navigation                       | Vim-like `h`, `j`, `k`, `l` also work                                            |
+| `~`        | Change case if applicable        | Only works with bytes within the ASCII alphabetic range                          |
 | `n`        | Fill selected bytes with NOPs    | This puts dz6 in replace mode; press `Enter` to save the buffer; `Esc` to cancel |
 | `z`        | Fill selected bytes with zeroes  | Same as above                                                                    |
 | `y`        | Copy bytes to system's clipboard | There is no paste command yet                                                    |
@@ -141,6 +143,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 | ----------- | ---------------------------------------------------------- | -------------------------------------------------------- |
 | Arrow keys  | Navigation                                                 |                                                          |
 | `Backspace` | The same as navigating left                                |                                                          |
+| `~`         | Change case if applicable                                  | Only works with bytes within the ASCII alphabetic range  |
 | `z`         | Set byte to zero                                           |                                                          |
 | `Ctrl+a`    | Increment byte                                             |                                                          |
 | `Ctrl+x`    | Decrement byte                                             |                                                          |

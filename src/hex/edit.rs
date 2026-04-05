@@ -118,6 +118,16 @@ pub fn edit_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                         app.state = UIState::Normal;
                         app.hex_view.editing_hex = true;
                     }
+                } else if c == '~' {
+                    if let Some(b) = app.read_u8(app.hex_view.offset) {
+                        if b.is_ascii_lowercase() {
+                            fill_with(app, b.to_ascii_uppercase(), true);
+                        } else if b.is_ascii_uppercase() {
+                            fill_with(app, b.to_ascii_lowercase(), true);
+                        } else {
+                            app.goto(app.hex_view.offset.saturating_add(1));
+                        }
+                    }
                 }
             } else {
                 fill_with(app, c as u8, true);

@@ -158,6 +158,30 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             }
             app.hex_view.selection.clear();
         }
+        // change case
+        KeyCode::Char('~') => {
+            if app.file_info.is_read_only {
+                return Ok(true);
+            }
+
+            for offset in app.hex_view.selection {
+                if let Some(b) = app.read_u8(offset) {
+                    if b.is_ascii_lowercase() {
+                        app.hex_view
+                            .changed_bytes
+                            .insert(offset, format!("{:02X}", b.to_ascii_uppercase()));
+                        app.hex_view.changed_history.push(offset);
+                    } else if b.is_ascii_uppercase() {
+                        app.hex_view
+                            .changed_bytes
+                            .insert(offset, format!("{:02X}", b.to_ascii_lowercase()));
+                        app.hex_view.changed_history.push(offset);
+                    }
+                    app.hex_view.selection.clear();
+                    app.state = UIState::Normal;
+                }
+            }
+        }
         // yank
         KeyCode::Char('y') => {
             let mut s = String::new();
