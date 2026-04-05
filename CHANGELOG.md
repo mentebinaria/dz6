@@ -1,5 +1,14 @@
 # Changelog
 
+## dz6 v0.6.0
+
+- Hex view:
+  -  `Ctrl+f` goes down one page (same as `PgDown`).
+  - `Ctrl+b` goes up one page (same as `PgUp`).
+  - `~` changes case when applicable (available in Normal, Replace, and Select modes).
+  - `Ctrl+a`, `Ctrl+x`, `n`, and `z` work without putting the editor in Replace mode.
+  - In Select mode, the number of selected bytes is now shown at the status bar.
+
 ## dz6 v0.5.1
 
 - Improved search. Thanks to @yeggor, search is much faster now.

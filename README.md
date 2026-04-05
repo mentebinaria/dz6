@@ -30,6 +30,10 @@ a terminal and type:
 
     cargo install dz6
 
+### Arch Linux (via AUR)
+
+    yay -S dz6
+
 ### FreeBSD
 
     pkg install dz6
