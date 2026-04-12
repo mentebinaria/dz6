@@ -111,12 +111,16 @@ pub fn edit_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                         fill_with(app, b.wrapping_sub(1), false);
                     }
                 } else if c == 'T' {
-                    // truncate the file
-                    if let Some(f) = &app.file_info.file {
-                        f.set_len((app.hex_view.offset + 1) as u64)?;
-                        app.reload_file();
-                        app.state = UIState::Normal;
-                        app.hex_view.editing_hex = true;
+                    // set a new start (reverse truncate)
+                    if app.hex_view.offset > 0 {
+                        app.dialog_renderer = Some(super::truncate::dialog_reverse_truncate);
+                        app.state = UIState::DialogReverseTruncate;
+                    }
+                } else if c == 't' {
+                    // set a new end (truncate)
+                    if app.hex_view.offset < app.file_info.size.saturating_sub(1) {
+                        app.dialog_renderer = Some(super::truncate::dialog_truncate);
+                        app.state = UIState::DialogTruncate;
                     }
                 } else if c == '~' {
                     if let Some(b) = app.read_u8(app.hex_view.offset) {
