@@ -1,5 +1,13 @@
 # Changelog
 
+## dz6 v0.7.0
+
+- Hex view:
+  - Replace mode:
+    - `t` now truncates the file (it was `T` before).
+    - `T` reverse truncates the file (deletes from offset 0 to current offset).
+    - Both commands above need confirmation from the user as they can't be undone.
+
 ## dz6 v0.6.0
 
 - Hex view:
