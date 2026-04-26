@@ -1,5 +1,7 @@
 ![dz6](assets/dz6_banner.png)
 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12656/badge)](https://www.bestpractices.dev/projects/12656)
+
 # dz6
 
 Fast Vim-inspired TUI hex editor
