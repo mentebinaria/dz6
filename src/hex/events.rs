@@ -4,6 +4,7 @@ use crate::{app::App, commands::Commands, editor::UIState, hex};
 use crate::hex::search::SearchDirection;
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use std::io::Result;
+use std::ops::Range;
 
 pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     // this local function goes to the next/previous other byte
@@ -50,6 +51,10 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
 
             if let Some(ofs) = ofs {
                 app.goto(ofs);
+                app.hex_view.colored.insert(Range {
+                    start: ofs,
+                    end: ofs + app.hex_view.search.input_text.value().to_string().len() - 1,
+                });
             }
         }
     }

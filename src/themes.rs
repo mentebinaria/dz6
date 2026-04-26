@@ -11,6 +11,7 @@ pub struct Theme {
     pub error: Style,
     pub editing: Style,
     pub dialog: Style,
+    pub hlsearch: Style,
 }
 
 pub const DARK: Theme = Theme {
@@ -47,6 +48,10 @@ pub const DARK: Theme = Theme {
         .fg(Color::from_u32(0x1e1e1e))
         .bg(Color::Rgb(255, 215, 0))
         .add_modifier(Modifier::RAPID_BLINK),
+    hlsearch: Style::new()
+        .fg(Color::from_u32(0x1e1e1e))
+        .bg(Color::Yellow)
+        .add_modifier(Modifier::BOLD),
 };
 
 pub const LIGHT: Theme = Theme {
@@ -92,4 +97,8 @@ pub const LIGHT: Theme = Theme {
         .fg(Color::from_u32(0xffffff))
         .bg(Color::from_u32(0xffcc00))
         .add_modifier(Modifier::RAPID_BLINK),
+    hlsearch: Style::new()
+        .fg(Color::from_u32(0xd4d4d4))
+        .bg(Color::Yellow)
+        .add_modifier(Modifier::BOLD),
 };

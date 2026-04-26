@@ -14,6 +14,7 @@ pub struct Config {
     pub minimum_string_length: usize,
     pub search_wrap: bool,
     pub theme: Theme,
+    pub hlsearch: bool,
     // pub hex_mode_dword_separator: char,
     // pub text_mode_tab_spaces: usize,
 }

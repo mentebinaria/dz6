@@ -244,6 +244,14 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                         app.config.search_wrap = false;
                         app.dialog_renderer = None;
                     }
+                    "hlsearch" => {
+                        app.config.hlsearch = true;
+                        app.dialog_renderer = None;
+                    }
+                    "nohlsearch" => {
+                        app.config.hlsearch = false;
+                        app.dialog_renderer = None;
+                    }
                     _ => {
                         app.dialog_renderer = None;
                     }

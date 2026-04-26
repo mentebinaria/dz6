@@ -100,6 +100,7 @@ impl App {
                 minimum_string_length: 4,
                 search_wrap: true,
                 theme: DARK,
+                hlsearch: false,
                 // hex_mode_dword_separator: '-',
                 // text_mode_tab_spaces: 4,
             },

@@ -4,6 +4,7 @@ use ratatui::Frame;
 use ratatui::crossterm::event::{Event, KeyCode};
 use ratatui::widgets::Paragraph;
 use std::io::Result;
+use std::ops::Range;
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler;
 
@@ -167,8 +168,14 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
                             return Ok(false);
                         }
 
+                        app.hex_view.colored.clear();
+
                         if let Some(ofs) = search(app, &text) {
                             app.goto(ofs);
+                            app.hex_view.colored.insert(Range {
+                                start: ofs,
+                                end: ofs + text.len() - 1,
+                            });
                             app.dialog_renderer = None;
                         } else {
                             app.dialog_renderer = Some(dialog_search_error_draw);

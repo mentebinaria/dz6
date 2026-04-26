@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    ops::Range,
+};
 
 use ratatui::widgets::{ListState, TableState};
 use serde::{Deserialize, Serialize};
@@ -60,4 +63,6 @@ pub struct HexView {
     pub strings_regex_input: Input,
     #[serde(skip)]
     pub table_state: TableState,
+    #[serde(skip)]
+    pub colored: HashSet<Range<usize>>,
 }

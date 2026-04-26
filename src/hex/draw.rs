@@ -48,6 +48,7 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
     let mut byte_row: Vec<Cell> = Vec::with_capacity(app.reader.page_current_size);
     let mut cell_hl_style = app.config.theme.highlight;
     let mut byte_style = app.config.theme.main;
+    let mut col_len = 2u16;
 
     let buffer = app.file_info.get_buffer();
     for (i, byte) in buffer
@@ -74,6 +75,20 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
             } else {
                 app.config.theme.main
             };
+
+        // small trick to make selection looks better
+        if app.state == UIState::HexSelection {
+            col_len = 3
+        }
+
+        if app.config.hlsearch && !app.hex_view.colored.is_empty() {
+            for c in &app.hex_view.colored {
+                if offset >= c.start && offset <= c.end {
+                    byte_style = app.config.theme.hlsearch;
+                    col_len = 3;
+                }
+            }
+        }
 
         if app.state == UIState::HexEditing && app.hex_view.editing_hex {
             cell_hl_style = app.config.theme.editing;
@@ -121,13 +136,6 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
     app.hex_view
         .table_state
         .select_column(Some(app.hex_view.cursor.x));
-
-    // small trick to make selection looks better
-    let col_len = if app.state == UIState::HexSelection {
-        3
-    } else {
-        2
-    };
 
     let constraints = vec![Constraint::Length(col_len); app.config.hex_mode_bytes_per_line];
 
