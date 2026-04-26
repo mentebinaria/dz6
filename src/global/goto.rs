@@ -19,9 +19,6 @@ impl App {
                 && self.reader.page_end + self.config.hex_mode_bytes_per_line > offset
             {
                 self.reader.page_start += self.config.hex_mode_bytes_per_line;
-                // Clear errors when changing pages
-                self.dialog_renderer = None;
-                self.state = UIState::Normal;
             } else if offset - self.hex_view.offset == self.reader.page_current_size {
                 self.reader.page_start += self.reader.page_current_size;
             } else {

@@ -7,6 +7,8 @@
     - `t` now truncates the file (it was `T` before).
     - `T` reverse truncates the file (deletes from offset 0 to current offset).
     - Both commands above need confirmation from the user as they can't be undone.
+  - Selection mode: 
+    - Bug fix: selection no longer disappears when selected range is bigger than page size.
 
 ## dz6 v0.6.0
 
