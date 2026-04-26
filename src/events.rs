@@ -48,6 +48,10 @@ pub fn handle_events(app: &mut App) -> Result<bool> {
                 UIState::DialogCalculator => {
                     global::calculator::dialog_calculator_events(app, &event)?
                 }
+                UIState::DialogTruncate => hex::truncate::dialog_truncate_events(app, &event)?,
+                UIState::DialogReverseTruncate => {
+                    hex::truncate::dialog_reverse_truncate_events(app, &event)?
+                }
             };
         }
         Event::Resize(width, _height) => {

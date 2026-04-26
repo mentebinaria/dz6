@@ -8,3 +8,4 @@ pub mod names;
 pub mod search;
 pub mod selection;
 pub mod strings;
+pub mod truncate;
