@@ -153,7 +153,8 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 | `Ctrl+x`    | Decrement byte                                             |                                                          |
 | `Esc`       | Go back to normal mode                                     | Changes are saved to buffer, but not written to file yet |
 | `Tab`       | Cycle through hex and ASCII dump to edit the file in ASCII |                                                          |
-| `T`         | Truncate the file at the selected offset                   | Be aware this can't be undone                            |
+| `t`         | Remove all bytes after the the selected offset             | Be aware this can't be undone                            |
+| `T`         | Remove all bytes before the the selected offset            | Be aware this can't be undone                            |
 
 #### Names
 
