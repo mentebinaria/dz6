@@ -1,5 +1,4 @@
 use crate::app::App;
-use crate::editor::UIState;
 
 impl App {
     /// The goto() function handles moving page position and smooth transition between pages
