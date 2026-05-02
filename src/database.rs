@@ -14,7 +14,10 @@ impl App {
         let target_db: PathBuf = target_dir.join(&cwd_db);
 
         // if there's nothing to be saved, delete any existing db files and return
-        if self.hex_view.bookmarks.is_empty() && self.hex_view.comment_name_list.is_empty() {
+        if self.hex_view.bookmarks.is_empty()
+            && self.hex_view.comment_name_list.is_empty()
+            && self.hex_view.blocks.is_empty()
+        {
             let _ = fs::remove_file(target_db);
             let _ = fs::remove_file(cwd_db);
             return Ok(());

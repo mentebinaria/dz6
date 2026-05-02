@@ -1,3 +1,4 @@
+pub mod blocks;
 pub mod comment;
 pub mod draw;
 pub mod edit;

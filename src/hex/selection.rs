@@ -1,8 +1,10 @@
+use crossterm::event::KeyModifiers;
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use std::io::Result;
 
 use crate::app::App;
 use crate::editor::UIState;
+use crate::hex::blocks::ColoredBlock;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Direction {
@@ -196,6 +198,23 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             }
             app.state = UIState::Normal;
             app.hex_view.selection.clear();
+        }
+        // set a random color for an existing block or create a new one
+        KeyCode::Char('M') => {
+            if key.modifiers.contains(KeyModifiers::ALT) {
+                for b in &mut app.hex_view.blocks {
+                    if app.hex_view.offset >= b.start && app.hex_view.offset <= b.end {
+                        b.set_random_color();
+                        app.state = UIState::Normal;
+                        return Ok(true);
+                    }
+                }
+                app.hex_view.blocks.push(ColoredBlock::new(
+                    app.hex_view.selection.start,
+                    app.hex_view.selection.end,
+                ));
+                app.state = UIState::Normal;
+            }
         }
         _ => {}
     }

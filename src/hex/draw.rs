@@ -1,6 +1,7 @@
 use ratatui::{
     Frame,
     layout::{Constraint, Rect},
+    style::{Color, Style},
     widgets::{Cell, Clear, Row, Table},
 };
 
@@ -48,6 +49,7 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
     let mut byte_row: Vec<Cell> = Vec::with_capacity(app.reader.page_current_size);
     let mut cell_hl_style = app.config.theme.highlight;
     let mut byte_style = app.config.theme.main;
+    let mut col_len = 2u16;
 
     let buffer = app.file_info.get_buffer();
     for (i, byte) in buffer
@@ -79,6 +81,13 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
             cell_hl_style = app.config.theme.editing;
         } else if app.state == UIState::HexSelection {
             cell_hl_style = app.config.theme.highlight;
+        }
+
+        for b in &app.hex_view.blocks {
+            if offset >= b.start && offset <= b.end {
+                byte_style = Style::new().bg(Color::from_u32(b.color));
+                col_len = 3;
+            }
         }
 
         if app.hex_view.changed_bytes.contains_key(&offset) {
@@ -123,11 +132,9 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
         .select_column(Some(app.hex_view.cursor.x));
 
     // small trick to make selection looks better
-    let col_len = if app.state == UIState::HexSelection {
-        3
-    } else {
-        2
-    };
+    if app.state == UIState::HexSelection {
+        col_len = 3;
+    }
 
     let constraints = vec![Constraint::Length(col_len); app.config.hex_mode_bytes_per_line];
 

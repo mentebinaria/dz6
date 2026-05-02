@@ -336,6 +336,35 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 crate::beep!(); // beep if there's nothing to undo
             }
         }
+        // set a new random color for a colored block
+        KeyCode::Char('M') => {
+            if key.modifiers.contains(KeyModifiers::ALT) {
+                for b in &mut app.hex_view.blocks {
+                    if app.hex_view.offset >= b.start && app.hex_view.offset <= b.end {
+                        b.set_random_color();
+                        break;
+                    }
+                }
+            }
+        }
+        // go to the beginning of the current block
+        KeyCode::Char('[') => {
+            for b in &app.hex_view.blocks {
+                if app.hex_view.offset >= b.start && app.hex_view.offset <= b.end {
+                    app.goto(b.start);
+                    break;
+                }
+            }
+        }
+        // go to the end of the current block
+        KeyCode::Char(']') => {
+            for b in &app.hex_view.blocks {
+                if app.hex_view.offset >= b.start && app.hex_view.offset <= b.end {
+                    app.goto(b.end);
+                    break;
+                }
+            }
+        }
         _ => {}
     }
     Ok(false)
