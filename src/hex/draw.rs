@@ -67,8 +67,6 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
         byte_style =
             if app.state == UIState::HexSelection && app.hex_view.selection.contains(offset) {
                 app.config.theme.highlight
-            } else if app.hex_view.highlights.contains(byte) {
-                app.config.theme.byte_highlight
             } else if *byte == b'\0' && app.config.dim_zeroes {
                 app.config.theme.dimmed
             } else if !byte.is_ascii_graphic() && app.config.dim_control_chars {
@@ -102,6 +100,11 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
             if byte_content.len() == 1 {
                 byte_content.insert(0, '0');
             }
+        }
+
+        // byte highlight
+        if app.hex_view.highlights.contains(byte) {
+            byte_style = app.config.theme.byte_highlight;
         }
 
         // TODO: column size (2) keep the separator char from being shown :(

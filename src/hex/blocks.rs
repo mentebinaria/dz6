@@ -1,7 +1,7 @@
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Default, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
 pub struct ColoredBlock {
     pub start: usize,
     pub end: usize,

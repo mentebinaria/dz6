@@ -337,7 +337,7 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             }
         }
         // set a new random color for a colored block
-        KeyCode::Char('M') => {
+        KeyCode::Char('m') => {
             if key.modifiers.contains(KeyModifiers::ALT) {
                 for b in &mut app.hex_view.blocks {
                     if app.hex_view.offset >= b.start && app.hex_view.offset <= b.end {
@@ -347,19 +347,37 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 }
             }
         }
-        // go to the beginning of the current block
+        // go to the beginning of the next block
         KeyCode::Char('[') => {
             for b in &app.hex_view.blocks {
-                if app.hex_view.offset >= b.start && app.hex_view.offset <= b.end {
+                if b.start > app.hex_view.offset {
                     app.goto(b.start);
                     break;
                 }
             }
         }
-        // go to the end of the current block
+        // go to the end of the next block
         KeyCode::Char(']') => {
             for b in &app.hex_view.blocks {
-                if app.hex_view.offset >= b.start && app.hex_view.offset <= b.end {
+                if b.end > app.hex_view.offset {
+                    app.goto(b.end);
+                    break;
+                }
+            }
+        }
+        // go to the beginning of the previous block
+        KeyCode::Char('{') => {
+            for b in app.hex_view.blocks.iter().rev() {
+                if b.start < app.hex_view.offset {
+                    app.goto(b.start);
+                    break;
+                }
+            }
+        }
+        // go to the end of the previous block
+        KeyCode::Char('}') => {
+            for b in app.hex_view.blocks.iter().rev() {
+                if b.end < app.hex_view.offset {
                     app.goto(b.end);
                     break;
                 }

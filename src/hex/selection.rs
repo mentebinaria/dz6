@@ -200,7 +200,7 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             app.hex_view.selection.clear();
         }
         // set a random color for an existing block or create a new one
-        KeyCode::Char('M') => {
+        KeyCode::Char('m') => {
             if key.modifiers.contains(KeyModifiers::ALT) {
                 for b in &mut app.hex_view.blocks {
                     if app.hex_view.offset >= b.start && app.hex_view.offset <= b.end {
@@ -213,6 +213,10 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                     app.hex_view.selection.start,
                     app.hex_view.selection.end,
                 ));
+                
+                // sorting is needed to [] and {} keys work correctly
+                app.hex_view.blocks.sort_by_key(|k| k.start);
+
                 app.state = UIState::Normal;
             }
         }

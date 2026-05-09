@@ -13,7 +13,7 @@ pub struct Point {
     pub y: usize,
 }
 
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct HexView {
     #[serde(skip)]
     pub ascii_state: TableState,
