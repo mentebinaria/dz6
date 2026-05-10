@@ -69,7 +69,7 @@ pub fn status_bar_draw(app: &mut App, frame: &mut Frame, area: Rect) {
     };
 
     let status_bar_info_right = Paragraph::new(format!(
-        "{} {} {} {}  {:08X}  {}%",
+        "{} {} {} {}  {:08X}  {:3}%",
         mode, bookmarks_string, app.file_info.r#type, selected, app.hex_view.offset, percent
     ))
     .style(app.config.theme.topbar)
