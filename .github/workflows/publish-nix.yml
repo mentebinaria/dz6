@@ -1,0 +1,47 @@
+name: Update Nix Flake
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-flake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Install Nix
+        uses: cachix/install-nix-action@v23
+        with:
+          nix_path: nixpkgs=channel:nixpkgs-unstable
+      
+      - name: Get version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+      - name: Update flake version
+        run: |
+          sed -i "s/version = \".*\";/version = \"${{ steps.get_version.outputs.VERSION }}\";/" flake.nix
+      
+      - name: Update flake lock
+        run: nix flake update
+      
+      - name: Build with Nix
+        run: nix build . --show-trace
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Update Nix flake to v${{ steps.get_version.outputs.VERSION }}"
+          title: "Update Nix flake to v${{ steps.get_version.outputs.VERSION }}"
+          body: |
+            Automated update of Nix flake for release v${{ steps.get_version.outputs.VERSION }}
+            
+            - Updated version to ${{ steps.get_version.outputs.VERSION }}
+            - Updated flake.lock
+            - Verified build with `nix build`
+          branch: update-nix-v${{ steps.get_version.outputs.VERSION }}
+          base: main
