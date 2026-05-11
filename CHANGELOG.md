@@ -8,8 +8,9 @@
     - `T` reverse truncates the file (deletes from offset 0 to current offset).
     - Both commands above need confirmation from the user as they can't be undone.
   - Selection mode:
-    - Bug fix: selection no longer disappears when selected range is bigger than page size.
     - Users can now mark colored blocks with `Alt-m`. Press multiple times to change colors. `[` and `]` keys navigate to marked block boundaries.
+    - Bug fix: selection no longer disappears when selected range is bigger than page size.
+  - Fixed number of spaces between current offset and current percentage in status bar.
 
 ## dz6 v0.6.0
 
@@ -37,7 +38,7 @@
 - More descriptive error messages.
 - Bug fixes:
   - Editing keeps only the last change most of the time (#25). Thanks to @sergiogarciadev for reporting it and suggesting a fix!
-  - When editing the Hex and Text are showing different data (#26). Thanks to @sergiogarciadev again. :)
+  - When editing the Hex and Text are showing different data (#26). Thanks to @sergiogarciadev again.
   - Multiple bugs related to zero-byte files.
   - If a target file has a related database (.dz6 file), dz6 would parse `editing_hex` as false, causing Replace mode to default to ASCII editing.
   - High CPU usage problem due to frequent event polling.

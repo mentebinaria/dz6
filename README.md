@@ -141,6 +141,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 | `n`        | Fill selected bytes with NOPs    | This puts dz6 in replace mode; press `Enter` to save the buffer; `Esc` to cancel |
 | `z`        | Fill selected bytes with zeroes  | Same as above                                                                    |
 | `y`        | Copy bytes to system's clipboard | There is no paste command yet                                                    |
+| `Alt+m`    | Mark a block with a random color | `Alt+m` again to pick another color. `[` and `]` to navigate to block boundaries |
 | `Esc`      | Go back to normal mode           |                                                                                  |
 
 #### Hex replace mode
