@@ -191,9 +191,14 @@ fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
                 "Type", "Offset", "FileSiz", "VirtAddr", "MemSiz", "PhysAddr", "Flags", "Align",
             ]))
             .style(Style::new().bold())
+            .style(app.config.theme.main)
             .cell_highlight_style(app.config.theme.highlight);
 
-        frame.render_widget(header_table, area);
+        frame.render_stateful_widget(
+            header_table,
+            area,
+            &mut app.header_view.elf_phrs_table_state,
+        );
     }
 }
 
@@ -244,9 +249,14 @@ fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
                 "Info", "Align", "EntSize",
             ]))
             .style(Style::new().bold())
+            .style(app.config.theme.main)
             .cell_highlight_style(app.config.theme.highlight);
 
-        frame.render_widget(header_table, area);
+        frame.render_stateful_widget(
+            header_table,
+            area,
+            &mut app.header_view.elf_sections_table_state,
+        );
     }
 }
 
@@ -281,6 +291,7 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
                 "Size",
             ]))
             .style(Style::new().bold())
+            .style(app.config.theme.main)
             .cell_highlight_style(app.config.theme.highlight);
 
         frame.render_widget(header_table, area);
@@ -288,7 +299,7 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
 }
 
 pub fn elf_draw(app: &mut App, frame: &mut Frame, area: Rect) {
-    let tabs = Tabs::new(vec!["Header", "Program", "Sections", "Symbols"])
+    let tabs = Tabs::new(vec!["Header", "Phdrs", "Sections", "Symbols"])
         .style(app.config.theme.main)
         .highlight_style(app.config.theme.highlight)
         .divider("|")

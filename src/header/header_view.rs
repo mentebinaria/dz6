@@ -43,7 +43,6 @@ pub struct Pe {
     pub sections: Vec<PESection>,
     pub number_of_sections: usize,
     pub imports: Vec<PEImport>,
-    pub number_of_imports: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -52,10 +51,6 @@ pub struct Elf {
     pub phdrs: goblin::elf::ProgramHeaders,
     pub sections: goblin::elf::SectionHeaders,
     pub symtab: Vec<goblin::elf::Sym>,
-    pub header_table_state: TableState,
-    // pub program_header: Option<PEStandardFields>,
-    // pub section_header: Vec<PESection>,
-    // pub symbols: usize,
 }
 
 #[derive(Default, Debug)]
@@ -67,5 +62,7 @@ pub struct HeaderView {
     pub pe: Option<Pe>,
     pub elf: Option<Elf>,
     pub elf_header_table_state: TableState,
+    pub elf_phrs_table_state: TableState,
+    pub elf_sections_table_state: TableState,
     pub tab_index: usize,
 }

@@ -12,11 +12,7 @@ use goblin::{
     pe::header::{COFF_MACHINE_ARM, COFF_MACHINE_ARM64, COFF_MACHINE_X86, COFF_MACHINE_X86_64},
 };
 use mmap_io::{MemoryMappedFile, MmapMode};
-use ratatui::{
-    Frame,
-    layout::Rect,
-    widgets::{ListState, TableState},
-};
+use ratatui::{Frame, layout::Rect, widgets::ListState};
 
 use crate::{
     config::*,
@@ -160,7 +156,6 @@ impl App {
                     phdrs: elf.program_headers.clone(),
                     sections: elf.section_headers.clone(),
                     symtab: elf.syms.to_vec(),
-                    header_table_state: TableState::default(),
                 });
                 "ELF"
             }
@@ -228,7 +223,6 @@ impl App {
                     });
                 }
 
-                let number_of_imports = imports.len();
                 self.header_view.pe = Some(crate::header::header_view::Pe {
                     summary: format!("{} {} {}", bitness, machine, kind),
                     coff_header,
@@ -236,7 +230,6 @@ impl App {
                     sections,
                     imports,
                     number_of_sections,
-                    number_of_imports,
                 });
 
                 "PE"
