@@ -1,3 +1,4 @@
+pub mod blocks;
 pub mod comment;
 pub mod draw;
 pub mod edit;
@@ -8,3 +9,4 @@ pub mod names;
 pub mod search;
 pub mod selection;
 pub mod strings;
+pub mod truncate;

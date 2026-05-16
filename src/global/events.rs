@@ -11,12 +11,11 @@ pub fn handle_global_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         // switch views
         KeyCode::Enter => app.switch_editor_view(),
         // log window
-        KeyCode::Char('l') => {
-            if key.modifiers.contains(KeyModifiers::ALT) {
-                app.state = UIState::DialogLog;
-                app.dialog_renderer = Some(global::log::dialog_log_draw);
-            }
+        KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::ALT) => {
+            app.state = UIState::DialogLog;
+            app.dialog_renderer = Some(global::log::dialog_log_draw);
         }
+
         // command bar
         KeyCode::Char(':') => {
             app.state = UIState::Command;

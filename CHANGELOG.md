@@ -1,9 +1,21 @@
 # Changelog
 
+## dz6 v0.7.0
+
+- Hex view:
+  - Replace mode:
+    - `t` now truncates the file (it was `T` before).
+    - `T` reverse truncates the file (deletes from offset 0 to current offset).
+    - Both commands above need confirmation from the user as they can't be undone.
+  - Selection mode:
+    - Users can now mark colored blocks with `Alt-m`. Press multiple times to change colors. `[` and `]` keys navigate to marked block boundaries.
+    - Bug fix: selection no longer disappears when selected range is bigger than page size.
+  - Fixed number of spaces between current offset and current percentage in status bar.
+
 ## dz6 v0.6.0
 
 - Hex view:
-  -  `Ctrl+f` goes down one page (same as `PgDown`).
+  - `Ctrl+f` goes down one page (same as `PgDown`).
   - `Ctrl+b` goes up one page (same as `PgUp`).
   - `~` changes case when applicable (available in Normal, Replace, and Select modes).
   - `Ctrl+a`, `Ctrl+x`, `n`, and `z` work without putting the editor in Replace mode.
@@ -26,7 +38,7 @@
 - More descriptive error messages.
 - Bug fixes:
   - Editing keeps only the last change most of the time (#25). Thanks to @sergiogarciadev for reporting it and suggesting a fix!
-  - When editing the Hex and Text are showing different data (#26). Thanks to @sergiogarciadev again. :)
+  - When editing the Hex and Text are showing different data (#26). Thanks to @sergiogarciadev again.
   - Multiple bugs related to zero-byte files.
   - If a target file has a related database (.dz6 file), dz6 would parse `editing_hex` as false, causing Replace mode to default to ASCII editing.
   - High CPU usage problem due to frequent event polling.
@@ -47,25 +59,25 @@
 - Basic support for multibyte selection. Press `v` (like visual mode in vim), then select a byte range. Then, `y` to copy bytes to clipboard, `z` to fill them with zeroes, or `n` to fill them with x86 NOPs.
 - Support for initialization file at `$HOME/.gdbinit`. Commands added to this file will be executed at startup (one per line). (https://github.com/mentebinaria/dz6/issues/12)
 - New `:` commands:
-    - `set db` turn on database loading/saving (default)
-    - `set nodb` turn off the above
+  - `set db` turn on database loading/saving (default)
+  - `set nodb` turn off the above
 
 ## dz6 v0.4.0
 
 - Status bar now shows "COMMAND" when you press `:`.
 - New `:` commands:
-    - `cmt <offset> <comment>` (programatic alternative to `;`)
-    - `set byteline <number>` sets the number of bytes per line in the hex dump
-    - `set ctrlchar <char>`sets the character shown for ASCII non-graphical byte values
-    - `set dimzero` dim nullbytes
-    - `set dimctrl` dim all control characters
-    - `set nodim` turn off dimming
-    - `set theme` changes the theme
-    - `w` write changes to file
-    - `wq` or `x` write changes to file and quit
+  - `cmt <offset> <comment>` (programatic alternative to `;`)
+  - `set byteline <number>` sets the number of bytes per line in the hex dump
+  - `set ctrlchar <char>`sets the character shown for ASCII non-graphical byte values
+  - `set dimzero` dim nullbytes
+  - `set dimctrl` dim all control characters
+  - `set nodim` turn off dimming
+  - `set theme` changes the theme
+  - `w` write changes to file
+  - `wq` or `x` write changes to file and quit
 - In-memory buffer when patching bytes. Nothing is written to the file until you use some of the writing commands (`w`, `wq` or `x`), but truncating is an exception (`T` in replace mode).
- - Light theme.
-- dz6 beeps if you try  to enter replace mode when editing a read-only file.
+- Light theme.
+- dz6 beeps if you try to enter replace mode when editing a read-only file.
 
 ## dz6 v0.3.1
 

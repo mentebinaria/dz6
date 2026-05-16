@@ -57,13 +57,19 @@ pub fn status_bar_draw(app: &mut App, frame: &mut Frame, area: Rect) {
     frame.render_widget(status_bar_info_left, area);
 
     let selected = if app.state == UIState::HexSelection {
-        format!("{:X}", app.hex_view.selection.end.saturating_sub(app.hex_view.selection.start))
+        format!(
+            "{:X}",
+            app.hex_view
+                .selection
+                .end
+                .saturating_sub(app.hex_view.selection.start)
+        )
     } else {
         "".to_string()
     };
 
     let status_bar_info_right = Paragraph::new(format!(
-        "{} {} {} {}  {:08X}  {}%",
+        "{} {} {} {}  {:08X}  {:3}%",
         mode, bookmarks_string, app.file_info.r#type, selected, app.hex_view.offset, percent
     ))
     .style(app.config.theme.topbar)

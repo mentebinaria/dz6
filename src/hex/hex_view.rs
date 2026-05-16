@@ -4,7 +4,7 @@ use ratatui::widgets::{ListState, TableState};
 use serde::{Deserialize, Serialize};
 use tui_input::Input;
 
-use crate::hex::comment::Comment;
+use crate::hex::{blocks::ColoredBlock, comment::Comment};
 
 // used in hex view struct to track the cursor position
 #[derive(Default, Debug)]
@@ -13,10 +13,12 @@ pub struct Point {
     pub y: usize,
 }
 
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct HexView {
     #[serde(skip)]
     pub ascii_state: TableState,
+    // blocks are ByteBlock structs -- ranges with different colors
+    pub blocks: Vec<ColoredBlock>,
     pub bookmarks: Vec<usize>,
     #[serde(skip)]
     pub changed_bytes: HashMap<usize, String>,

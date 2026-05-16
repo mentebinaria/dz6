@@ -1,5 +1,7 @@
 ![dz6](assets/dz6_banner.png)
 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12656/badge)](https://www.bestpractices.dev/projects/12656)
+
 # dz6
 
 Fast Vim-inspired TUI hex editor
@@ -139,6 +141,7 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 | `n`        | Fill selected bytes with NOPs    | This puts dz6 in replace mode; press `Enter` to save the buffer; `Esc` to cancel |
 | `z`        | Fill selected bytes with zeroes  | Same as above                                                                    |
 | `y`        | Copy bytes to system's clipboard | There is no paste command yet                                                    |
+| `Alt+m`    | Mark a block with a random color | `Alt+m` again to pick another color. `[` and `]` to navigate to block boundaries |
 | `Esc`      | Go back to normal mode           |                                                                                  |
 
 #### Hex replace mode
@@ -153,7 +156,8 @@ If you need permanent settings, create a `$HOME/.dz6init` file containing any of
 | `Ctrl+x`    | Decrement byte                                             |                                                          |
 | `Esc`       | Go back to normal mode                                     | Changes are saved to buffer, but not written to file yet |
 | `Tab`       | Cycle through hex and ASCII dump to edit the file in ASCII |                                                          |
-| `T`         | Truncate the file at the selected offset                   | Be aware this can't be undone                            |
+| `t`         | Remove all bytes after the the selected offset             | Be aware this can't be undone                            |
+| `T`         | Remove all bytes before the the selected offset            | Be aware this can't be undone                            |
 
 #### Names
 

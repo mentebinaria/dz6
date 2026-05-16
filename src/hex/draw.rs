@@ -1,6 +1,7 @@
 use ratatui::{
     Frame,
     layout::{Constraint, Rect},
+    style::{Color, Style},
     widgets::{Cell, Clear, Row, Table},
 };
 
@@ -48,6 +49,7 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
     let mut byte_row: Vec<Cell> = Vec::with_capacity(app.reader.page_current_size);
     let mut cell_hl_style = app.config.theme.highlight;
     let mut byte_style = app.config.theme.main;
+    let mut col_len = 2u16;
 
     let buffer = app.file_info.get_buffer();
     for (i, byte) in buffer
@@ -65,8 +67,6 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
         byte_style =
             if app.state == UIState::HexSelection && app.hex_view.selection.contains(offset) {
                 app.config.theme.highlight
-            } else if app.hex_view.highlights.contains(byte) {
-                app.config.theme.byte_highlight
             } else if *byte == b'\0' && app.config.dim_zeroes {
                 app.config.theme.dimmed
             } else if !byte.is_ascii_graphic() && app.config.dim_control_chars {
@@ -81,6 +81,15 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
             cell_hl_style = app.config.theme.highlight;
         }
 
+        for b in &app.hex_view.blocks {
+            if offset >= b.start && offset <= b.end {
+                byte_style = Style::new()
+                    .bg(Color::from_u32(b.bg_color))
+                    .fg(Color::from_u32(b.fg_color));
+                col_len = 3;
+            }
+        }
+
         if app.hex_view.changed_bytes.contains_key(&offset) {
             // typed chars in content instead of original ones
             byte_content = app.hex_view.changed_bytes[&offset].clone();
@@ -93,6 +102,11 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
             if byte_content.len() == 1 {
                 byte_content.insert(0, '0');
             }
+        }
+
+        // byte highlight
+        if app.hex_view.highlights.contains(byte) {
+            byte_style = app.config.theme.byte_highlight;
         }
 
         // TODO: column size (2) keep the separator char from being shown :(
@@ -123,11 +137,9 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
         .select_column(Some(app.hex_view.cursor.x));
 
     // small trick to make selection looks better
-    let col_len = if app.state == UIState::HexSelection {
-        3
-    } else {
-        2
-    };
+    if app.state == UIState::HexSelection {
+        col_len = 3;
+    }
 
     let constraints = vec![Constraint::Length(col_len); app.config.hex_mode_bytes_per_line];
 

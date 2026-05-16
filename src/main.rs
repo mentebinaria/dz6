@@ -63,16 +63,14 @@ fn main() {
                 // Page size is dynamically calculated as:
                 // frame height - (command line + status line + header) * bytes per line
 
-                let page_size;
-
                 // Prevent panic on underflow with small screen sizes
                 // Currently, we can't have them because of widgets such as Calculator,
                 // but we might add support for such small screen sizes in the future
-                if f.area().height.checked_sub(3).is_some() {
-                    page_size = (f.area().height - 3) as usize * app.config.hex_mode_bytes_per_line;
+                let page_size = if f.area().height.checked_sub(3).is_some() {
+                    (f.area().height - 3) as usize * app.config.hex_mode_bytes_per_line
                 } else {
-                    page_size = app.config.hex_mode_bytes_per_line;
-                }
+                    app.config.hex_mode_bytes_per_line
+                };
 
                 if page_size != app.reader.page_current_size {
                     app.reader.page_current_size = page_size;

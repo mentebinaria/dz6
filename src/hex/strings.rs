@@ -114,11 +114,9 @@ pub fn dialog_strings_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             app.config.minimum_string_length += 1;
             Commands::load_strings(app, true);
         }
-        KeyCode::Char('-') => {
-            if app.config.minimum_string_length > 1 {
-                app.config.minimum_string_length -= 1;
-                Commands::load_strings(app, true);
-            }
+        KeyCode::Char('-') if app.config.minimum_string_length > 1 => {
+            app.config.minimum_string_length -= 1;
+            Commands::load_strings(app, true);
         }
         KeyCode::Char('R') => {
             Commands::load_strings(app, true);

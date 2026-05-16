@@ -50,17 +50,17 @@ fn try_goto(app: &mut App, offset: &str) {
     let offset_direction;
     let mut new_offset = offset;
 
-    if offset.starts_with('-') {
+    if let Some(offset_stripped) = offset.strip_prefix('-') {
         offset_direction = OffsetType::Backward;
-        new_offset = &offset[1..];
-    } else if offset.starts_with('+') {
+        new_offset = offset_stripped;
+    } else if let Some(offset_stripped) = offset.strip_prefix('+') {
         offset_direction = OffsetType::Forward;
-        new_offset = &offset[1..];
+        new_offset = offset_stripped;
     } else {
         offset_direction = OffsetType::Absolute;
     }
 
-    if let Ok(mut ofs) = parse_offset(&new_offset) {
+    if let Ok(mut ofs) = parse_offset(new_offset) {
         if offset_direction == OffsetType::Forward {
             ofs = app.hex_view.offset.saturating_add(ofs);
         } else if offset_direction == OffsetType::Backward {

@@ -21,7 +21,7 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             }
             ofs = ofs.saturating_add_signed(delta);
             // this is needed because it can start at 0,
-            // but it cannot be zero afterward
+            // but it cannot be zero afterwards.
             // without it, `O` doesn't work at offset 0
             if ofs == 0 {
                 app.goto(0);
@@ -59,11 +59,10 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     // also checks and updates offset position, cursor position, etc.
     match key.code {
         // move left
-        KeyCode::Left => {
-            if app.hex_view.offset > 0 {
-                app.goto(app.hex_view.offset - 1);
-            }
+        KeyCode::Left if app.hex_view.offset > 0 => {
+            app.goto(app.hex_view.offset - 1);
         }
+
         KeyCode::Char('h') => {
             if key.modifiers.contains(KeyModifiers::ALT) {
                 if let Some(b) = app.read_u8(app.hex_view.offset) {
@@ -82,10 +81,10 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             app.goto(app.hex_view.offset + 1);
         }
         // move up
-        KeyCode::Up | KeyCode::Char('k') => {
-            if app.hex_view.offset >= app.config.hex_mode_bytes_per_line {
-                app.goto(app.hex_view.offset - app.config.hex_mode_bytes_per_line);
-            }
+        KeyCode::Up | KeyCode::Char('k')
+            if app.hex_view.offset >= app.config.hex_mode_bytes_per_line =>
+        {
+            app.goto(app.hex_view.offset - app.config.hex_mode_bytes_per_line);
         }
         // move down
         KeyCode::Down | KeyCode::Char('j') => {
@@ -125,10 +124,8 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::PageDown => {
             app.goto(app.hex_view.offset + app.reader.page_current_size);
         }
-        KeyCode::Char('f') => {
-            if key.modifiers.contains(KeyModifiers::CONTROL) {
-                app.goto(app.hex_view.offset + app.reader.page_current_size);
-            }
+        KeyCode::Char('f') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            app.goto(app.hex_view.offset + app.reader.page_current_size);
         }
         // go up one page
         KeyCode::PageUp => {
@@ -138,54 +135,48 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                     .saturating_sub(app.reader.page_current_size),
             );
         }
-        KeyCode::Char('b') => {
-            if key.modifiers.contains(KeyModifiers::CONTROL) {
-                app.goto(
-                    app.hex_view
-                        .offset
-                        .saturating_sub(app.reader.page_current_size),
-                );
-            }
+        KeyCode::Char('b') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            app.goto(
+                app.hex_view
+                    .offset
+                    .saturating_sub(app.reader.page_current_size),
+            );
         }
         // go to last visited offset
         KeyCode::Backspace => {
             app.goto(app.hex_view.last_visited_offset);
         }
         // add a bookmark
-        KeyCode::Char('+') => {
-            if app.hex_view.bookmarks.len() < 8 {
-                app.hex_view.bookmarks.push(app.hex_view.offset);
-            }
+        KeyCode::Char('+') if app.hex_view.bookmarks.len() < 8 => {
+            app.hex_view.bookmarks.push(app.hex_view.offset);
         }
         // remove last added bookmark
-        KeyCode::Char('-') => {
-            if !app.hex_view.bookmarks.is_empty() {
-                if key.modifiers.contains(KeyModifiers::ALT) {
-                    // Alt + - removes the bookmark over an offset
-                    if let Some(&ofs) = app.hex_view.bookmarks.last()
-                        && ofs == app.hex_view.offset
-                    {
-                        app.hex_view
-                            .bookmarks
-                            .remove(app.hex_view.bookmarks.len() - 1);
-                    }
-                } else {
-                    // Go to last bookmark
-                    if let Some(&ofs) = app.hex_view.bookmarks.last() {
-                        app.goto(ofs);
-                    }
+        KeyCode::Char('-') if !app.hex_view.bookmarks.is_empty() => {
+            if key.modifiers.contains(KeyModifiers::ALT) {
+                // Alt + - removes the bookmark over an offset
+                if let Some(&ofs) = app.hex_view.bookmarks.last()
+                    && ofs == app.hex_view.offset
+                {
+                    app.hex_view
+                        .bookmarks
+                        .remove(app.hex_view.bookmarks.len() - 1);
+                }
+            } else {
+                // Go to last bookmark
+                if let Some(&ofs) = app.hex_view.bookmarks.last() {
+                    app.goto(ofs);
                 }
             }
         }
         // goto bookmarks
-        KeyCode::Char(c) if ('1'..='8').contains(&c) => {
-            if key.modifiers.contains(KeyModifiers::ALT) {
-                // subtracts 0x30 to convert it to integer
-                let n = (c as u8 - b'0') as usize;
-                if let Some(&ofs) = app.hex_view.bookmarks.get(n - 1) {
-                    // if there's a value there, go to it
-                    app.goto(ofs);
-                }
+        KeyCode::Char(c)
+            if ('1'..='8').contains(&c) && key.modifiers.contains(KeyModifiers::ALT) =>
+        {
+            // subtracts 0x30 to convert it to integer
+            let n = (c as u8 - b'0') as usize;
+            if let Some(&ofs) = app.hex_view.bookmarks.get(n - 1) {
+                // if there's a value there, go to it
+                app.goto(ofs);
             }
         }
         // clear bookmarks
@@ -209,57 +200,55 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Char('O') => goto_other_byte(app, -1),
 
         // zero out byte
-        KeyCode::Char('z') => {
-            if !app.file_info.is_read_only && app.hex_view.offset < app.file_info.size {
-                hex::edit::fill_with(app, 0x00, true);
-            }
+        KeyCode::Char('z')
+            if !app.file_info.is_read_only && app.hex_view.offset < app.file_info.size =>
+        {
+            hex::edit::fill_with(app, 0x00, true);
         }
 
         // increment byte under the cursor
-        KeyCode::Char('a') => {
+        KeyCode::Char('a')
             if !app.file_info.is_read_only
                 && app.hex_view.offset < app.file_info.size
-                && key.modifiers.contains(KeyModifiers::CONTROL)
-            {
-                let ofs = app.hex_view.offset;
-                if let Some(s) = app.hex_view.changed_bytes.get(&ofs) {
-                    if let Ok(b) = u8::from_str_radix(s, 16) {
-                        hex::edit::fill_with(app, b.wrapping_add(1), false);
-                    }
-                } else if let Some(b) = app.read_u8(ofs) {
+                && key.modifiers.contains(KeyModifiers::CONTROL) =>
+        {
+            let ofs = app.hex_view.offset;
+            if let Some(s) = app.hex_view.changed_bytes.get(&ofs) {
+                if let Ok(b) = u8::from_str_radix(s, 16) {
                     hex::edit::fill_with(app, b.wrapping_add(1), false);
                 }
+            } else if let Some(b) = app.read_u8(ofs) {
+                hex::edit::fill_with(app, b.wrapping_add(1), false);
             }
         }
 
         // decrement byte under the cursor
-        KeyCode::Char('x') => {
+        KeyCode::Char('x')
             if !app.file_info.is_read_only
                 && app.hex_view.offset < app.file_info.size
-                && key.modifiers.contains(KeyModifiers::CONTROL)
-            {
-                let ofs = app.hex_view.offset;
-                if let Some(s) = app.hex_view.changed_bytes.get(&ofs) {
-                    if let Ok(b) = u8::from_str_radix(s, 16) {
-                        hex::edit::fill_with(app, b.wrapping_sub(1), false);
-                    }
-                } else if let Some(b) = app.read_u8(ofs) {
+                && key.modifiers.contains(KeyModifiers::CONTROL) =>
+        {
+            let ofs = app.hex_view.offset;
+            if let Some(s) = app.hex_view.changed_bytes.get(&ofs) {
+                if let Ok(b) = u8::from_str_radix(s, 16) {
                     hex::edit::fill_with(app, b.wrapping_sub(1), false);
                 }
+            } else if let Some(b) = app.read_u8(ofs) {
+                hex::edit::fill_with(app, b.wrapping_sub(1), false);
             }
         }
 
         // change case
-        KeyCode::Char('~') => {
-            if !app.file_info.is_read_only && app.hex_view.offset < app.file_info.size {
-                if let Some(b) = app.read_u8(app.hex_view.offset) {
-                    if b.is_ascii_lowercase() {
-                        hex::edit::fill_with(app, b.to_ascii_uppercase(), true);
-                    } else if b.is_ascii_uppercase() {
-                        hex::edit::fill_with(app, b.to_ascii_lowercase(), true);
-                    } else {
-                        beep!();
-                    }
+        KeyCode::Char('~')
+            if !app.file_info.is_read_only && app.hex_view.offset < app.file_info.size =>
+        {
+            if let Some(b) = app.read_u8(app.hex_view.offset) {
+                if b.is_ascii_lowercase() {
+                    hex::edit::fill_with(app, b.to_ascii_uppercase(), true);
+                } else if b.is_ascii_uppercase() {
+                    hex::edit::fill_with(app, b.to_ascii_lowercase(), true);
+                } else {
+                    beep!();
                 }
             }
         }
@@ -314,19 +303,15 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             search_next(app);
         }
         // comment
-        KeyCode::Char(';') => {
-            if app.file_info.size > 0 {
-                app.state = UIState::DialogComment;
-                app.dialog_renderer = Some(hex::comment::dialog_comment_draw);
-            }
+        KeyCode::Char(';') if app.file_info.size > 0 => {
+            app.state = UIState::DialogComment;
+            app.dialog_renderer = Some(hex::comment::dialog_comment_draw);
         }
         // selection
-        KeyCode::Char('v') => {
-            if app.file_info.size > 0 {
-                app.state = UIState::HexSelection;
-                app.hex_view.selection.start = app.hex_view.offset;
-                app.hex_view.selection.end = app.hex_view.offset;
-            }
+        KeyCode::Char('v') if app.file_info.size > 0 => {
+            app.state = UIState::HexSelection;
+            app.hex_view.selection.start = app.hex_view.offset;
+            app.hex_view.selection.end = app.hex_view.offset;
         }
         // undo
         KeyCode::Char('u') => {
@@ -334,6 +319,39 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 let _ = app.hex_view.changed_bytes.remove(&ofs);
             } else {
                 crate::beep!(); // beep if there's nothing to undo
+            }
+        }
+        // set a new random color for a colored block
+        KeyCode::Char('m') if key.modifiers.contains(KeyModifiers::ALT) => {
+            for b in &mut app.hex_view.blocks {
+                if app.hex_view.offset >= b.start && app.hex_view.offset <= b.end {
+                    b.set_random_color();
+                    break;
+                }
+            }
+        }
+        // go to the nearest previous block boundary
+        KeyCode::Char('[') => {
+            for b in app.hex_view.blocks.iter().rev() {
+                if b.end < app.hex_view.offset {
+                    app.goto(b.end);
+                    break;
+                } else if b.start < app.hex_view.offset {
+                    app.goto(b.start);
+                    break;
+                }
+            }
+        }
+        // go to the nearest next block boundary
+        KeyCode::Char(']') => {
+            for b in &app.hex_view.blocks {
+                if b.start > app.hex_view.offset {
+                    app.goto(b.start);
+                    break;
+                } else if b.end > app.hex_view.offset {
+                    app.goto(b.end);
+                    break;
+                }
             }
         }
         _ => {}
