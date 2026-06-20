@@ -33,7 +33,7 @@ fn osabi_to_str(osabi: u8) -> &'static str {
     }
 }
 
-fn draw_header(app: &mut App, frame: &mut Frame, area: Rect) {
+fn draw_elf_header(app: &mut App, frame: &mut Frame, area: Rect) {
     if let Some(elf) = &app.header_view.elf {
         let mut rows = Vec::new();
 
@@ -158,7 +158,7 @@ fn draw_header(app: &mut App, frame: &mut Frame, area: Rect) {
         frame.render_stateful_widget(
             header_table,
             area,
-            &mut app.header_view.elf_header_table_state,
+            &mut app.header_view.elf_state.elf_header_table_state,
         );
     }
 }
@@ -197,7 +197,7 @@ fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
         frame.render_stateful_widget(
             header_table,
             area,
-            &mut app.header_view.elf_phrs_table_state,
+            &mut app.header_view.elf_state.program_header_table_state,
         );
     }
 }
@@ -255,7 +255,7 @@ fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
         frame.render_stateful_widget(
             header_table,
             area,
-            &mut app.header_view.elf_sections_table_state,
+            &mut app.header_view.elf_state.sections_table_state,
         );
     }
 }
@@ -278,7 +278,7 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
 
         let widths = [Constraint::Ratio(1, 8); 8];
 
-        let header_table = Table::new(rows, widths)
+        let symbol_table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
             .header(Row::new(vec![
@@ -294,7 +294,11 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
             .style(app.config.theme.main)
             .cell_highlight_style(app.config.theme.highlight);
 
-        frame.render_widget(header_table, area);
+        frame.render_stateful_widget(
+            symbol_table,
+            area,
+            &mut app.header_view.elf_state.symbols_table_state,
+        );
     }
 }
 
@@ -313,7 +317,7 @@ pub fn elf_draw(app: &mut App, frame: &mut Frame, area: Rect) {
     frame.render_widget(tabs, top);
 
     match app.header_view.tab_index {
-        0 => draw_header(app, frame, main),
+        0 => draw_elf_header(app, frame, main),
         1 => draw_program_header(app, frame, main),
         2 => draw_section_header(app, frame, main),
         3 => draw_symbols(app, frame, main),

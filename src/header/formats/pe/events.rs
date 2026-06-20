@@ -2,87 +2,197 @@ use std::io::Result;
 
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 
-use crate::{app::App, editor::AppView};
+use crate::app::App;
 
-pub fn header_pe_view_events(app: &mut App, key: KeyEvent) -> Result<bool> {
+const NUMBER_OF_TABS: usize = 5;
+
+fn tab_next(app: &mut App) {
+    if app.header_view.tab_index < NUMBER_OF_TABS - 1 {
+        app.header_view.tab_index = app.header_view.tab_index.saturating_add(1);
+    } else {
+        app.header_view.tab_index = 0;
+    }
+}
+
+fn tab_prev(app: &mut App) {
+    if app.header_view.tab_index == 0 {
+        app.header_view.tab_index = NUMBER_OF_TABS - 1;
+    } else {
+        app.header_view.tab_index -= 1;
+    }
+}
+
+fn tab_dos_header_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
-        KeyCode::Up | KeyCode::Char('k') => {
-            if let Some(idx) = app.header_view.section_table_state.selected() {
-                if idx == 0 {
-                    app.header_view.section_table_state.select(None);
-                    app.header_view.section_table_state.select_column(None);
-                    app.header_view.header_list_state.select_last();
-                } else {
-                    app.header_view.section_table_state.select_previous();
-                }
-            } else if app.header_view.header_list_state.selected().is_some() {
-                app.header_view.header_list_state.select_previous();
-            } else if let Some(idx) = app.header_view.imports_table_state.selected() {
-                if idx == 0 {
-                    app.header_view.imports_table_state.select(None);
-                    app.header_view.imports_table_state.select_column(None);
-                    app.header_view.section_table_state.select_last();
-                } else {
-                    app.header_view.imports_table_state.select_previous();
-                }
-            }
-        }
         KeyCode::Down | KeyCode::Char('j') => {
-            if let Some(idx) = app.header_view.header_list_state.selected() {
-                if idx == 6 {
-                    app.header_view.header_list_state.select(None);
-                    app.header_view
-                        .section_table_state
-                        .select_cell(Some((0, 0)));
-                } else {
-                    app.header_view.header_list_state.select_next();
-                }
-            } else if let Some(idx) = app.header_view.section_table_state.selected() {
-                if idx + 1 == app.header_view.pe.as_ref().unwrap().number_of_sections {
-                    app.header_view.section_table_state.select(None);
-                    app.header_view
-                        .imports_table_state
-                        .select_cell(Some((0, 1)));
-                } else {
-                    app.header_view.section_table_state.select_next();
-                }
-            } else if app.header_view.imports_table_state.selected().is_some() {
-                app.header_view.imports_table_state.select_next();
+            if app
+                .header_view
+                .pe_state
+                .dos_header_table_state
+                .selected_cell()
+                .is_none()
+            {
+                app.header_view
+                    .pe_state
+                    .dos_header_table_state
+                    .select_cell(Some((0, 1)));
+            } else {
+                app.header_view
+                    .pe_state
+                    .dos_header_table_state
+                    .select_next();
             }
         }
-        KeyCode::Left | KeyCode::Char('h') => {
-            if app.header_view.section_table_state.selected().is_some() {
-                app.header_view.section_table_state.select_previous_column();
-            }
-        }
-        KeyCode::Right | KeyCode::Char('l') => {
-            if app.header_view.section_table_state.selected().is_some() {
-                app.header_view.section_table_state.select_next_column();
+        KeyCode::Up | KeyCode::Char('k') => {
+            if let Some(idx) = app.header_view.pe_state.dos_header_table_state.selected() {
+                if idx == 0 {
+                    app.header_view.pe_state.dos_header_table_state.select(None);
+                } else {
+                    app.header_view
+                        .pe_state
+                        .dos_header_table_state
+                        .select_previous();
+                }
             }
         }
         KeyCode::Char('G') => {
-            if let Some(idx) = app.header_view.header_list_state.selected() {
-                if idx == 3 {
-                    app.goto(app.header_view.entrypoint as usize);
-                    app.editor_view = AppView::Hex;
-                }
-            }
-        }
-        KeyCode::Tab => {
-            if app.header_view.tab_index < 3 {
-                app.header_view.tab_index += 1;
-            } else {
-                app.header_view.tab_index = 0;
-            }
-        }
-        KeyCode::BackTab => {
-            if app.header_view.tab_index > 0 {
-                app.header_view.tab_index -= 1;
-            } else {
-                app.header_view.tab_index = 3;
-            }
+            // goto
         }
         _ => {}
     }
     Ok(false)
+}
+
+fn tab_pe_header_events(app: &mut App, key: KeyEvent) -> Result<bool> {
+    match key.code {
+        KeyCode::Down | KeyCode::Char('j') => {
+            if app
+                .header_view
+                .pe_state
+                .pe_header_table_state
+                .selected_cell()
+                .is_none()
+            {
+                app.header_view
+                    .pe_state
+                    .pe_header_table_state
+                    .select_cell(Some((0, 1)));
+            } else {
+                app.header_view.pe_state.pe_header_table_state.select_next();
+            }
+        }
+        KeyCode::Up | KeyCode::Char('k') => {
+            if let Some(idx) = app.header_view.pe_state.pe_header_table_state.selected() {
+                if idx == 0 {
+                    app.header_view.pe_state.pe_header_table_state.select(None);
+                } else {
+                    app.header_view
+                        .pe_state
+                        .pe_header_table_state
+                        .select_previous();
+                }
+            }
+        }
+        KeyCode::Char('G') => {
+            // goto
+        }
+        _ => {}
+    }
+    Ok(false)
+}
+
+fn tab_sections_events(app: &mut App, key: KeyEvent) -> Result<bool> {
+    match key.code {
+        KeyCode::Down | KeyCode::Char('j') => {
+            if app
+                .header_view
+                .pe_state
+                .sections_table_state
+                .selected_cell()
+                .is_none()
+            {
+                app.header_view
+                    .pe_state
+                    .sections_table_state
+                    .select_cell(Some((0, 1)));
+            } else {
+                app.header_view.pe_state.sections_table_state.select_next();
+            }
+        }
+        KeyCode::Up | KeyCode::Char('k') => {
+            if let Some(idx) = app.header_view.pe_state.sections_table_state.selected() {
+                if idx == 0 {
+                    app.header_view.pe_state.sections_table_state.select(None);
+                } else {
+                    app.header_view
+                        .pe_state
+                        .sections_table_state
+                        .select_previous();
+                }
+            }
+        }
+        KeyCode::Char('G') => {
+            // goto
+        }
+        _ => {}
+    }
+    Ok(false)
+}
+
+fn tab_imports_events(app: &mut App, key: KeyEvent) -> Result<bool> {
+    match key.code {
+        KeyCode::Down | KeyCode::Char('j') => {
+            if app
+                .header_view
+                .pe_state
+                .imports_table_sate
+                .selected_cell()
+                .is_none()
+            {
+                app.header_view
+                    .pe_state
+                    .imports_table_sate
+                    .select_cell(Some((0, 1)));
+            } else {
+                app.header_view.pe_state.imports_table_sate.select_next();
+            }
+        }
+        KeyCode::Up | KeyCode::Char('k') => {
+            if let Some(idx) = app.header_view.pe_state.imports_table_sate.selected() {
+                if idx == 0 {
+                    app.header_view.pe_state.imports_table_sate.select(None);
+                } else {
+                    app.header_view
+                        .pe_state
+                        .imports_table_sate
+                        .select_previous();
+                }
+            }
+        }
+        KeyCode::Char('G') => {
+            // goto
+        }
+        _ => {}
+    }
+    Ok(false)
+}
+
+pub fn view_header_pe_events(app: &mut App, key: KeyEvent) -> Result<bool> {
+    match key.code {
+        KeyCode::Tab | KeyCode::Right | KeyCode::Char('l') => {
+            tab_next(app);
+        }
+        KeyCode::BackTab | KeyCode::Left | KeyCode::Char('h') => {
+            tab_prev(app);
+        }
+        _ => (),
+    }
+
+    match app.header_view.tab_index {
+        0 => tab_dos_header_events(app, key),
+        1 => tab_pe_header_events(app, key),
+        2 => tab_sections_events(app, key),
+        3 => tab_imports_events(app, key),
+        _ => Ok(false),
+    }
 }

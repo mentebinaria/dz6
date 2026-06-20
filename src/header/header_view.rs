@@ -1,29 +1,4 @@
-use ratatui::widgets::{ListState, TableState};
-
-#[derive(Debug, Clone)]
-pub struct PECoffHeader {
-    pub characteristics: u16,
-    pub machine: u16,
-    pub time_date_stamp: u32,
-}
-
-#[derive(Debug, Clone)]
-pub struct PEStandardFields {
-    pub address_of_entry_point: u32,
-    pub magic: u16,
-    pub minor_linker_version: u8,
-    pub major_linker_version: u8,
-}
-
-#[derive(Debug, Clone)]
-pub struct PESection {
-    pub name: String,
-    pub virtual_address: u32,
-    pub virtual_size: u32,
-    pub pointer_to_raw_data: u32,
-    pub size_of_raw_data: u32,
-    pub characteristics: u32,
-}
+use ratatui::widgets::TableState;
 
 #[derive(Debug, Clone)]
 pub struct PEImport {
@@ -37,11 +12,10 @@ pub struct PEImport {
 
 #[derive(Debug, Clone)]
 pub struct Pe {
-    pub summary: String,
-    pub coff_header: PECoffHeader,
-    pub optional_header: Option<PEStandardFields>,
-    pub sections: Vec<PESection>,
-    pub number_of_sections: usize,
+    pub dos_header: goblin::pe::header::DosHeader,
+    pub coff_header: goblin::pe::header::CoffHeader,
+    pub optional_header: Option<goblin::pe::optional_header::OptionalHeader>,
+    pub sections: Vec<goblin::pe::section_table::SectionTable>,
     pub imports: Vec<PEImport>,
 }
 
@@ -53,16 +27,27 @@ pub struct Elf {
     pub symtab: Vec<goblin::elf::Sym>,
 }
 
+#[derive(Debug, Default)]
+pub struct PeState {
+    pub dos_header_table_state: TableState,
+    pub pe_header_table_state: TableState,
+    pub sections_table_state: TableState,
+    pub imports_table_sate: TableState,
+}
+
+#[derive(Debug, Default)]
+pub struct ElfState {
+    pub elf_header_table_state: TableState,
+    pub program_header_table_state: TableState,
+    pub sections_table_state: TableState,
+    pub symbols_table_state: TableState,
+}
+
 #[derive(Default, Debug)]
 pub struct HeaderView {
-    pub header_list_state: ListState,
-    pub section_table_state: TableState,
-    pub imports_table_state: TableState,
-    pub entrypoint: u32,
     pub pe: Option<Pe>,
     pub elf: Option<Elf>,
-    pub elf_header_table_state: TableState,
-    pub elf_phrs_table_state: TableState,
-    pub elf_sections_table_state: TableState,
+    pub elf_state: ElfState,
+    pub pe_state: PeState,
     pub tab_index: usize,
 }
