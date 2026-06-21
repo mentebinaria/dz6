@@ -265,8 +265,15 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
         let mut rows = Vec::new();
 
         for symbol in &elf.symtab {
+            let name = elf
+                .strtab
+                .get(&symbol.st_name)
+                .map(String::as_str)
+                .unwrap_or_default();
+
             rows.push(Row::new(vec![
-                Cell::new(format!("{:X}", symbol.st_name)),
+                // Cell::new(format!("{:X}", symbol.st_name)),
+                Cell::from(name),
                 Cell::new(format!("{}", bind_to_str(symbol.st_bind()))),
                 Cell::new(format!("{}", type_to_str(symbol.st_type()))),
                 Cell::new(format!("{}", visibility_to_str(symbol.st_visibility()))),

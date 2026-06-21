@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use ratatui::widgets::TableState;
 
 #[derive(Debug, Clone)]
@@ -25,6 +27,7 @@ pub struct Elf {
     pub phdrs: goblin::elf::ProgramHeaders,
     pub sections: goblin::elf::SectionHeaders,
     pub symtab: Vec<goblin::elf::Sym>,
+    pub strtab: HashMap<usize, String>,
 }
 
 #[derive(Debug, Default)]

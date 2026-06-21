@@ -153,6 +153,12 @@ impl App {
                     phdrs: elf.program_headers.clone(),
                     sections: elf.section_headers.clone(),
                     symtab: elf.syms.to_vec(),
+                    strtab: elf
+                        .syms
+                        .iter()
+                        .map(|s| s.st_name)
+                        .filter_map(|idx| elf.strtab.get_at(idx).map(|name| (idx, name.to_owned())))
+                        .collect(),
                 });
                 "ELF"
             }
