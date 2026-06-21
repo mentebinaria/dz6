@@ -272,8 +272,7 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
                 .unwrap_or_default();
 
             rows.push(Row::new(vec![
-                // Cell::new(format!("{:X}", symbol.st_name)),
-                Cell::from(name),
+                Cell::new(name),
                 Cell::new(format!("{}", bind_to_str(symbol.st_bind()))),
                 Cell::new(format!("{}", type_to_str(symbol.st_type()))),
                 Cell::new(format!("{}", visibility_to_str(symbol.st_visibility()))),
@@ -283,8 +282,15 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
             ]));
         }
 
-        let widths = [Constraint::Ratio(1, 8); 8];
-
+        let widths = [
+            Constraint::Fill(1), // Name
+            Constraint::Length(6), // Bind
+            Constraint::Length(6), // Type
+            Constraint::Length(10), // Visibility
+            Constraint::Length(8), // SecHdrIdx
+            Constraint::Length(8), // Value
+            Constraint::Length(8), // Size
+        ];
         let symbol_table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
