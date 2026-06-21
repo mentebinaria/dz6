@@ -6,6 +6,8 @@ use std::{
 };
 
 use arboard::Clipboard;
+use goblin::Object;
+use goblin::error;
 use mmap_io::{MemoryMappedFile, MmapMode};
 use ratatui::{Frame, layout::Rect, widgets::ListState};
 
@@ -13,6 +15,7 @@ use crate::{
     config::*,
     editor::*,
     global::calculator::Calculator,
+    header::header_view::{Elf, HeaderView, Pe},
     hex::{hex_view::HexView, strings::FoundString},
     input_history::InputHistory,
     reader::Reader,
@@ -38,7 +41,7 @@ impl FileInfo {
     /// which also takes care of unloading it if memory constrained.
     pub fn get_buffer(&mut self) -> &[u8] {
         if let Some(mmap) = self.mmap.as_mut() {
-            return mmap.as_slice(0, self.size as u64).unwrap();
+            return mmap.as_slice_bytes(0, self.size as u64).unwrap();
         }
 
         &[]
@@ -68,7 +71,9 @@ pub struct App {
     pub dialog_renderer: Option<fn(&mut App, &mut Frame)>,
     pub editor_view: AppView,
     pub file_info: FileInfo,
+    pub header_view: HeaderView,
     pub hex_view: HexView,
+    pub last_error: Dz6Error,
     pub list_state: ListState,
     pub log_scroll_offset: (u16, u16),
     pub logs: Vec<String>,
@@ -79,7 +84,6 @@ pub struct App {
     pub string_regex: String,
     pub strings: Vec<FoundString>,
     pub text_view: TextView,
-    pub last_error: Dz6Error,
 }
 
 impl App {
@@ -107,6 +111,10 @@ impl App {
             dialog_2nd_renderer: None,
             editor_view: AppView::Hex,
             file_info: FileInfo::default(),
+            header_view: HeaderView {
+                // elf_header_table_state: TableState::new().with_selected_cell(Some((0, 1))),
+                ..Default::default()
+            },
             hex_view: HexView {
                 editing_hex: true,
                 highlights: HashSet::with_capacity(8),
@@ -134,14 +142,55 @@ impl App {
     }
 
     /// this function tries to identify a file type; this is a boilerplate implementation.
-    fn id_file(&mut self) {
+    fn id_file(&mut self) -> error::Result<()> {
         let buffer = self.file_info.get_buffer();
-        self.file_info.r#type = match buffer[0] {
-            0x7f => "ELF",
-            0xca | 0xcf => "Mach-O",
-            0x4d => "PE",
+
+        self.file_info.r#type = match Object::parse(&buffer)? {
+            Object::COFF(_coff) => "COFF",
+            Object::Elf(elf) => {
+                self.header_view.elf = Some(Elf {
+                    header: elf.header.clone(),
+                    phdrs: elf.program_headers.clone(),
+                    sections: elf.section_headers.clone(),
+                    symtab: elf.syms.to_vec(),
+                    strtab: elf
+                        .syms
+                        .iter()
+                        .map(|s| s.st_name)
+                        .filter_map(|idx| elf.strtab.get_at(idx).map(|name| (idx, name.to_owned())))
+                        .collect(),
+                });
+                "ELF"
+            }
+            Object::Mach(_mach) => "Mach-O",
+            Object::PE(pe) => {
+                let mut imports = Vec::new();
+                for imp in pe.imports {
+                    imports.push(crate::header::header_view::PEImport {
+                        dll: imp.dll.to_string(),
+                        name: imp.name.to_string(),
+                        offset: imp.offset,
+                        ordinal: imp.ordinal,
+                        rva: imp.rva,
+                        _size: imp.size,
+                    });
+                }
+
+                self.header_view.pe = Some(Pe {
+                    dos_header: pe.header.dos_header.clone(),
+                    coff_header: pe.header.coff_header.clone(),
+                    optional_header: pe.header.optional_header.clone(),
+                    sections: pe.sections,
+                    imports,
+                });
+
+                "PE"
+            }
+            Object::TE(_magic) => "TE",
             _ => "",
-        }
+        };
+
+        Ok(())
     }
 
     /// load a file
@@ -182,7 +231,7 @@ impl App {
         self.file_info.size = meta.len() as usize;
 
         if self.file_info.size > 0 {
-            self.id_file();
+            _ = self.id_file();
         }
 
         self.log(format!(
@@ -199,6 +248,7 @@ impl App {
         if self.config.database {
             let _ = self.load_database();
         }
+
         Ok(())
     }
 

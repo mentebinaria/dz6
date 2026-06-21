@@ -1,4 +1,5 @@
 use crate::app::App;
+use crate::editor::AppView;
 
 impl App {
     /// The goto() function handles moving page position and smooth transition between pages
@@ -63,6 +64,11 @@ impl App {
         self.hex_view.last_visited_offset = self.hex_view.offset;
         // Update offset
         self.hex_view.offset = offset;
+
+        // if goto is called from Header view
+        if self.editor_view == AppView::Header {
+            self.editor_view = AppView::Hex;
+        }
 
         App::log(self, format!("goto: {:x}", offset));
     }
