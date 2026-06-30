@@ -241,7 +241,7 @@ The Text view displays the file as plain text. This can be useful even when edit
 | --- | ------------------------------ |
 | `e` | Open encoding selection dialog |
 
-### Heaver view
+### Header view
 
 > This view is a work in progress.
 
