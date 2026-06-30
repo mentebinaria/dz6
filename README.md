@@ -4,7 +4,7 @@
 
 # dz6
 
-Fast Vim-inspired TUI hex editor
+Fast Vim-inspired hex editor for the terminal
 
 ## Features
 
@@ -16,6 +16,8 @@ Fast Vim-inspired TUI hex editor
 - String list with regex filtering
 - Multiple smart ways to navigate through a file
 - Find strings and hex bytes
+- Add comments and bookmarks
+- Mark blocks with colors
 - Cross-platform
 - Open source
 
@@ -28,7 +30,7 @@ Fast Vim-inspired TUI hex editor
 ### Rust package manager (all operating systems)
 
 Follow the instructions [here](https://rust-lang.org/tools/install/) to install **cargo**. Then, open up
-a terminal and type:
+a terminal and type
 
     cargo install dz6
 
@@ -36,17 +38,39 @@ a terminal and type:
 
     yay -S dz6
 
+### BigLinux
+
+    pacman -S dz6
+
 ### FreeBSD
 
     pkg install dz6
 
 ### Windows
 
-If you have [WinGet](https://learn.microsoft.com/en-us/windows/package-manager/), install dz6 with:
+If you have [WinGet](https://learn.microsoft.com/en-us/windows/package-manager/), install dz6 with
 
     winget install mentebinaria.dz6
 
+[Scoop](https://scoop.sh/) users can also
+
+    scoop install dz6
+
 Alternatively, download the [release](https://github.com/mentebinaria/dz6/releases) package for your system.
+
+### macOS
+
+[Homebrew](https://brew.sh/) users can
+
+    brew install dz6
+
+### From the sources
+
+If you want to test the most recent, but still under development, version of dz6, you'll need [Cargo](https://rustup.rs/) and git, then you can
+
+    git clone https://github.com/mentebinaria/dz6.git
+    cd dz6
+    cargo install --path .
 
 ## Usage
 
@@ -75,28 +99,31 @@ Once you load a file in **dz6**, you can use the commands below.
 
 #### Commands
 
-| Command          | Action                                                           | Parameters             | Tips/Examples                                                                                     |
-| ---------------- | ---------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------- |
-| `<number>`       | Go to offset                                                     |                        | hex default; `t` suffix = decimal; `+` prefix = incremental jump; `-` prefix = decremental jump   |
-| `cmt`            | Add `<comment>` to `<offset>`                                    | `<offset>` `<comment>` | `cmt 1000 "my comment"` (comment at offset 0x1000; offset obeys the same rules above)             |
-| `sel`            | Select `<length>` bytes from `<offset>`                          | `<offset>` `<length>`  | `sel 40 10t` (select 10 bytes from offset 0x40)                                                   |
-| `set byteline`   | Set the number of bytes per line                                 | `<number> or `auto`    | `set byteline 8` (default is 16; `auto` enables automatic setting based on screen width)          |
-| `set ctrlchar`   | Set the character shown in the ASCII dump for non-graphic values | `<char>`               | `set ctrlchar " "` would set a blankspace (default: `.`)                                          |
-| `set db`         | Turn on database file saving/loading (default)                   |                        | A database file with a `.dz6` extension will be used to store bookmarks and comments for the file |
-| `set nodb`       | Turn off database file saving/loading                            |                        |                                                                                                   |
-| `set dimzero`    | Dim (gray out) null bytes only (default)                         |                        |                                                                                                   |
-| `set dimctrl`    | Dim all control characters                                       |                        | All non-graphic characters will be dimmed                                                         |
-| `set nodim`      | Turn off byte dimming                                            |                        |                                                                                                   |
-| `set theme`      | Set the theme                                                    | `dark` or `light`      | `set theme light` (default: `dark`)                                                               |
-| `set wrapscan`   | Enable search results wrap                                       |                        |                                                                                                   |
-| `set nowrapscan` | Disable search results wrap                                      |                        |                                                                                                   |
-| `w`              | Write changes to file                                            |                        |                                                                                                   |
-| `wq` or `x`      | Write changes to file and quit                                   |                        |                                                                                                   |
-| `q`              | Quit without saving changes                                      |                        | In replace mode, `T` (truncate) is an exception because it modifies the file immediately.         |
+| Command          | Action                                                           | Parameters                | Tips/Examples                                                                                     |
+| ---------------- | ---------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------- |
+| `<number>`       | Go to offset                                                     |                           | hex default; `t` suffix = decimal; `+` prefix = incremental jump; `-` prefix = decremental jump   |
+| `cmt`            | Add `<comment>` to `<offset>`                                    | `<offset>` `<comment>`    | `cmt 1000 "my comment"` (comment at offset 0x1000; offset obeys the same rules above)             |
+| `sel`            | Select `<length>` bytes from `<offset>`                          | `<offset>` `<length>`     | `sel 40 10t` (select 10 bytes from offset 0x40)                                                   |
+| `set byteline`   | Set the number of bytes per line                                 | `<number>` or `auto`      | `set byteline 8` (default is 16; `auto` enables automatic setting based on screen width)          |
+| `set ctrlchar`   | Set the character shown in the ASCII dump for non-graphic values | `<char>`                  | `set ctrlchar " "` would set a blankspace (default: `.`)                                          |
+| `set db`         | Turn on database file saving/loading (default)                   |                           | A database file with a `.dz6` extension will be used to store bookmarks and comments for the file |
+| `set nodb`       | Turn off database file saving/loading                            |                           |                                                                                                   |
+| `set dimzero`    | Dim (gray out) null bytes only (default)                         |                           |                                                                                                   |
+| `set dimctrl`    | Dim all control characters                                       |                           | All non-graphic characters will be dimmed                                                         |
+| `set nodim`      | Turn off byte dimming                                            |                           |                                                                                                   |
+| `set theme`      | Set the theme                                                    | `dark` or `light`         | `set theme light` (default: `dark`)                                                               |
+| `set view`       | Changes the current view                                         | `text`, `hex` or `header` | `set view header` (default: `hex`)                                                                |
+| `set wrapscan`   | Enable search results wrap                                       |                           |                                                                                                   |
+| `set nowrapscan` | Disable search results wrap                                      |                           |                                                                                                   |
+| `w`              | Write changes to file                                            |                           |                                                                                                   |
+| `wq` or `x`      | Write changes to file and quit                                   |                           |                                                                                                   |
+| `q`              | Quit without saving changes                                      |                           | In replace mode, `T` (truncate) is an exception because it modifies the file immediately.         |
 
 If you need permanent settings, create a `$HOME/.dz6init` file containing any of the commands above, one per line. dz6 will load that at startup.
 
 ### Hex view
+
+This is the main view you would expect from a hex editor. It displays file offsets alongside the file contents in a hexadecimal dump that you can navigate, search, edit, and more.
 
 | Key                     | Action                                                                             | Tips                                                              |
 | ----------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -206,11 +233,23 @@ Use the up and down arrow keys to navigate through the history.
 
 ### Text view
 
-> This view hasn’t received much attention yet. This view still has several issues.
+> This view is a work in progress.
+
+The Text view displays the file as plain text. This can be useful even when editing binary files, as it lets you quickly inspect large blocks of text contained within them.
 
 | Key | Action                         |
 | --- | ------------------------------ |
 | `e` | Open encoding selection dialog |
+
+### Heaver view
+
+> This view is a work in progress.
+
+The header view is a new view (expected in v0.8.0) available for executable files. It parses the executable headers and shows them in a nice way.
+
+| Key        | Action     | Tips                                  |
+| ---------- | ---------- | ------------------------------------- |
+| Arrow keys | Navigation | Vim-like `h`, `j`, `k`, `l` also work |
 
 ## FAQ
 
