@@ -354,6 +354,11 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 }
             }
         }
+        // change encoding
+        KeyCode::Char('e') => {
+            app.state = UIState::DialogEncoding;
+            app.dialog_renderer = Some(crate::text::dialog_encoding::dialog_encoding_draw);
+        }
         _ => {}
     }
     Ok(false)
