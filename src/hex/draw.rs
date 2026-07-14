@@ -2,7 +2,8 @@ use ratatui::{
     Frame,
     layout::{Constraint, Rect},
     style::{Color, Style},
-    widgets::{Cell, Clear, Row, Table},
+    text::{Line, Span},
+    widgets::{Cell, Clear, Row, Table, Paragraph},
 };
 
 use crate::{app::App, editor::UIState};
@@ -162,114 +163,148 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
 ///
 /// OBS.: Table é criada a partir de Row, que são conjuntos de Cell
 pub fn draw_hex_ascii(app: &mut App, frame: &mut Frame, area: Rect) {
-    // Uma linha é um conjunto de células, cada uma contendo um caractere
-    let mut row: Vec<Cell> = Vec::with_capacity(app.config.hex_mode_bytes_per_line);
+    let mut lines: Vec<Line> = Vec::new();
+    let char_style = app.config.theme.main;
 
-    // A tabela precisa receber um conjunto de linhas
-    let mut rows: Vec<Row> = Vec::new();
-
-    // O estilo que será usado no caractere individual
-    let mut char_style = app.config.theme.main;
-
-    // Se estiver editando e apertou tab para editar via ASCII, usa o highlight
-    // correto a partir do tema
     let cell_hl_style = if app.state == UIState::HexEditing && !app.hex_view.editing_hex {
         app.config.theme.editing
     } else {
         app.config.theme.highlight
     };
 
+    let bytes_per_line = app.config.hex_mode_bytes_per_line;
+    let page_start = app.reader.page_start;
+    let page_current_size = app.reader.page_current_size;
+    let file_size = app.file_info.size;
     let buffer = app.file_info.get_buffer();
-    for (i, byte) in buffer
-        .iter()
-        .skip(app.reader.page_start)
-        .take(app.reader.page_current_size)
-        .enumerate()
-    {
-        // Antes de criar a Cell a partir do byte, preciso tratar
-        // os bytes inválidos em ASCII
-        let c = if (*byte).is_ascii_graphic() {
-            *byte as char
-        } else {
-            app.config.hex_mode_non_graphic_char
-        };
+    let page_bytes_len = file_size.saturating_sub(page_start).min(page_current_size);
 
-        // O conteúdo e o estilo da célula agora vai depender se
-        // o offset atual está no hashmap de bytes alterados
-        let offset = i + app.reader.page_start;
-        let cell = if app.hex_view.changed_bytes.contains_key(&offset) {
-            // Set regular highlight style if selection is happening
-            char_style = if app.hex_view.selection.contains(offset) {
-                app.config.theme.highlight
-            } else {
-                app.config.theme.changed_bytes
-            };
-            // Recupera o byte alterado (como hex string)
-            let s = &app.hex_view.changed_bytes[&offset];
-
-            // Converte para um u8 numérico. Se não rolar, é porque deu uma
-            // merda muito grande pois só deveria ter hex strings no hashmap.
-            let num = u8::from_str_radix(s, 16).unwrap();
-            // If changed byte is not printable use the non graphic char instead
-            let c = if (num as char).is_ascii_graphic() {
-                num as char
-            } else {
-                app.config.hex_mode_non_graphic_char
-            };
-            // Agora cria uma string a partir do char `c`
-            // Parece doido, mas isso faz "41" -> 0x41 -> "A"
-            let s = String::from(c);
-            // Por fim, retorna a célula
-            Cell::new(s).style(char_style)
-        } else if app.state == UIState::HexSelection && app.hex_view.selection.contains(offset) {
-            char_style = app.config.theme.highlight;
-            let s = String::from(c);
-            Cell::new(s).style(char_style)
-        } else {
-            // Se não for um byte alterado, usa o estilo padrão do tema
-            char_style = app.config.theme.main;
-            // Cria a string a partir do char `c` e retorna a célula
-            let s = String::from(c);
-            Cell::new(s).style(char_style)
-        };
-
-        // Agora a célula tá pronta para ser colocado na linha,
-        // mas antes aplico o estilo nela
-        row.push(cell.style(char_style));
-
-        // Se chegamos no fim da linha
-        if (i + 1) % app.config.hex_mode_bytes_per_line == 0 {
-            // Cria uma linha a partir do vetor de células
-            // e a adiciona no vetor de linhas
-            rows.push(Row::new(row.clone()));
-            // Limpa a linha para ser reutilizada
-            row.clear();
-        }
-    } // for
-
-    // Se a última linha não estiver vazia, significa que ela não foi
-    // incluída no vetor de linhas ainda. É o caso onde a última linha
-    // tem menos de `app.config.hex_mode_bytes_per_line` bytes.
-    if !row.is_empty() {
-        rows.push(Row::new(row));
+    if page_bytes_len == 0 {
+        let paragraph = Paragraph::new(lines);
+        frame.render_widget(Clear, area);
+        frame.render_widget(paragraph, area);
+        return;
     }
 
-    // Atualiza o estado da tabela com a seleção do cursor
-    app.hex_view.ascii_state.select(Some(app.hex_view.cursor.y));
-    app.hex_view
-        .ascii_state
-        .select_column(Some(app.hex_view.cursor.x));
+    // Step 1: Build the entire page bytes (applying changed_bytes)
+    let mut page_bytes = vec![0u8; page_bytes_len];
+    for (i, b) in page_bytes.iter_mut().enumerate() {
+        let offset = page_start + i;
+        *b = if let Some(s) = app.hex_view.changed_bytes.get(&offset) {
+            u8::from_str_radix(s, 16).unwrap_or(buffer[offset])
+        } else {
+            buffer[offset]
+        };
+    }
 
-    // O Constraint contém as dimensões da tabela
-    let constraint = vec![Constraint::Length(1); app.config.hex_mode_bytes_per_line];
+    // Step 2: Decode the entire page to find character boundaries
+    let mut char_cells = vec![(app.config.hex_mode_non_graphic_char.to_string(), 1usize); page_bytes_len];
 
-    // Cria a tabela
-    let table = Table::new(rows, constraint)
-        .column_spacing(0)
-        .style(char_style)
-        .cell_highlight_style(cell_hl_style);
+    let mut idx = 0;
+    while idx < page_bytes_len {
+        if char_cells[idx].1 == 0 {
+            idx += 1;
+            continue;
+        }
 
-    // Desenha a tabela
+        let mut found = false;
+        for len in 1..=4 {
+            if idx + len > page_bytes_len {
+                continue;
+            }
+            let slice = &page_bytes[idx..idx + len];
+            let (decoded_str, _, had_errors) = app.text_view.table.decode(slice);
+
+            if !had_errors && decoded_str.chars().count() == 1 {
+                let c = decoded_str.chars().next().unwrap();
+                if c != '\u{FFFD}' && !c.is_control() {
+                    let cell_char = if c.is_ascii() {
+                        if c.is_ascii_graphic() {
+                            c
+                        } else {
+                            app.config.hex_mode_non_graphic_char
+                        }
+                    } else if !c.is_whitespace() {
+                        c
+                    } else {
+                        app.config.hex_mode_non_graphic_char
+                    };
+
+                    char_cells[idx] = (cell_char.to_string(), len);
+                    for j in 1..len {
+                        if idx + j < page_bytes_len {
+                            char_cells[idx + j] = (String::new(), 0);
+                        }
+                    }
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        if !found {
+            char_cells[idx] = (app.config.hex_mode_non_graphic_char.to_string(), 1);
+        }
+
+        idx += 1;
+    }
+
+    // Step 3: Split into rows and build styled lines
+    let mut row_start = 0;
+    while row_start < page_bytes_len {
+        let row_end = (row_start + bytes_per_line).min(page_bytes_len);
+
+        let mut spans: Vec<Span> = Vec::new();
+        let mut col_idx = row_start;
+        while col_idx < row_end {
+            let (cell_str, byte_len) = &char_cells[col_idx];
+
+            if *byte_len == 0 {
+                col_idx += 1;
+                continue;
+            }
+
+            let offset = page_start + col_idx;
+            let local_col = col_idx - row_start;
+
+            let is_cursor_on_char = app.hex_view.cursor.y == (row_start / bytes_per_line)
+                && app.hex_view.cursor.x >= local_col
+                && app.hex_view.cursor.x < local_col + byte_len;
+
+            let mut span_style = char_style;
+
+            if is_cursor_on_char {
+                span_style = cell_hl_style;
+            } else if app.state == UIState::HexSelection && app.hex_view.selection.contains(offset) {
+                span_style = app.config.theme.highlight;
+            } else if app.hex_view.changed_bytes.contains_key(&offset) {
+                if !app.hex_view.selection.contains(offset) {
+                    span_style = app.config.theme.changed_bytes;
+                }
+            }
+
+            // If this multi-byte char spans across the row boundary, show non-graphic for
+            // the bytes within this row and let the next row handle the rest
+            if col_idx + byte_len > row_end {
+                for _ in col_idx..row_end {
+                    spans.push(Span::styled(
+                        app.config.hex_mode_non_graphic_char.to_string(),
+                        span_style,
+                    ));
+                }
+                break;
+            }
+
+            spans.push(Span::styled(cell_str.clone(), span_style));
+            col_idx += byte_len;
+        }
+        lines.push(Line::from(spans));
+        row_start += bytes_per_line;
+    }
+
+    let paragraph = Paragraph::new(lines);
+
     frame.render_widget(Clear, area);
-    frame.render_stateful_widget(table, area, &mut app.hex_view.ascii_state);
+    frame.render_widget(paragraph, area);
 }
+
