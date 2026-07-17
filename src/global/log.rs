@@ -14,7 +14,7 @@ impl App {
 }
 
 pub fn dialog_log_draw(app: &mut App, frame: &mut Frame) {
-    let text = format!("{:?}\n\n{}", app.reader, &app.logs.join("\n"));
+    let text = format!("{:?}\n\n{}", app.reader, app.logs.join("\n"));
 
     let para = Paragraph::new(text)
         .style(app.config.theme.dialog)

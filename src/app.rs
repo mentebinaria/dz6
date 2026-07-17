@@ -145,11 +145,11 @@ impl App {
     fn id_file(&mut self) -> error::Result<()> {
         let buffer = self.file_info.get_buffer();
 
-        self.file_info.r#type = match Object::parse(&buffer)? {
+        self.file_info.r#type = match Object::parse(buffer)? {
             Object::COFF(_coff) => "COFF",
             Object::Elf(elf) => {
                 self.header_view.elf = Some(Elf {
-                    header: elf.header.clone(),
+                    header: elf.header,
                     phdrs: elf.program_headers.clone(),
                     sections: elf.section_headers.clone(),
                     symtab: elf.syms.to_vec(),
@@ -177,9 +177,9 @@ impl App {
                 }
 
                 self.header_view.pe = Some(Pe {
-                    dos_header: pe.header.dos_header.clone(),
-                    coff_header: pe.header.coff_header.clone(),
-                    optional_header: pe.header.optional_header.clone(),
+                    dos_header: pe.header.dos_header,
+                    coff_header: pe.header.coff_header,
+                    optional_header: pe.header.optional_header,
                     sections: pe.sections,
                     imports,
                 });

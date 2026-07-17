@@ -67,9 +67,9 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
         byte_style =
             if app.state == UIState::HexSelection && app.hex_view.selection.contains(offset) {
                 app.config.theme.highlight
-            } else if *byte == b'\0' && app.config.dim_zeroes {
-                app.config.theme.dimmed
-            } else if !byte.is_ascii_graphic() && app.config.dim_control_chars {
+            } else if (*byte == b'\0' && app.config.dim_zeroes)
+                || (!byte.is_ascii_graphic() && app.config.dim_control_chars)
+            {
                 app.config.theme.dimmed
             } else {
                 app.config.theme.main
