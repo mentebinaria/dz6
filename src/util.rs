@@ -21,6 +21,38 @@ pub fn center_widget(width: u16, height: u16, area: Rect) -> Rect {
     }
 }
 
+pub fn encode_char(c: char, enc: &'static encoding_rs::Encoding) -> Vec<u8> {
+    match enc.name() {
+        "UTF-16LE" => {
+            let mut buf = [0u16; 2];
+            let u16_slice = c.encode_utf16(&mut buf);
+            let mut bytes = Vec::new();
+            for &val in u16_slice.iter() {
+                bytes.extend_from_slice(&val.to_le_bytes());
+            }
+            bytes
+        }
+        "UTF-16BE" => {
+            let mut buf = [0u16; 2];
+            let u16_slice = c.encode_utf16(&mut buf);
+            let mut bytes = Vec::new();
+            for &val in u16_slice.iter() {
+                bytes.extend_from_slice(&val.to_be_bytes());
+            }
+            bytes
+        }
+        _ => {
+            let c_str = c.to_string();
+            let (encoded_bytes, _, has_unmappable) = enc.encode(&c_str);
+            if has_unmappable {
+                vec![b'?']
+            } else {
+                encoded_bytes.into_owned()
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

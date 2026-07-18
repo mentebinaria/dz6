@@ -8,27 +8,44 @@ use ratatui::{
 
 use ratatui::crossterm::event::{Event, KeyCode};
 use std::io::Result;
+use tui_input::backend::crossterm::EventHandler;
 
-use crate::{app::App, commands::Commands, editor::UIState, util::center_widget};
+use crate::{app::App, editor::UIState, util::center_widget};
 
 pub fn dialog_names_draw(app: &mut App, frame: &mut Frame) {
-    let n = app.hex_view.comment_name_list.len();
-    let mut items = Vec::with_capacity(n);
+    let re = if !app.hex_view.names_regex.is_empty() {
+        regex::RegexBuilder::new(&app.hex_view.names_regex)
+            .case_insensitive(true)
+            .build()
+            .ok()
+    } else {
+        None
+    };
+
+    let mut items = Vec::new();
+    let mut count = 0;
 
     for cmt in &app.hex_view.comment_name_list {
-        items.push(ListItem::from(format!(
-            "{:08X}  {}",
-            cmt.offset, cmt.comment
-        )));
-    }
+        let is_match = if let Some(ref r) = re {
+            r.is_match(&cmt.comment)
+        } else {
+            true
+        };
 
-    let names_count = app.hex_view.comment_name_list.len();
+        if is_match {
+            items.push(ListItem::from(format!(
+                "{:08X}  {}",
+                cmt.offset, cmt.comment
+            )));
+            count += 1;
+        }
+    }
 
     let list = List::new(items)
         .style(app.config.theme.dialog)
         .block(
             Block::bordered()
-                .title(format!(" Names ({}) ", names_count))
+                .title(format!(" Names ({}) ", count))
                 .title_alignment(Alignment::Center)
                 .padding(Padding::horizontal(1)),
         )
@@ -82,16 +99,30 @@ pub fn dialog_names_events(app: &mut App, event: &Event) -> Result<bool> {
             }
             KeyCode::Enter => {
                 if let Some(choice) = app.hex_view.names_list_state.selected() {
-                    if choice > app.hex_view.comment_name_list.len() {
-                        App::log(
-                            app,
-                            "wtf {choice} is greater than `app.hex_mode.comments.len()`, dunno how"
-                                .to_string(),
-                        );
-                        return Ok(true);
+                    let re = if !app.hex_view.names_regex.is_empty() {
+                        regex::RegexBuilder::new(&app.hex_view.names_regex)
+                            .case_insensitive(true)
+                            .build()
+                            .ok()
+                    } else {
+                        None
+                    };
+
+                    let mut matched_comments = Vec::new();
+                    for cmt in &app.hex_view.comment_name_list {
+                        let is_match = if let Some(ref r) = re {
+                            r.is_match(&cmt.comment)
+                        } else {
+                            true
+                        };
+                        if is_match {
+                            matched_comments.push(cmt.clone());
+                        }
                     }
-                    // Vec<Comment>
-                    app.goto(app.hex_view.comment_name_list[choice].offset);
+
+                    if choice < matched_comments.len() {
+                        app.goto(matched_comments[choice].offset);
+                    }
                 }
                 app.state = UIState::Normal;
                 app.dialog_renderer = None;
@@ -147,9 +178,11 @@ pub fn dialog_names_regex_events(app: &mut App, event: &Event) -> Result<bool> {
                 app.hex_view.names_regex = String::from(app.hex_view.names_regex_input.value());
                 app.dialog_2nd_renderer = None;
                 app.state = UIState::DialogNames;
-                Commands::load_strings(app, true);
+                app.hex_view.names_list_state.select(Some(0));
             }
-            _ => (),
+            _ => {
+                app.hex_view.names_regex_input.handle_event(event);
+            }
         }
     }
     Ok(false)
