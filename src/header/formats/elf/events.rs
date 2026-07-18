@@ -142,17 +142,20 @@ fn tab_program_headers_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         // follow
         // TODO: follow only when a PhysAddr field is selected
         KeyCode::Char('f') => {
-            let idx = app
+            if let Some(idx) = app
                 .header_view
                 .elf_state
                 .program_header_table_state
                 .selected()
-                .unwrap();
-            let elf = app.header_view.elf.as_ref().unwrap();
-            let phdr = elf.phdrs.get(idx).unwrap();
-            let ofs = phdr.p_offset;
-            app.goto(ofs as usize);
-            app.editor_view = AppView::Hex;
+            {
+                // if we're here, the ELF should be valid (hopefully)
+                let elf = app.header_view.elf.as_ref().unwrap();
+                if let Some(phdr) = elf.phdrs.get(idx) {
+                    let ofs = phdr.p_offset;
+                    app.goto(ofs as usize);
+                    app.editor_view = AppView::Hex;
+                }
+            }
         }
         _ => {}
     }
