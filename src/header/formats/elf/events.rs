@@ -2,7 +2,7 @@ use std::io::Result;
 
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 
-use crate::app::App;
+use crate::{app::App, editor::AppView};
 
 const NUMBER_OF_TABS: usize = 4;
 
@@ -79,7 +79,7 @@ fn tab_program_headers_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 app.header_view
                     .elf_state
                     .program_header_table_state
-                    .select_cell(Some((0, 1)));
+                    .select_cell(Some((0, 5)));
             } else {
                 app.header_view
                     .elf_state
@@ -107,8 +107,52 @@ fn tab_program_headers_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 }
             }
         }
-        KeyCode::Char('G') => {
-            // goto
+        KeyCode::Left | KeyCode::Char('h') => {
+            if app
+                .header_view
+                .elf_state
+                .program_header_table_state
+                .selected()
+                .is_none()
+            {
+                tab_prev(app);
+            } else {
+                app.header_view
+                    .elf_state
+                    .program_header_table_state
+                    .select_previous_column();
+            }
+        }
+        KeyCode::Right | KeyCode::Char('l') => {
+            if app
+                .header_view
+                .elf_state
+                .program_header_table_state
+                .selected()
+                .is_none()
+            {
+                tab_next(app);
+            } else {
+                app.header_view
+                    .elf_state
+                    .program_header_table_state
+                    .select_next_column();
+            }
+        }
+        // follow
+        // TODO: follow only when a PhysAddr field is selected
+        KeyCode::Char('f') => {
+            let idx = app
+                .header_view
+                .elf_state
+                .program_header_table_state
+                .selected()
+                .unwrap();
+            let elf = app.header_view.elf.as_ref().unwrap();
+            let phdr = elf.phdrs.get(idx).unwrap();
+            let ofs = phdr.p_offset;
+            app.goto(ofs as usize);
+            app.editor_view = AppView::Hex;
         }
         _ => {}
     }
@@ -193,10 +237,10 @@ fn tab_symbols_events(app: &mut App, key: KeyEvent) -> Result<bool> {
 
 pub fn view_header_elf_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
-        KeyCode::Tab | KeyCode::Right | KeyCode::Char('l') => {
+        KeyCode::Tab => {
             tab_next(app);
         }
-        KeyCode::BackTab | KeyCode::Left | KeyCode::Char('h') => {
+        KeyCode::BackTab => {
             tab_prev(app);
         }
         _ => (),
