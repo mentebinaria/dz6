@@ -36,6 +36,7 @@ pub struct PeState {
     pub pe_header_table_state: TableState,
     pub sections_table_state: TableState,
     pub imports_table_sate: TableState,
+    pub overlay_table_sate: TableState,
 }
 
 #[derive(Debug, Default)]

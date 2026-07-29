@@ -102,7 +102,7 @@ fn draw_dos_header(app: &mut App, frame: &mut Frame, area: Rect) {
         let header_table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
-            .cell_highlight_style(app.config.theme.highlight);
+            .row_highlight_style(app.config.theme.highlight);
 
         frame.render_stateful_widget(
             header_table,
@@ -168,9 +168,13 @@ fn draw_pe_header(app: &mut App, frame: &mut Frame, area: Rect) {
         let header_table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
-            .cell_highlight_style(app.config.theme.highlight);
+            .row_highlight_style(app.config.theme.highlight);
 
-        frame.render_widget(header_table, area);
+        frame.render_stateful_widget(
+            header_table,
+            area,
+            &mut app.header_view.pe_state.pe_header_table_state,
+        );
     }
 }
 
@@ -205,7 +209,7 @@ fn draw_sections(app: &mut App, frame: &mut Frame, area: Rect) {
                 ])
                 .style(Style::new().bold()),
             )
-            .cell_highlight_style(app.config.theme.highlight);
+            .row_highlight_style(app.config.theme.highlight);
 
         frame.render_stateful_widget(
             section_table,
@@ -238,7 +242,7 @@ fn draw_imports(app: &mut App, frame: &mut Frame, area: Rect) {
                 Row::new(vec!["DLL", "Name", "Offset", "Ordinal", "RVA"])
                     .style(Style::new().bold()),
             )
-            .cell_highlight_style(app.config.theme.highlight);
+            .row_highlight_style(app.config.theme.highlight);
 
         frame.render_stateful_widget(
             imports_table,
@@ -275,9 +279,13 @@ fn draw_overlay(app: &mut App, frame: &mut Frame, area: Rect) {
         let overlay_table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
-            .cell_highlight_style(app.config.theme.highlight);
+            .row_highlight_style(app.config.theme.highlight);
 
-        frame.render_widget(overlay_table, area);
+        frame.render_stateful_widget(
+            overlay_table,
+            area,
+            &mut app.header_view.pe_state.overlay_table_sate,
+        );
     }
 }
 
