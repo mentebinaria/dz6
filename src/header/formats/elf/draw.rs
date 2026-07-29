@@ -7,7 +7,6 @@ use goblin::elf::{
 use ratatui::{
     Frame,
     layout::{Constraint, Layout, Rect},
-    style::Style,
     widgets::{Cell, Clear, Row, Table, Tabs},
 };
 
@@ -153,7 +152,7 @@ fn draw_elf_header(app: &mut App, frame: &mut Frame, area: Rect) {
         let header_table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
-            .cell_highlight_style(app.config.theme.highlight);
+            .row_highlight_style(app.config.theme.highlight);
 
         frame.render_stateful_widget(
             header_table,
@@ -190,9 +189,8 @@ fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
             .header(Row::new(vec![
                 "Type", "Offset", "FileSiz", "VirtAddr", "MemSiz", "PhysAddr", "Flags", "Align",
             ]))
-            .style(Style::new().bold())
             .style(app.config.theme.main)
-            .cell_highlight_style(app.config.theme.highlight);
+            .row_highlight_style(app.config.theme.highlight);
 
         frame.render_stateful_widget(
             header_table,
@@ -248,9 +246,8 @@ fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
                 "Idx", "Name", "NameIdx", "Type", "Flags", "Addr", "Offset", "Size", "Link",
                 "Info", "Align", "EntSize",
             ]))
-            .style(Style::new().bold())
             .style(app.config.theme.main)
-            .cell_highlight_style(app.config.theme.highlight);
+            .row_highlight_style(app.config.theme.highlight);
 
         frame.render_stateful_widget(
             header_table,
@@ -303,9 +300,8 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
                 "Value",
                 "Size",
             ]))
-            .style(Style::new().bold())
             .style(app.config.theme.main)
-            .cell_highlight_style(app.config.theme.highlight);
+            .row_highlight_style(app.config.theme.highlight);
 
         frame.render_stateful_widget(
             symbol_table,

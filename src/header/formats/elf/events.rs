@@ -24,43 +24,18 @@ fn tab_prev(app: &mut App) {
 
 fn tab_elf_header_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
-        KeyCode::Down | KeyCode::Char('j') => {
-            if app
-                .header_view
-                .elf_state
-                .elf_header_table_state
-                .selected_cell()
-                .is_none()
-            {
-                app.header_view
-                    .elf_state
-                    .elf_header_table_state
-                    .select_cell(Some((0, 1)));
-            } else {
-                app.header_view
-                    .elf_state
-                    .elf_header_table_state
-                    .select_next();
-            }
-        }
-        KeyCode::Up | KeyCode::Char('k') => {
-            if let Some(idx) = app.header_view.elf_state.elf_header_table_state.selected() {
-                if idx == 0 {
-                    app.header_view
-                        .elf_state
-                        .elf_header_table_state
-                        .select(None);
-                } else {
-                    app.header_view
-                        .elf_state
-                        .elf_header_table_state
-                        .select_previous();
-                }
-            }
-        }
-        KeyCode::Char('G') => {
-            // goto
-        }
+        KeyCode::Down | KeyCode::Char('j') => app
+            .header_view
+            .elf_state
+            .elf_header_table_state
+            .select_next(),
+        KeyCode::Up | KeyCode::Char('k') => app
+            .header_view
+            .elf_state
+            .elf_header_table_state
+            .select_previous(),
+        KeyCode::Left | KeyCode::Char('h') => tab_prev(app),
+        KeyCode::Right | KeyCode::Char('l') => tab_next(app),
         _ => {}
     }
     Ok(false)
@@ -68,79 +43,19 @@ fn tab_elf_header_events(app: &mut App, key: KeyEvent) -> Result<bool> {
 
 fn tab_program_headers_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
-        KeyCode::Down | KeyCode::Char('j') => {
-            if app
-                .header_view
-                .elf_state
-                .program_header_table_state
-                .selected_cell()
-                .is_none()
-            {
-                app.header_view
-                    .elf_state
-                    .program_header_table_state
-                    .select_cell(Some((0, 5)));
-            } else {
-                app.header_view
-                    .elf_state
-                    .program_header_table_state
-                    .select_next();
-            }
-        }
-        KeyCode::Up | KeyCode::Char('k') => {
-            if let Some(idx) = app
-                .header_view
-                .elf_state
-                .program_header_table_state
-                .selected()
-            {
-                if idx == 0 {
-                    app.header_view
-                        .elf_state
-                        .program_header_table_state
-                        .select(None);
-                } else {
-                    app.header_view
-                        .elf_state
-                        .program_header_table_state
-                        .select_previous();
-                }
-            }
-        }
-        KeyCode::Left | KeyCode::Char('h') => {
-            if app
-                .header_view
-                .elf_state
-                .program_header_table_state
-                .selected()
-                .is_none()
-            {
-                tab_prev(app);
-            } else {
-                app.header_view
-                    .elf_state
-                    .program_header_table_state
-                    .select_previous_column();
-            }
-        }
-        KeyCode::Right | KeyCode::Char('l') => {
-            if app
-                .header_view
-                .elf_state
-                .program_header_table_state
-                .selected()
-                .is_none()
-            {
-                tab_next(app);
-            } else {
-                app.header_view
-                    .elf_state
-                    .program_header_table_state
-                    .select_next_column();
-            }
-        }
-        // follow
-        // TODO: follow only when a PhysAddr field is selected
+        KeyCode::Down | KeyCode::Char('j') => app
+            .header_view
+            .elf_state
+            .program_header_table_state
+            .select_next(),
+        KeyCode::Up | KeyCode::Char('k') => app
+            .header_view
+            .elf_state
+            .program_header_table_state
+            .select_previous(),
+        KeyCode::Left | KeyCode::Char('h') => tab_prev(app),
+        KeyCode::Right | KeyCode::Char('l') => tab_next(app),
+        // follow program header offset in hex view
         KeyCode::Char('f') => {
             if let Some(idx) = app
                 .header_view
@@ -165,35 +80,26 @@ fn tab_program_headers_events(app: &mut App, key: KeyEvent) -> Result<bool> {
 fn tab_sections_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
         KeyCode::Down | KeyCode::Char('j') => {
-            if app
-                .header_view
-                .elf_state
-                .sections_table_state
-                .selected_cell()
-                .is_none()
-            {
-                app.header_view
-                    .elf_state
-                    .sections_table_state
-                    .select_cell(Some((0, 1)));
-            } else {
-                app.header_view.elf_state.sections_table_state.select_next();
-            }
+            app.header_view.elf_state.sections_table_state.select_next()
         }
-        KeyCode::Up | KeyCode::Char('k') => {
+        KeyCode::Up | KeyCode::Char('k') => app
+            .header_view
+            .elf_state
+            .sections_table_state
+            .select_previous(),
+        KeyCode::Left | KeyCode::Char('h') => tab_prev(app),
+        KeyCode::Right | KeyCode::Char('l') => tab_next(app),
+        // follow section offset in hex view
+        KeyCode::Char('f') => {
             if let Some(idx) = app.header_view.elf_state.sections_table_state.selected() {
-                if idx == 0 {
-                    app.header_view.elf_state.sections_table_state.select(None);
-                } else {
-                    app.header_view
-                        .elf_state
-                        .sections_table_state
-                        .select_previous();
+                // if we're here, the ELF should be valid (hopefully)
+                let elf = app.header_view.elf.as_ref().unwrap();
+                if let Some(sec) = elf.sections.get(idx) {
+                    let ofs = sec.sh_offset;
+                    app.goto(ofs as usize);
+                    app.editor_view = AppView::Hex;
                 }
             }
-        }
-        KeyCode::Char('G') => {
-            // goto
         }
         _ => {}
     }
@@ -203,35 +109,26 @@ fn tab_sections_events(app: &mut App, key: KeyEvent) -> Result<bool> {
 fn tab_symbols_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
         KeyCode::Down | KeyCode::Char('j') => {
-            if app
-                .header_view
-                .elf_state
-                .symbols_table_state
-                .selected_cell()
-                .is_none()
-            {
-                app.header_view
-                    .elf_state
-                    .symbols_table_state
-                    .select_cell(Some((0, 0)));
-            } else {
-                app.header_view.elf_state.symbols_table_state.select_next();
-            }
+            app.header_view.elf_state.symbols_table_state.select_next()
         }
-        KeyCode::Up | KeyCode::Char('k') => {
+        KeyCode::Up | KeyCode::Char('k') => app
+            .header_view
+            .elf_state
+            .symbols_table_state
+            .select_previous(),
+        KeyCode::Left | KeyCode::Char('h') => tab_prev(app),
+        KeyCode::Right | KeyCode::Char('l') => tab_next(app),
+        // follow symbol value in hex view
+        KeyCode::Char('f') => {
             if let Some(idx) = app.header_view.elf_state.symbols_table_state.selected() {
-                if idx == 0 {
-                    app.header_view.elf_state.symbols_table_state.select(None);
-                } else {
-                    app.header_view
-                        .elf_state
-                        .symbols_table_state
-                        .select_previous();
+                // if we're here, the ELF should be valid (hopefully)
+                let elf = app.header_view.elf.as_ref().unwrap();
+                if let Some(sym) = elf.symtab.get(idx) {
+                    let ofs = sym.st_value;
+                    app.goto(ofs as usize);
+                    app.editor_view = AppView::Hex;
                 }
             }
-        }
-        KeyCode::Char('G') => {
-            // goto
         }
         _ => {}
     }
@@ -239,16 +136,6 @@ fn tab_symbols_events(app: &mut App, key: KeyEvent) -> Result<bool> {
 }
 
 pub fn view_header_elf_events(app: &mut App, key: KeyEvent) -> Result<bool> {
-    match key.code {
-        KeyCode::Tab => {
-            tab_next(app);
-        }
-        KeyCode::BackTab => {
-            tab_prev(app);
-        }
-        _ => (),
-    }
-
     match app.header_view.tab_index {
         0 => tab_elf_header_events(app, key),
         1 => tab_program_headers_events(app, key),
