@@ -7,6 +7,7 @@ use goblin::elf::{
 use ratatui::{
     Frame,
     layout::{Constraint, Layout, Rect},
+    text::Text,
     widgets::{Cell, Clear, Row, Table, Tabs},
 };
 
@@ -202,6 +203,13 @@ fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
 
 fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
     if let Some(elf) = &app.header_view.elf {
+        if elf.sections.is_empty() {
+            let message = Text::from("No sections found").centered();
+
+            frame.render_widget(message, area.centered_vertically(Constraint::Ratio(1, 4)));
+            return;
+        }
+
         let mut rows = Vec::new();
 
         let strtab = elf.sections.get(elf.header.e_shstrndx as usize);
@@ -259,6 +267,13 @@ fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
 
 fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
     if let Some(elf) = &app.header_view.elf {
+        if elf.symtab.is_empty() {
+            let message = Text::from("No symbols found").centered();
+
+            frame.render_widget(message, area.centered_vertically(Constraint::Ratio(1, 4)));
+            return;
+        }
+
         let mut rows = Vec::new();
 
         for symbol in &elf.symtab {
