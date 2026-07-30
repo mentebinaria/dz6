@@ -131,7 +131,19 @@ pub fn edit_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                     }
                 }
             } else {
-                fill_with(app, c as u8, true);
+                let encoded_bytes = crate::util::encode_char(c, app.text_view.table);
+                let mut ofs = app.hex_view.offset;
+                for &b in encoded_bytes.iter() {
+                    if ofs < app.file_info.size {
+                        let s = format!("{:02X}", b);
+                        app.hex_view.changed_bytes.insert(ofs, s);
+                        app.hex_view.changed_history.push(ofs);
+                        ofs += 1;
+                    } else {
+                        break;
+                    }
+                }
+                app.goto(ofs);
             }
         }
         _ => {}

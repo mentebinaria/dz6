@@ -58,8 +58,18 @@ impl ListChoice {
 
     pub fn render(&mut self, app: &mut App, frame: &mut Frame) {
         let area = frame.area();
-        let dialog_area = center_widget(area.width / 3, area.height / 4, area);
-
+        
+        // Calculate height dynamically: choices count + 2 (borders)
+        let dialog_height = (self.choices.len() as u16 + 2).min(area.height);
+        
+        // Calculate width dynamically: longest choice + padding
+        let max_choice_width = self.choices.iter().map(|s| s.len()).max().unwrap_or(0) as u16;
+        let dialog_width = (max_choice_width + 12).max(area.width / 3).min(area.width);
+        
+        // Calculate centered position, then shift it upwards dynamically based on height (roughly 2 lines for standard heights)
+        let mut dialog_area = center_widget(dialog_width, dialog_height, area);
+        dialog_area.y = dialog_area.y.saturating_sub((area.height / 12).max(1));
+        
         let block = Block::new()
             .title(Line::raw(self.title.clone()).centered())
             .borders(Borders::ALL)
