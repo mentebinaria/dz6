@@ -327,7 +327,7 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
 }
 
 pub fn elf_draw(app: &mut App, frame: &mut Frame, area: Rect) {
-    let tabs = Tabs::new(vec!["Header", "Phdrs", "Sections", "Symbols"])
+    let tabs = Tabs::new(vec!["ELF", "Segments", "Sections", "Symbols"])
         .style(app.config.theme.main)
         .highlight_style(app.config.theme.highlight)
         .divider("|")

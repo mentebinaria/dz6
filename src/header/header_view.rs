@@ -13,12 +13,21 @@ pub struct PEImport {
 }
 
 #[derive(Debug, Clone)]
+pub struct PEExport {
+    pub name: String,
+    pub offset: usize,
+    pub rva: usize,
+    pub size: usize,
+}
+
+#[derive(Debug, Clone)]
 pub struct Pe {
     pub dos_header: goblin::pe::header::DosHeader,
     pub coff_header: goblin::pe::header::CoffHeader,
     pub optional_header: Option<goblin::pe::optional_header::OptionalHeader>,
     pub sections: Vec<goblin::pe::section_table::SectionTable>,
     pub imports: Vec<PEImport>,
+    pub exports: Vec<PEExport>,
 }
 
 #[derive(Debug, Clone)]
@@ -33,9 +42,12 @@ pub struct Elf {
 #[derive(Debug, Default)]
 pub struct PeState {
     pub dos_header_table_state: TableState,
-    pub pe_header_table_state: TableState,
+    pub coff_header_table_state: TableState,
+    pub optional_header_table_state: TableState,
+    pub data_dirs_table_state: TableState,
     pub sections_table_state: TableState,
     pub imports_table_sate: TableState,
+    pub exports_table_sate: TableState,
     pub overlay_table_sate: TableState,
 }
 

@@ -176,12 +176,23 @@ impl App {
                     });
                 }
 
+                let mut exports = Vec::new();
+                for exp in pe.exports {
+                    exports.push(crate::header::header_view::PEExport {
+                        name: exp.name.unwrap_or_default().to_string(),
+                        offset: exp.offset.unwrap_or_default(),
+                        rva: exp.rva,
+                        size: exp.size,
+                    });
+                }
+
                 self.header_view.pe = Some(Pe {
                     dos_header: pe.header.dos_header,
                     coff_header: pe.header.coff_header,
                     optional_header: pe.header.optional_header,
                     sections: pe.sections,
                     imports,
+                    exports,
                 });
 
                 "PE"
