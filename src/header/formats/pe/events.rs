@@ -228,15 +228,23 @@ fn tab_overlay_events(app: &mut App, key: KeyEvent) -> Result<bool> {
 }
 
 pub fn view_header_pe_events(app: &mut App, key: KeyEvent) -> Result<bool> {
-    match app.header_view.tab_index {
-        0 => tab_dos_header_events(app, key),
-        1 => tab_coff_header_events(app, key),
-        2 => tab_optional_header_events(app, key),
-        3 => tab_data_dirs_events(app, key),
-        4 => tab_sections_events(app, key),
-        5 => tab_imports_events(app, key),
-        6 => tab_exports_events(app, key),
-        7 => tab_overlay_events(app, key),
-        _ => Ok(false),
+    match key.code {
+        // global keybindings to change tabs quickly
+        KeyCode::Char(c) if ('1'..='8').contains(&c) => {
+            app.header_view.tab_index = c.to_string().parse::<usize>().unwrap().wrapping_sub(1);
+            Ok(true)
+        }
+        // otherwise call the tab event handlers based on tab index
+        _ => match app.header_view.tab_index {
+            0 => tab_dos_header_events(app, key),
+            1 => tab_coff_header_events(app, key),
+            2 => tab_optional_header_events(app, key),
+            3 => tab_data_dirs_events(app, key),
+            4 => tab_sections_events(app, key),
+            5 => tab_imports_events(app, key),
+            6 => tab_exports_events(app, key),
+            7 => tab_overlay_events(app, key),
+            _ => Ok(false),
+        },
     }
 }

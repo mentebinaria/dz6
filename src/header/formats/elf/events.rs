@@ -136,11 +136,19 @@ fn tab_symbols_events(app: &mut App, key: KeyEvent) -> Result<bool> {
 }
 
 pub fn view_header_elf_events(app: &mut App, key: KeyEvent) -> Result<bool> {
-    match app.header_view.tab_index {
-        0 => tab_elf_header_events(app, key),
-        1 => tab_program_headers_events(app, key),
-        2 => tab_sections_events(app, key),
-        3 => tab_symbols_events(app, key),
-        _ => Ok(false),
+    match key.code {
+        // global keybindings to change tabs quickly
+        KeyCode::Char(c) if ('1'..='4').contains(&c) => {
+            app.header_view.tab_index = c.to_string().parse::<usize>().unwrap().wrapping_sub(1);
+            Ok(true)
+        }
+        // otherwise call the tab event handlers based on tab index
+        _ => match app.header_view.tab_index {
+            0 => tab_elf_header_events(app, key),
+            1 => tab_program_headers_events(app, key),
+            2 => tab_sections_events(app, key),
+            3 => tab_symbols_events(app, key),
+            _ => Ok(false),
+        },
     }
 }
