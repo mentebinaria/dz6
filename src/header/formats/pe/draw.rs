@@ -252,7 +252,8 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             IMAGE_ROM_OPTIONAL_HDR_MAGIC => "ROM",
             _ => "Unknown",
         };
-        rows.push(Row::new(vec![
+
+        rows.push(Row::new([
             Cell::new("Magic"),
             Cell::new(format!(
                 "{} ({})",
@@ -261,7 +262,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("MajorLinkerVersion"),
             Cell::new(number_to_str_radix(
                 opt.standard_fields.major_linker_version,
@@ -269,7 +270,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("MinorLinkerVersion"),
             Cell::new(number_to_str_radix(
                 opt.standard_fields.minor_linker_version,
@@ -277,7 +278,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("SizeOfCode"),
             Cell::new(number_to_str_radix(
                 opt.standard_fields.size_of_code,
@@ -285,7 +286,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("SizeOfInitializedData"),
             Cell::new(number_to_str_radix(
                 opt.standard_fields.size_of_initialized_data,
@@ -293,7 +294,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("SizeOfUninitializedData"),
             Cell::new(number_to_str_radix(
                 opt.standard_fields.size_of_uninitialized_data,
@@ -301,7 +302,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("AddressOfEntryPoint"),
             Cell::new(number_to_str_radix(
                 opt.standard_fields.address_of_entry_point,
@@ -309,7 +310,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("BaseOfCode"),
             Cell::new(number_to_str_radix(
                 opt.standard_fields.base_of_code,
@@ -318,7 +319,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
         ]));
 
         if magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC {
-            rows.push(Row::new(vec![
+            rows.push(Row::new([
                 Cell::new("BaseOfCode"),
                 Cell::new(number_to_str_radix(
                     opt.standard_fields.base_of_data,
@@ -328,7 +329,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
         }
 
         // Windows-specific fields
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("ImageBase"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.image_base,
@@ -336,7 +337,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("SectionAlignment"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.section_alignment,
@@ -344,7 +345,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("FileAlignment"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.file_alignment,
@@ -352,7 +353,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("MajorOperatingSystemVersion"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.major_operating_system_version,
@@ -360,7 +361,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("MinorOperatingSystemVersion"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.minor_operating_system_version,
@@ -368,7 +369,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("MajorImageVersion"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.major_image_version,
@@ -376,7 +377,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("MinorImageVersion"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.minor_image_version,
@@ -384,7 +385,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("MajorSubsystemVersion"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.major_subsystem_version,
@@ -392,7 +393,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("MinorSubsystemVersion"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.minor_subsystem_version,
@@ -400,7 +401,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("Win32VersionValue"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.win32_version_value,
@@ -408,7 +409,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("SizeOfImage"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.size_of_image,
@@ -416,7 +417,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("SizeOfHeaders"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.size_of_headers,
@@ -424,7 +425,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("CheckSum"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.check_sum,
@@ -432,7 +433,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("Subsystem"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.subsystem,
@@ -440,7 +441,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("DllCharacteristics"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.dll_characteristics,
@@ -448,7 +449,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("SizeOfStackReserve"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.size_of_stack_reserve,
@@ -456,7 +457,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("SizeOfStackCommit"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.size_of_stack_commit,
@@ -464,7 +465,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("SizeOfHeapReserve"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.size_of_heap_reserve,
@@ -472,7 +473,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("SizeOfHeapCommit"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.size_of_heap_commit,
@@ -480,7 +481,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("LoaderFlags"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.loader_flags,
@@ -488,7 +489,7 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
             )),
         ]));
 
-        rows.push(Row::new(vec![
+        rows.push(Row::new([
             Cell::new("NumberOfRvaAndSizes"),
             Cell::new(number_to_str_radix(
                 opt.windows_fields.number_of_rva_and_sizes,
@@ -553,7 +554,7 @@ fn draw_data_directories(app: &mut App, frame: &mut Frame, area: Rect) {
         let table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
-            .header(Row::new(vec!["Type", "VirtualAddress", "Size"]).style(Style::new().bold()))
+            .header(Row::new(["Type", "VirtualAddress", "Size"]).style(Style::new().bold()))
             .row_highlight_style(app.config.theme.highlight);
 
         frame.render_stateful_widget(
@@ -602,7 +603,7 @@ fn draw_sections(app: &mut App, frame: &mut Frame, area: Rect) {
             .column_spacing(1)
             .style(app.config.theme.main)
             .header(
-                Row::new(vec![
+                Row::new([
                     "Name",
                     "VirtualAddress",
                     "VirtualSize",
@@ -651,8 +652,7 @@ fn draw_imports(app: &mut App, frame: &mut Frame, area: Rect) {
             .column_spacing(1)
             .style(app.config.theme.main)
             .header(
-                Row::new(vec!["DLL", "Name", "Offset", "Ordinal", "RVA"])
-                    .style(Style::new().bold()),
+                Row::new(["DLL", "Name", "Offset", "Ordinal", "RVA"]).style(Style::new().bold()),
             )
             .row_highlight_style(app.config.theme.highlight);
 
@@ -691,7 +691,7 @@ fn draw_exports(app: &mut App, frame: &mut Frame, area: Rect) {
         let imports_table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
-            .header(Row::new(vec!["Name", "Offset", "RVA", "Size"]).style(Style::new().bold()))
+            .header(Row::new(["Name", "Offset", "RVA", "Size"]).style(Style::new().bold()))
             .row_highlight_style(app.config.theme.highlight);
 
         frame.render_stateful_widget(
@@ -714,11 +714,11 @@ fn draw_overlay(app: &mut App, frame: &mut Frame, area: Rect) {
         let overlay_size = app.file_info.size.saturating_sub(overlay_start);
 
         let rows = [
-            Row::new(vec![
+            Row::new([
                 Cell::new("OverlayStart"),
                 Cell::new(number_to_str_radix(overlay_start, app.config.header_base)),
             ]),
-            Row::new(vec![
+            Row::new([
                 Cell::new("OverlaySize"),
                 Cell::new(number_to_str_radix(overlay_size, app.config.header_base)),
             ]),
@@ -740,7 +740,7 @@ fn draw_overlay(app: &mut App, frame: &mut Frame, area: Rect) {
 }
 
 pub fn pe_draw(app: &mut App, frame: &mut Frame, area: Rect) {
-    let tabs = Tabs::new(vec![
+    let tabs = Tabs::new([
         "DOS",
         "COFF",
         "Optional",
