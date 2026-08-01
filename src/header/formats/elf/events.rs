@@ -36,6 +36,16 @@ fn tab_elf_header_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             .select_previous(),
         KeyCode::Left | KeyCode::Char('h') => tab_prev(app),
         KeyCode::Right | KeyCode::Char('l') => tab_next(app),
+        KeyCode::Char('g') | KeyCode::Home => app
+            .header_view
+            .elf_state
+            .elf_header_table_state
+            .select_first(),
+        KeyCode::Char('G') | KeyCode::End => app
+            .header_view
+            .elf_state
+            .elf_header_table_state
+            .select_last(),
         _ => {}
     }
     Ok(false)
@@ -72,6 +82,16 @@ fn tab_program_headers_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 }
             }
         }
+        KeyCode::Char('g') | KeyCode::Home => app
+            .header_view
+            .elf_state
+            .program_header_table_state
+            .select_first(),
+        KeyCode::Char('G') | KeyCode::End => app
+            .header_view
+            .elf_state
+            .program_header_table_state
+            .select_last(),
         _ => {}
     }
     Ok(false)
@@ -101,6 +121,14 @@ fn tab_sections_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 }
             }
         }
+        KeyCode::Char('g') | KeyCode::Home => app
+            .header_view
+            .elf_state
+            .sections_table_state
+            .select_first(),
+        KeyCode::Char('G') | KeyCode::End => {
+            app.header_view.elf_state.sections_table_state.select_last()
+        }
         _ => {}
     }
     Ok(false)
@@ -129,6 +157,12 @@ fn tab_symbols_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                     app.editor_view = AppView::Hex;
                 }
             }
+        }
+        KeyCode::Char('g') | KeyCode::Home => {
+            app.header_view.elf_state.symbols_table_state.select_first()
+        }
+        KeyCode::Char('G') | KeyCode::End => {
+            app.header_view.elf_state.symbols_table_state.select_last()
         }
         _ => {}
     }
