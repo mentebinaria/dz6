@@ -7,6 +7,7 @@ pub struct Config {
     pub database: bool,
     pub dim_control_chars: bool,
     pub dim_zeroes: bool,
+    pub header_base: u32,
     pub hex_mode_bytes_per_line: usize,
     pub hex_mode_bytes_per_line_auto: bool,
     pub hex_mode_non_graphic_char: char,

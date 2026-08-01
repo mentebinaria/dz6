@@ -1,3 +1,5 @@
+use chrono::{DateTime, Utc};
+
 use ratatui::{
     Frame,
     layout::{Constraint, Layout, Rect},
@@ -11,97 +13,139 @@ use goblin::pe::optional_header::IMAGE_NT_OPTIONAL_HDR64_MAGIC;
 use goblin::pe::optional_header::IMAGE_ROM_OPTIONAL_HDR_MAGIC;
 use goblin::pe::{data_directories::DataDirectoryType::*, header::machine_to_str};
 
-use crate::app::App;
+use crate::{app::App, util::number_to_str_radix};
 
 fn draw_dos_header(app: &mut App, frame: &mut Frame, area: Rect) {
     if let Some(pe) = &app.header_view.pe {
-        let mut rows = Vec::new();
-
-        rows.push(Row::new(vec![
-            Cell::new("Signature"),
-            Cell::new(format!("{:X}", pe.dos_header.signature)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("BytesOnLastPage"),
-            Cell::new(format!("{:X}", pe.dos_header.bytes_on_last_page)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("PagesInFile"),
-            Cell::new(format!("{:X}", pe.dos_header.pages_in_file)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("Relocations"),
-            Cell::new(format!("{:X}", pe.dos_header.relocations)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("SizeOfHeaderInParagraphs"),
-            Cell::new(format!("{:X}", pe.dos_header.size_of_header_in_paragraphs)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("MinimumExtraParagraphsNeeded"),
-            Cell::new(format!(
-                "{:X}",
-                pe.dos_header.minimum_extra_paragraphs_needed
-            )),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("MaximumExtraParagraphsNeeded"),
-            Cell::new(format!(
-                "{:X}",
-                pe.dos_header.maximum_extra_paragraphs_needed
-            )),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("InitialRelativeSS"),
-            Cell::new(format!("{:X}", pe.dos_header.initial_relative_ss)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("InitialSP"),
-            Cell::new(format!("{:X}", pe.dos_header.initial_sp)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("Checksum"),
-            Cell::new(format!("{:X}", pe.dos_header.checksum)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("InitialIP"),
-            Cell::new(format!("{:X}", pe.dos_header.initial_ip)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("InitialRelativeCS"),
-            Cell::new(format!("{:X}", pe.dos_header.initial_relative_cs)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("FileAddressOfRelocationTable"),
-            Cell::new(format!(
-                "{:X}",
-                pe.dos_header.file_address_of_relocation_table
-            )),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("OverlayNumber"),
-            Cell::new(format!("{:X}", pe.dos_header.overlay_number)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("Reserved"),
-            Cell::new(format!("{:?}", pe.dos_header.reserved)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("OemId"),
-            Cell::new(format!("{:X}", pe.dos_header.oem_id)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("OemInfo"),
-            Cell::new(format!("{:X}", pe.dos_header.oem_info)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("Reserved2"),
-            Cell::new(format!("{:?}", pe.dos_header.reserved2)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("PEHeaderOffset"),
-            Cell::new(format!("{:X}", pe.dos_header.pe_pointer)),
-        ]));
+        let rows = [
+            Row::new([
+                Cell::new("Signature"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.signature,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("BytesOnLastPage"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.bytes_on_last_page,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("PagesInFile"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.pages_in_file,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("Relocations"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.relocations,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("SizeOfHeaderInParagraphs"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.size_of_header_in_paragraphs,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("MinimumExtraParagraphsNeeded"),
+                Cell::new(format!(
+                    "{:X}",
+                    pe.dos_header.minimum_extra_paragraphs_needed
+                )),
+            ]),
+            Row::new([
+                Cell::new("MaximumExtraParagraphsNeeded"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.maximum_extra_paragraphs_needed,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("InitialRelativeSS"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.initial_relative_ss,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("InitialSP"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.initial_sp,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("Checksum"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.checksum,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("InitialIP"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.initial_ip,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("InitialRelativeCS"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.initial_relative_cs,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("FileAddressOfRelocationTable"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.file_address_of_relocation_table,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("OverlayNumber"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.overlay_number,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("Reserved"),
+                Cell::new(format!("{:?}", pe.dos_header.reserved)),
+            ]),
+            Row::new([
+                Cell::new("OemId"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.oem_id,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("OemInfo"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.oem_info,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("Reserved2"),
+                Cell::new(format!("{:?}", pe.dos_header.reserved2)),
+            ]),
+            Row::new([
+                Cell::new("PEHeaderOffset"),
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.pe_pointer,
+                    app.config.header_base,
+                )),
+            ]),
+        ];
 
         let widths = [Constraint::Min(16), Constraint::Fill(1)];
 
@@ -120,45 +164,65 @@ fn draw_dos_header(app: &mut App, frame: &mut Frame, area: Rect) {
 
 fn draw_coff_header(app: &mut App, frame: &mut Frame, area: Rect) {
     if let Some(pe) = &app.header_view.pe {
-        let mut rows = Vec::new();
-
         let machine = pe.coff_header.machine;
-        rows.push(Row::new(vec![
-            Cell::new("Machine"),
-            Cell::new(format!("{:X} ({})", machine, machine_to_str(machine))),
-        ]));
-
         let number_of_sections = pe.coff_header.number_of_sections;
-        rows.push(Row::new(vec![
-            Cell::new("NumberOfSections"),
-            Cell::new(format!("{:X} ({})", number_of_sections, number_of_sections)),
-        ]));
+        let time_date_stamp = pe.coff_header.time_date_stamp;
+        let dt: DateTime<Utc> =
+            DateTime::from_timestamp(time_date_stamp.into(), 0).expect("invalid");
 
-        let timestamp = pe.coff_header.time_date_stamp;
-        rows.push(Row::new(vec![
-            Cell::new("TimeDateStamp"),
-            Cell::new(format!("{:X} ({})", timestamp, timestamp)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("PointerToSymbolTable"),
-            Cell::new(format!("{:X}", pe.coff_header.pointer_to_symbol_table)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("NumberOfSymbols"),
-            Cell::new(format!("{:X}", pe.coff_header.number_of_symbol_table)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("SizeOfOptionalHeader"),
-            Cell::new(format!("{:X}", pe.coff_header.size_of_optional_header)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Characteristics"),
-            Cell::new(format!("{:X}", pe.coff_header.characteristics)),
-        ]));
+        let rows = [
+            Row::new([
+                Cell::new("Machine"),
+                Cell::new(format!(
+                    "{} ({})",
+                    number_to_str_radix(machine, app.config.header_base),
+                    machine_to_str(machine)
+                )),
+            ]),
+            Row::new([
+                Cell::new("NumberOfSections"),
+                Cell::new(number_to_str_radix(
+                    number_of_sections,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("TimeDateStamp"),
+                Cell::new(format!(
+                    "{} ({})",
+                    number_to_str_radix(time_date_stamp, app.config.header_base),
+                    dt
+                )),
+            ]),
+            Row::new([
+                Cell::new("PointerToSymbolTable"),
+                Cell::new(number_to_str_radix(
+                    pe.coff_header.pointer_to_symbol_table,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("NumberOfSymbols"),
+                Cell::new(number_to_str_radix(
+                    pe.coff_header.number_of_symbol_table,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("SizeOfOptionalHeader"),
+                Cell::new(number_to_str_radix(
+                    pe.coff_header.size_of_optional_header,
+                    app.config.header_base,
+                )),
+            ]),
+            Row::new([
+                Cell::new("Characteristics"),
+                Cell::new(number_to_str_radix(
+                    pe.coff_header.characteristics,
+                    app.config.header_base,
+                )),
+            ]),
+        ];
 
         let widths = [Constraint::Min(16), Constraint::Fill(1)];
 
@@ -190,167 +254,246 @@ fn draw_optional_header(app: &mut App, frame: &mut Frame, area: Rect) {
         };
         rows.push(Row::new(vec![
             Cell::new("Magic"),
-            Cell::new(format!("{:X} ({})", magic, magic_str)),
+            Cell::new(format!(
+                "{} ({})",
+                number_to_str_radix(magic, app.config.header_base),
+                magic_str
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("MajorLinkerVersion"),
-            Cell::new(format!("{:X}", opt.standard_fields.major_linker_version)),
+            Cell::new(number_to_str_radix(
+                opt.standard_fields.major_linker_version,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("MinorLinkerVersion"),
-            Cell::new(format!("{:X}", opt.standard_fields.minor_linker_version)),
+            Cell::new(number_to_str_radix(
+                opt.standard_fields.minor_linker_version,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("SizeOfCode"),
-            Cell::new(format!("{:X}", opt.standard_fields.size_of_code)),
+            Cell::new(number_to_str_radix(
+                opt.standard_fields.size_of_code,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("SizeOfInitializedData"),
-            Cell::new(format!(
-                "{:X}",
-                opt.standard_fields.size_of_initialized_data
+            Cell::new(number_to_str_radix(
+                opt.standard_fields.size_of_initialized_data,
+                app.config.header_base,
             )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("SizeOfUninitializedData"),
-            Cell::new(format!(
-                "{:X}",
-                opt.standard_fields.size_of_uninitialized_data
+            Cell::new(number_to_str_radix(
+                opt.standard_fields.size_of_uninitialized_data,
+                app.config.header_base,
             )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("AddressOfEntryPoint"),
-            Cell::new(format!("{:X}", opt.standard_fields.address_of_entry_point)),
+            Cell::new(number_to_str_radix(
+                opt.standard_fields.address_of_entry_point,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("BaseOfCode"),
-            Cell::new(format!("{:X}", opt.standard_fields.base_of_code)),
+            Cell::new(number_to_str_radix(
+                opt.standard_fields.base_of_code,
+                app.config.header_base,
+            )),
         ]));
 
         if magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC {
             rows.push(Row::new(vec![
                 Cell::new("BaseOfCode"),
-                Cell::new(format!("{:X}", opt.standard_fields.base_of_data)),
+                Cell::new(number_to_str_radix(
+                    opt.standard_fields.base_of_data,
+                    app.config.header_base,
+                )),
             ]));
         }
 
         // Windows-specific fields
         rows.push(Row::new(vec![
             Cell::new("ImageBase"),
-            Cell::new(format!("{:X}", opt.windows_fields.image_base)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.image_base,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("SectionAlignment"),
-            Cell::new(format!("{:X}", opt.windows_fields.section_alignment)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.section_alignment,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("FileAlignment"),
-            Cell::new(format!("{:X}", opt.windows_fields.file_alignment)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.file_alignment,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("MajorOperatingSystemVersion"),
-            Cell::new(format!(
-                "{:X}",
-                opt.windows_fields.major_operating_system_version
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.major_operating_system_version,
+                app.config.header_base,
             )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("MinorOperatingSystemVersion"),
-            Cell::new(format!(
-                "{:X}",
-                opt.windows_fields.minor_operating_system_version
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.minor_operating_system_version,
+                app.config.header_base,
             )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("MajorImageVersion"),
-            Cell::new(format!("{:X}", opt.windows_fields.major_image_version)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.major_image_version,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("MinorImageVersion"),
-            Cell::new(format!("{:X}", opt.windows_fields.minor_image_version)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.minor_image_version,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("MajorSubsystemVersion"),
-            Cell::new(format!("{:X}", opt.windows_fields.major_subsystem_version)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.major_subsystem_version,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("MinorSubsystemVersion"),
-            Cell::new(format!("{:X}", opt.windows_fields.minor_subsystem_version)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.minor_subsystem_version,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("Win32VersionValue"),
-            Cell::new(format!("{:X}", opt.windows_fields.win32_version_value)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.win32_version_value,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("SizeOfImage"),
-            Cell::new(format!("{:X}", opt.windows_fields.size_of_image)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.size_of_image,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("SizeOfHeaders"),
-            Cell::new(format!("{:X}", opt.windows_fields.size_of_headers)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.size_of_headers,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("CheckSum"),
-            Cell::new(format!("{:X}", opt.windows_fields.check_sum)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.check_sum,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("Subsystem"),
-            Cell::new(format!("{:X}", opt.windows_fields.subsystem)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.subsystem,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("DllCharacteristics"),
-            Cell::new(format!("{:X}", opt.windows_fields.dll_characteristics)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.dll_characteristics,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("SizeOfStackReserve"),
-            Cell::new(format!("{:X}", opt.windows_fields.size_of_stack_reserve)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.size_of_stack_reserve,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("SizeOfStackCommit"),
-            Cell::new(format!("{:X}", opt.windows_fields.size_of_stack_commit)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.size_of_stack_commit,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("SizeOfHeapReserve"),
-            Cell::new(format!("{:X}", opt.windows_fields.size_of_heap_reserve)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.size_of_heap_reserve,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("SizeOfHeapCommit"),
-            Cell::new(format!("{:X}", opt.windows_fields.size_of_heap_commit)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.size_of_heap_commit,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("LoaderFlags"),
-            Cell::new(format!("{:X}", opt.windows_fields.loader_flags)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.loader_flags,
+                app.config.header_base,
+            )),
         ]));
 
         rows.push(Row::new(vec![
             Cell::new("NumberOfRvaAndSizes"),
-            Cell::new(format!("{:X}", opt.windows_fields.number_of_rva_and_sizes)),
+            Cell::new(number_to_str_radix(
+                opt.windows_fields.number_of_rva_and_sizes,
+                app.config.header_base,
+            )),
         ]));
 
         let widths = [Constraint::Min(16), Constraint::Fill(1)];
@@ -375,8 +518,6 @@ fn draw_data_directories(app: &mut App, frame: &mut Frame, area: Rect) {
         let mut rows = Vec::new();
 
         for (dt, dd) in opt.data_directories.dirs() {
-            let mut cells = Vec::with_capacity(3);
-
             let kind = match dt {
                 ExportTable => "Export Table",
                 ImportTable => "Import Table",
@@ -395,9 +536,15 @@ fn draw_data_directories(app: &mut App, frame: &mut Frame, area: Rect) {
                 ClrRuntimeHeader => "CLR Runtime Header",
             };
 
-            cells.push(Cell::new(kind));
-            cells.push(Cell::new(format!("{:X}", dd.virtual_address)));
-            cells.push(Cell::new(format!("{:X}", dd.size)));
+            let cells = [
+                Cell::new(kind),
+                Cell::new(number_to_str_radix(
+                    dd.virtual_address,
+                    app.config.header_base,
+                )),
+                Cell::new(number_to_str_radix(dd.size, app.config.header_base)),
+            ];
+
             rows.push(Row::new(cells));
         }
 
@@ -422,19 +569,36 @@ fn draw_sections(app: &mut App, frame: &mut Frame, area: Rect) {
         let mut rows = Vec::new();
 
         for sec in &pe.sections {
-            let mut cells = Vec::new();
-            cells.push(Cell::new(sec.name().unwrap_or("")));
-            cells.push(Cell::new(format!("{:08X}", sec.virtual_address)));
-            cells.push(Cell::new(format!("{:08X}", sec.virtual_size)));
-            cells.push(Cell::new(format!("{:08X}", sec.pointer_to_raw_data)));
-            cells.push(Cell::new(format!("{:08X}", sec.size_of_raw_data)));
-            cells.push(Cell::new(format!("{:08X}", sec.characteristics)));
+            let cells = [
+                Cell::new(sec.name().unwrap_or("")),
+                Cell::new(number_to_str_radix(
+                    sec.virtual_address,
+                    app.config.header_base,
+                )),
+                Cell::new(number_to_str_radix(
+                    sec.virtual_size,
+                    app.config.header_base,
+                )),
+                Cell::new(number_to_str_radix(
+                    sec.pointer_to_raw_data,
+                    app.config.header_base,
+                )),
+                Cell::new(number_to_str_radix(
+                    sec.size_of_raw_data,
+                    app.config.header_base,
+                )),
+                Cell::new(number_to_str_radix(
+                    sec.characteristics,
+                    app.config.header_base,
+                )),
+            ];
+
             rows.push(Row::new(cells));
         }
 
         let widths = [Constraint::Ratio(1, 6); 6];
 
-        let section_table = Table::new(rows, widths)
+        let table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
             .header(
@@ -451,7 +615,7 @@ fn draw_sections(app: &mut App, frame: &mut Frame, area: Rect) {
             .row_highlight_style(app.config.theme.highlight);
 
         frame.render_stateful_widget(
-            section_table,
+            table,
             area,
             &mut app.header_view.pe_state.sections_table_state,
         );
@@ -470,12 +634,14 @@ fn draw_imports(app: &mut App, frame: &mut Frame, area: Rect) {
         let mut rows = Vec::new();
 
         for imp in &pe.imports {
-            let mut cells = Vec::new();
-            cells.push(Cell::new(imp.dll.as_str()));
-            cells.push(Cell::new(imp.name.as_str()));
-            cells.push(Cell::new(format!("{:08X}", imp.offset)));
-            cells.push(Cell::new(format!("{:08X}", imp.ordinal)));
-            cells.push(Cell::new(format!("{:08X}", imp.rva)));
+            let cells = [
+                Cell::new(imp.dll.as_str()),
+                Cell::new(imp.name.as_str()),
+                Cell::new(number_to_str_radix(imp.offset, app.config.header_base)),
+                Cell::new(number_to_str_radix(imp.ordinal, app.config.header_base)),
+                Cell::new(number_to_str_radix(imp.rva, app.config.header_base)),
+            ];
+
             rows.push(Row::new(cells));
         }
 
@@ -510,11 +676,13 @@ fn draw_exports(app: &mut App, frame: &mut Frame, area: Rect) {
         let mut rows = Vec::new();
 
         for exp in &pe.exports {
-            let mut cells = Vec::new();
-            cells.push(Cell::new(exp.name.as_str()));
-            cells.push(Cell::new(format!("{:08X}", exp.offset)));
-            cells.push(Cell::new(format!("{:08X}", exp.rva)));
-            cells.push(Cell::new(format!("{:08X}", exp.size)));
+            let cells = [
+                Cell::new(exp.name.as_str()),
+                Cell::new(number_to_str_radix(exp.offset, app.config.header_base)),
+                Cell::new(number_to_str_radix(exp.rva, app.config.header_base)),
+                Cell::new(number_to_str_radix(exp.size, app.config.header_base)),
+            ];
+
             rows.push(Row::new(cells));
         }
 
@@ -545,16 +713,16 @@ fn draw_overlay(app: &mut App, frame: &mut Frame, area: Rect) {
 
         let overlay_size = app.file_info.size.saturating_sub(overlay_start);
 
-        let mut rows = Vec::new();
-
-        rows.push(Row::new(vec![
-            Cell::new("OverlayStart"),
-            Cell::new(format!("{:08X}", overlay_start)),
-        ]));
-        rows.push(Row::new(vec![
-            Cell::new("OverlaySize"),
-            Cell::new(format!("{:08X}", overlay_size)),
-        ]));
+        let rows = [
+            Row::new(vec![
+                Cell::new("OverlayStart"),
+                Cell::new(number_to_str_radix(overlay_start, app.config.header_base)),
+            ]),
+            Row::new(vec![
+                Cell::new("OverlaySize"),
+                Cell::new(number_to_str_radix(overlay_size, app.config.header_base)),
+            ]),
+        ];
 
         let widths = [Constraint::Min(16), Constraint::Fill(1)];
 

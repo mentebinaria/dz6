@@ -1,4 +1,7 @@
-use std::num::ParseIntError;
+use std::{
+    fmt::{Display, UpperHex},
+    num::ParseIntError,
+};
 
 use ratatui::layout::Rect;
 
@@ -21,6 +24,16 @@ pub fn center_widget(width: u16, height: u16, area: Rect) -> Rect {
     }
 }
 
+/// Receives a number `n` and returns a string formatted according to `base`,
+/// which can be 16 to format it as hex (uppercase). Anything different than 16
+/// causes the number to be converted to string (decimal).
+pub fn number_to_str_radix<T: UpperHex + Display>(n: T, base: u32) -> String {
+    if base == 16 {
+        return format!("{:X}", n);
+    }
+    n.to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -37,5 +50,13 @@ mod tests {
         assert!(parse_offset("h3").is_err());
         assert!(parse_offset("-5").is_err());
         assert!(parse_offset("4h4h").is_err());
+    }
+    #[test]
+    fn number_to_str_radix_test() {
+        assert!(number_to_str_radix(42, 16) == "2A".to_string());
+        assert!(number_to_str_radix(42, 10) == "42".to_string());
+        assert!(number_to_str_radix(42, 0) == "42".to_string());
+        assert!(number_to_str_radix(-42, 10) == "-42".to_string());
+        assert!(number_to_str_radix(-42i16, 16) == "FFD6".to_string());
     }
 }

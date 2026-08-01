@@ -229,6 +229,10 @@ fn tab_overlay_events(app: &mut App, key: KeyEvent) -> Result<bool> {
 
 pub fn view_header_pe_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
+        KeyCode::Char('b') => {
+            app.config.header_base = if app.config.header_base == 10 { 16 } else { 10 };
+            Ok(true)
+        }
         // global keybindings to change tabs quickly
         KeyCode::Char(c) if ('1'..='8').contains(&c) => {
             app.header_view.tab_index = c.to_string().parse::<usize>().unwrap().wrapping_sub(1);

@@ -97,6 +97,7 @@ impl App {
                 database: true,
                 dim_control_chars: false,
                 dim_zeroes: true,
+                header_base: 16,
                 hex_mode_bytes_per_line: 16,
                 hex_mode_bytes_per_line_auto: false,
                 hex_mode_non_graphic_char: '.',

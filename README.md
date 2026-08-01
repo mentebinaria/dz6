@@ -18,6 +18,7 @@ Fast Vim-inspired hex editor for the terminal
 - Find strings and hex bytes
 - Add comments and bookmarks
 - Mark blocks with colors
+- PE/ELF headers parsing
 - Cross-platform
 - Open source
 
@@ -251,6 +252,7 @@ The Header view is a new view (expected in v0.8.0) available for executable file
 | ---------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | Arrow keys | Tab navigation       | Left/Right only. Vim-like `h`, `l` also work. To quickly pick a tab, you can also press keys `1`, `2`, etc.              |
 | Arrow keys | Field navigation     | Up/Down only. Vim-like `j`, `k` also work.                                                                               |
+| `b`        | Change number base   | Either hexadecimal (default) or decimal                                                                                  |
 | `f`        | Follow a field value | For fields that make sense (e.g., `AddressOfEntryPoint` in the PE Optional Header), follow their values in the Hex view. |
 
 ## FAQ
