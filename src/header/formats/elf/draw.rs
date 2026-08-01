@@ -11,7 +11,7 @@ use ratatui::{
     widgets::{Cell, Clear, Row, Table, Tabs},
 };
 
-use crate::app::App;
+use crate::{app::App, util::number_to_str_radix};
 
 fn osabi_to_str(osabi: u8) -> &'static str {
     // https://refspecs.linuxfoundation.org/elf/gabi4+/ch4.eheader.html
@@ -39,13 +39,17 @@ fn draw_elf_header(app: &mut App, frame: &mut Frame, area: Rect) {
         let rows = [
             Row::new([
                 Cell::new("Class"),
-                Cell::new(format!("{:08X} ({})", e_ident[4], class_to_str(e_ident[4]))),
+                Cell::new(format!(
+                    "{} ({})",
+                    number_to_str_radix(e_ident[4], app.config.header_base),
+                    class_to_str(e_ident[4])
+                )),
             ]),
             Row::new([
                 Cell::new("Data"),
                 Cell::new(format!(
-                    "{:08X} ({})",
-                    e_ident[5],
+                    "{} ({})",
+                    number_to_str_radix(e_ident[5], app.config.header_base),
                     match e_ident[5] {
                         1 => "LSB/little endian",
                         2 => "MSB/big endian",
@@ -56,8 +60,8 @@ fn draw_elf_header(app: &mut App, frame: &mut Frame, area: Rect) {
             Row::new([
                 Cell::new("Version"),
                 Cell::new(format!(
-                    "{:08X} ({})",
-                    e_ident[6],
+                    "{} ({})",
+                    number_to_str_radix(e_ident[6], app.config.header_base),
                     if e_ident[6] == 1 {
                         "current"
                     } else {
@@ -67,67 +71,104 @@ fn draw_elf_header(app: &mut App, frame: &mut Frame, area: Rect) {
             ]),
             Row::new([
                 Cell::new("OS/ABI"),
-                Cell::new(format!("{:08X} ({})", e_ident[7], osabi_to_str(e_ident[7]))),
+                Cell::new(format!(
+                    "{} ({})",
+                    number_to_str_radix(e_ident[7], app.config.header_base),
+                    osabi_to_str(e_ident[7])
+                )),
             ]),
             Row::new([
                 Cell::new("Type"),
                 Cell::new(format!(
-                    "{:08X} ({})",
-                    elf.header.e_type,
+                    "{} ({})",
+                    number_to_str_radix(elf.header.e_type, app.config.header_base),
                     et_to_str(elf.header.e_type)
                 )),
             ]),
             Row::new([
                 Cell::new("Machine"),
                 Cell::new(format!(
-                    "{:08X} ({})",
-                    elf.header.e_machine,
+                    "{} ({})",
+                    number_to_str_radix(elf.header.e_machine, app.config.header_base),
                     machine_to_str(elf.header.e_machine)
                 )),
             ]),
             Row::new([
                 Cell::new("Version"),
-                Cell::new(format!("{:08X}", elf.header.e_version)),
+                Cell::new(number_to_str_radix(
+                    elf.header.e_version,
+                    app.config.header_base,
+                )),
             ]),
             Row::new([
                 Cell::new("Entrypoint"),
-                Cell::new(format!("{:08X}", elf.header.e_entry)),
+                Cell::new(number_to_str_radix(
+                    elf.header.e_entry,
+                    app.config.header_base,
+                )),
             ]),
             Row::new([
                 Cell::new("Program header offset"),
-                Cell::new(format!("{:08X}", elf.header.e_phoff)),
+                Cell::new(number_to_str_radix(
+                    elf.header.e_phoff,
+                    app.config.header_base,
+                )),
             ]),
             Row::new([
                 Cell::new("Section header offset"),
-                Cell::new(format!("{:08X}", elf.header.e_shoff)),
+                Cell::new(number_to_str_radix(
+                    elf.header.e_shoff,
+                    app.config.header_base,
+                )),
             ]),
             Row::new([
                 Cell::new("Flags"),
-                Cell::new(format!("{:08X}", elf.header.e_flags)),
+                Cell::new(number_to_str_radix(
+                    elf.header.e_flags,
+                    app.config.header_base,
+                )),
             ]),
             Row::new([
                 Cell::new("(This) header size"),
-                Cell::new(format!("{:08X}", elf.header.e_ehsize)),
+                Cell::new(number_to_str_radix(
+                    elf.header.e_ehsize,
+                    app.config.header_base,
+                )),
             ]),
             Row::new([
                 Cell::new("Program header size"),
-                Cell::new(format!("{:08X}", elf.header.e_phentsize)),
+                Cell::new(number_to_str_radix(
+                    elf.header.e_phentsize,
+                    app.config.header_base,
+                )),
             ]),
             Row::new([
                 Cell::new("Number of program headers"),
-                Cell::new(format!("{:08X}", elf.header.e_phnum)),
+                Cell::new(number_to_str_radix(
+                    elf.header.e_phnum,
+                    app.config.header_base,
+                )),
             ]),
             Row::new([
                 Cell::new("Section headers size"),
-                Cell::new(format!("{:08X}", elf.header.e_shentsize)),
+                Cell::new(number_to_str_radix(
+                    elf.header.e_shentsize,
+                    app.config.header_base,
+                )),
             ]),
             Row::new([
                 Cell::new("Number of section headers"),
-                Cell::new(format!("{:08X}", elf.header.e_shnum)),
+                Cell::new(number_to_str_radix(
+                    elf.header.e_shnum,
+                    app.config.header_base,
+                )),
             ]),
             Row::new([
                 Cell::new("Section header string table index"),
-                Cell::new(format!("{:08X}", elf.header.e_shstrndx)),
+                Cell::new(number_to_str_radix(
+                    elf.header.e_shstrndx,
+                    app.config.header_base,
+                )),
             ]),
         ];
 
@@ -154,13 +195,13 @@ fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
         for phdr in phdrs {
             rows.push(Row::new([
                 Cell::new(pt_to_str(phdr.p_type).to_string()),
-                Cell::new(format!("{:08X}", phdr.p_offset)),
-                Cell::new(format!("{:08X}", phdr.p_filesz)),
-                Cell::new(format!("{:08X}", phdr.p_vaddr)),
-                Cell::new(format!("{:08X}", phdr.p_memsz)),
-                Cell::new(format!("{:08X}", phdr.p_paddr)),
-                Cell::new(format!("{:X}", phdr.p_flags)),
-                Cell::new(format!("{:X}", phdr.p_align)),
+                Cell::new(number_to_str_radix(phdr.p_offset, app.config.header_base)),
+                Cell::new(number_to_str_radix(phdr.p_filesz, app.config.header_base)),
+                Cell::new(number_to_str_radix(phdr.p_vaddr, app.config.header_base)),
+                Cell::new(number_to_str_radix(phdr.p_memsz, app.config.header_base)),
+                Cell::new(number_to_str_radix(phdr.p_paddr, app.config.header_base)),
+                Cell::new(number_to_str_radix(phdr.p_flags, app.config.header_base)),
+                Cell::new(number_to_str_radix(phdr.p_align, app.config.header_base)),
             ]));
         }
 
@@ -169,8 +210,9 @@ fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
         let header_table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
-            .header(Row::new(vec![
-                "Type", "Offset", "FileSiz", "VirtAddr", "MemSiz", "PhysAddr", "Flags", "Align",
+            .header(Row::new([
+                "Type", "  Offset", "FileSiz", "VirtAddr", "  MemSiz", "PhysAddr", "   Flags",
+                "   Align",
             ]))
             .style(app.config.theme.main)
             .row_highlight_style(app.config.theme.highlight);
@@ -212,18 +254,30 @@ fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
             }
 
             rows.push(Row::new([
-                Cell::new(format!("{:X}", i)),
+                Cell::new(number_to_str_radix(i, app.config.header_base)),
                 name_cell,
-                Cell::new(format!("{:08X}", section.sh_name)),
-                Cell::new(sht_to_str(section.sh_type).to_string()),
-                Cell::new(format!("{:08X}", section.sh_flags)),
-                Cell::new(format!("{:08X}", section.sh_addr)),
-                Cell::new(format!("{:08X}", section.sh_offset)),
-                Cell::new(format!("{:08X}", section.sh_size)),
-                Cell::new(format!("{:08X}", section.sh_link)),
-                Cell::new(format!("{:08X}", section.sh_info)),
-                Cell::new(format!("{:08X}", section.sh_addralign)),
-                Cell::new(format!("{:08X}", section.sh_entsize)),
+                Cell::new(number_to_str_radix(section.sh_name, app.config.header_base)),
+                Cell::new(sht_to_str(section.sh_type)),
+                Cell::new(number_to_str_radix(
+                    section.sh_flags,
+                    app.config.header_base,
+                )),
+                Cell::new(number_to_str_radix(section.sh_addr, app.config.header_base)),
+                Cell::new(number_to_str_radix(
+                    section.sh_offset,
+                    app.config.header_base,
+                )),
+                Cell::new(number_to_str_radix(section.sh_size, app.config.header_base)),
+                Cell::new(number_to_str_radix(section.sh_link, app.config.header_base)),
+                Cell::new(number_to_str_radix(section.sh_info, app.config.header_base)),
+                Cell::new(number_to_str_radix(
+                    section.sh_addralign,
+                    app.config.header_base,
+                )),
+                Cell::new(number_to_str_radix(
+                    section.sh_entsize,
+                    app.config.header_base,
+                )),
             ]));
         }
 
@@ -232,9 +286,9 @@ fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
         let header_table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
-            .header(Row::new(vec![
-                "Idx", "Name", "NameIdx", "Type", "Flags", "Addr", "Offset", "Size", "Link",
-                "Info", "Align", "EntSize",
+            .header(Row::new([
+                "     Idx", "Name", " NameIdx", "Type", "   Flags", "    Addr", "  Offset",
+                "    Size", "    Link", "    Info", "   Align", " EntSize",
             ]))
             .style(app.config.theme.main)
             .row_highlight_style(app.config.theme.highlight);
@@ -270,9 +324,9 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
                 Cell::new(bind_to_str(symbol.st_bind())),
                 Cell::new(type_to_str(symbol.st_type())),
                 Cell::new(visibility_to_str(symbol.st_visibility())),
-                Cell::new(format!("{:08X}", symbol.st_shndx)),
-                Cell::new(format!("{:08X}", symbol.st_value)),
-                Cell::new(format!("{:08X}", symbol.st_size)),
+                Cell::new(number_to_str_radix(symbol.st_shndx, app.config.header_base)),
+                Cell::new(number_to_str_radix(symbol.st_value, app.config.header_base)),
+                Cell::new(number_to_str_radix(symbol.st_size, app.config.header_base)),
             ]));
         }
 
@@ -288,7 +342,7 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
         let symbol_table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
-            .header(Row::new(vec![
+            .header(Row::new([
                 "Name",
                 "Bind",
                 "Type",
@@ -309,7 +363,7 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
 }
 
 pub fn elf_draw(app: &mut App, frame: &mut Frame, area: Rect) {
-    let tabs = Tabs::new(vec!["ELF", "Segments", "Sections", "Symbols"])
+    let tabs = Tabs::new(["ELF", "Segments", "Sections", "Symbols"])
         .style(app.config.theme.main)
         .highlight_style(app.config.theme.highlight)
         .divider("|")
