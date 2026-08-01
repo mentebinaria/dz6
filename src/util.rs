@@ -29,9 +29,9 @@ pub fn center_widget(width: u16, height: u16, area: Rect) -> Rect {
 /// causes the number to be converted to string (decimal).
 pub fn number_to_str_radix<T: UpperHex + Display>(n: T, base: u32) -> String {
     if base == 16 {
-        return format!("{:8X}", n);
+        return format!("{:X}", n);
     }
-    format!("{:8}", n)
+    format!("{}", n)
 }
 
 #[cfg(test)]

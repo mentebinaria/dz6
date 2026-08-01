@@ -55,9 +55,9 @@ fn draw_dos_header(app: &mut App, frame: &mut Frame, area: Rect) {
             ]),
             Row::new([
                 Cell::new("MinimumExtraParagraphsNeeded"),
-                Cell::new(format!(
-                    "{:X}",
-                    pe.dos_header.minimum_extra_paragraphs_needed
+                Cell::new(number_to_str_radix(
+                    pe.dos_header.minimum_extra_paragraphs_needed,
+                    app.config.header_base,
                 )),
             ]),
             Row::new([

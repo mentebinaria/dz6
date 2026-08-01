@@ -17,7 +17,7 @@ fn osabi_to_str(osabi: u8) -> &'static str {
     // https://refspecs.linuxfoundation.org/elf/gabi4+/ch4.eheader.html
     match osabi {
         ELFOSABI_NONE => "NONE",
-        ELFOSABI_HPUX => "HP-UX",
+        ELFOSABI_HPUX => "Hewlett-Packard HP-UX",
         ELFOSABI_NETBSD => "NetBSD",
         ELFOSABI_LINUX => "Linux",
         ELFOSABI_SOLARIS => "Sun Solaris",
@@ -28,7 +28,7 @@ fn osabi_to_str(osabi: u8) -> &'static str {
         ELFOSABI_MODESTO => "Novell Modesto",
         ELFOSABI_OPENBSD => "OpenBSD",
         13 => "OpenVMS",
-        14 => "HP Non-Stop Kernel",
+        14 => "Hewlett-Packard Non-Stop Kernel",
         _ => "UNKNOWN_OSABI",
     }
 }
@@ -76,6 +76,10 @@ fn draw_elf_header(app: &mut App, frame: &mut Frame, area: Rect) {
                     number_to_str_radix(e_ident[7], app.config.header_base),
                     osabi_to_str(e_ident[7])
                 )),
+            ]),
+            Row::new([
+                Cell::new("ABI Version"),
+                Cell::new(number_to_str_radix(e_ident[8], app.config.header_base)),
             ]),
             Row::new([
                 Cell::new("Type"),
@@ -211,8 +215,7 @@ fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
             .column_spacing(1)
             .style(app.config.theme.main)
             .header(Row::new([
-                "Type", "  Offset", "FileSiz", "VirtAddr", "  MemSiz", "PhysAddr", "   Flags",
-                "   Align",
+                "Type", "Offset", "FileSiz", "VirtAddr", "MemSiz", "PhysAddr", "Flags", "Align",
             ]))
             .style(app.config.theme.main)
             .row_highlight_style(app.config.theme.highlight);
@@ -287,8 +290,8 @@ fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
             .column_spacing(1)
             .style(app.config.theme.main)
             .header(Row::new([
-                "     Idx", "Name", " NameIdx", "Type", "   Flags", "    Addr", "  Offset",
-                "    Size", "    Link", "    Info", "   Align", " EntSize",
+                "Idx", "Name", "NameIdx", "Type", "Flags", "Addr", "Offset", "Size", "Link",
+                "Info", "Align", " EntSize",
             ]))
             .style(app.config.theme.main)
             .row_highlight_style(app.config.theme.highlight);
