@@ -35,118 +35,101 @@ fn osabi_to_str(osabi: u8) -> &'static str {
 
 fn draw_elf_header(app: &mut App, frame: &mut Frame, area: Rect) {
     if let Some(elf) = &app.header_view.elf {
-        let mut rows = Vec::new();
-
         let e_ident = elf.header.e_ident;
-
-        rows.push(Row::new(vec![
-            Cell::new("Class"),
-            Cell::new(format!("{:08X} ({})", e_ident[4], class_to_str(e_ident[4]))),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Data"),
-            Cell::new(format!(
-                "{:08X} ({})",
-                e_ident[5],
-                match e_ident[5] {
-                    1 => "LSB/little endian",
-                    2 => "MSB/big endian",
-                    _ => "Invalid data encoding",
-                }
-            )),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Version"),
-            Cell::new(format!(
-                "{:08X} ({})",
-                e_ident[6],
-                if e_ident[6] == 1 {
-                    "current"
-                } else {
-                    "invalid"
-                }
-            )),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("OS/ABI"),
-            Cell::new(format!("{:08X} ({})", e_ident[7], osabi_to_str(e_ident[7]))),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Type"),
-            Cell::new(format!(
-                "{:08X} ({})",
-                elf.header.e_type,
-                et_to_str(elf.header.e_type)
-            )),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Machine"),
-            Cell::new(format!(
-                "{:08X} ({})",
-                elf.header.e_machine,
-                machine_to_str(elf.header.e_machine)
-            )),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Version"),
-            Cell::new(format!("{:08X}", elf.header.e_version)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Entrypoint"),
-            Cell::new(format!("{:08X}", elf.header.e_entry)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Program header offset"),
-            Cell::new(format!("{:08X}", elf.header.e_phoff)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Section header offset"),
-            Cell::new(format!("{:08X}", elf.header.e_shoff)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Flags"),
-            Cell::new(format!("{:08X}", elf.header.e_flags)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("(This) header size"),
-            Cell::new(format!("{:08X}", elf.header.e_ehsize)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Program header size"),
-            Cell::new(format!("{:08X}", elf.header.e_phentsize)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Number of program headers"),
-            Cell::new(format!("{:08X}", elf.header.e_phnum)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Section headers size"),
-            Cell::new(format!("{:08X}", elf.header.e_shentsize)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Number of section headers"),
-            Cell::new(format!("{:08X}", elf.header.e_shnum)),
-        ]));
-
-        rows.push(Row::new(vec![
-            Cell::new("Section header string table index"),
-            Cell::new(format!("{:08X}", elf.header.e_shstrndx)),
-        ]));
+        let rows = [
+            Row::new([
+                Cell::new("Class"),
+                Cell::new(format!("{:08X} ({})", e_ident[4], class_to_str(e_ident[4]))),
+            ]),
+            Row::new([
+                Cell::new("Data"),
+                Cell::new(format!(
+                    "{:08X} ({})",
+                    e_ident[5],
+                    match e_ident[5] {
+                        1 => "LSB/little endian",
+                        2 => "MSB/big endian",
+                        _ => "Invalid data encoding",
+                    }
+                )),
+            ]),
+            Row::new([
+                Cell::new("Version"),
+                Cell::new(format!(
+                    "{:08X} ({})",
+                    e_ident[6],
+                    if e_ident[6] == 1 {
+                        "current"
+                    } else {
+                        "invalid"
+                    }
+                )),
+            ]),
+            Row::new([
+                Cell::new("OS/ABI"),
+                Cell::new(format!("{:08X} ({})", e_ident[7], osabi_to_str(e_ident[7]))),
+            ]),
+            Row::new([
+                Cell::new("Type"),
+                Cell::new(format!(
+                    "{:08X} ({})",
+                    elf.header.e_type,
+                    et_to_str(elf.header.e_type)
+                )),
+            ]),
+            Row::new([
+                Cell::new("Machine"),
+                Cell::new(format!(
+                    "{:08X} ({})",
+                    elf.header.e_machine,
+                    machine_to_str(elf.header.e_machine)
+                )),
+            ]),
+            Row::new([
+                Cell::new("Version"),
+                Cell::new(format!("{:08X}", elf.header.e_version)),
+            ]),
+            Row::new([
+                Cell::new("Entrypoint"),
+                Cell::new(format!("{:08X}", elf.header.e_entry)),
+            ]),
+            Row::new([
+                Cell::new("Program header offset"),
+                Cell::new(format!("{:08X}", elf.header.e_phoff)),
+            ]),
+            Row::new([
+                Cell::new("Section header offset"),
+                Cell::new(format!("{:08X}", elf.header.e_shoff)),
+            ]),
+            Row::new([
+                Cell::new("Flags"),
+                Cell::new(format!("{:08X}", elf.header.e_flags)),
+            ]),
+            Row::new([
+                Cell::new("(This) header size"),
+                Cell::new(format!("{:08X}", elf.header.e_ehsize)),
+            ]),
+            Row::new([
+                Cell::new("Program header size"),
+                Cell::new(format!("{:08X}", elf.header.e_phentsize)),
+            ]),
+            Row::new([
+                Cell::new("Number of program headers"),
+                Cell::new(format!("{:08X}", elf.header.e_phnum)),
+            ]),
+            Row::new([
+                Cell::new("Section headers size"),
+                Cell::new(format!("{:08X}", elf.header.e_shentsize)),
+            ]),
+            Row::new([
+                Cell::new("Number of section headers"),
+                Cell::new(format!("{:08X}", elf.header.e_shnum)),
+            ]),
+            Row::new([
+                Cell::new("Section header string table index"),
+                Cell::new(format!("{:08X}", elf.header.e_shstrndx)),
+            ]),
+        ];
 
         let widths = [Constraint::Min(8), Constraint::Fill(1), Constraint::Fill(1)];
 
@@ -166,11 +149,10 @@ fn draw_elf_header(app: &mut App, frame: &mut Frame, area: Rect) {
 fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
     if let Some(elf) = &app.header_view.elf {
         let mut rows = Vec::new();
-
         let phdrs = &elf.phdrs;
 
         for phdr in phdrs {
-            rows.push(Row::new(vec![
+            rows.push(Row::new([
                 Cell::new(pt_to_str(phdr.p_type).to_string()),
                 Cell::new(format!("{:08X}", phdr.p_offset)),
                 Cell::new(format!("{:08X}", phdr.p_filesz)),
@@ -229,7 +211,7 @@ fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
                 name_cell = Cell::new(name);
             }
 
-            rows.push(Row::new(vec![
+            rows.push(Row::new([
                 Cell::new(format!("{:X}", i)),
                 name_cell,
                 Cell::new(format!("{:08X}", section.sh_name)),
@@ -283,7 +265,7 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
                 .map(String::as_str)
                 .unwrap_or_default();
 
-            rows.push(Row::new(vec![
+            rows.push(Row::new([
                 Cell::new(name),
                 Cell::new(bind_to_str(symbol.st_bind())),
                 Cell::new(type_to_str(symbol.st_type())),
