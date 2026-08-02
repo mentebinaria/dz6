@@ -7,6 +7,7 @@ use goblin::elf::{
 use ratatui::{
     Frame,
     layout::{Constraint, Layout, Rect},
+    style::Style,
     text::Text,
     widgets::{Cell, Clear, Row, Table, Tabs},
 };
@@ -32,6 +33,46 @@ fn osabi_to_str(osabi: u8) -> &'static str {
         _ => "UNKNOWN_OSABI",
     }
 }
+
+/*
+The idea would be to mimic `file`:
+ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=00221374bf695bce1421f1fdc4b5d8dd24cd4fca, for GNU/Linux 3.2.0, with debug_info, not stripped
+ */
+// fn draw_summary(app: &mut App, frame: &mut Frame, area: Rect) {
+//     if let Some(elf) = &app.header_view.elf {
+//         let mut summary = String::from("ELF ");
+
+//         let class = match elf.header.e_ident[4] {
+//             1 => "32-bit ",
+//             2 => "64-bit ",
+//             _ => "<invalid class> ",
+//         };
+
+//         let data = match elf.header.e_ident[5] {
+//             1 => "LSB ",
+//             2 => "MSB ",
+//             _ => "<invalid data>, ",
+//         };
+
+//         let kind = match elf.header.e_type {
+//             1 => "relocatable, ",
+//             2 => "executable, ",
+//             3 => "shared object, ",
+//             4 => "core, ",
+//             _ => "<invalid type>, ",
+//         };
+
+//         summary.push_str(class);
+//         summary.push_str(data);
+//         summary.push_str(kind);
+
+//         if let Some(interp) = &elf.interpreter {
+//             summary.push_str(format!("Requesting program interpreter: {}", interp).as_str());
+//         }
+
+//         frame.render_widget(Paragraph::new(summary), area);
+//     }
+// }
 
 fn draw_elf_header(app: &mut App, frame: &mut Frame, area: Rect) {
     if let Some(elf) = &app.header_view.elf {
@@ -192,13 +233,14 @@ fn draw_elf_header(app: &mut App, frame: &mut Frame, area: Rect) {
 }
 
 fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
-    if let Some(elf) = &app.header_view.elf {
+    if let Some(elf) = &mut app.header_view.elf {
         let mut rows = Vec::new();
         let phdrs = &elf.phdrs;
 
-        for phdr in phdrs {
+        for (i, phdr) in phdrs.iter().enumerate() {
             rows.push(Row::new([
-                Cell::new(pt_to_str(phdr.p_type).to_string()),
+                Cell::new(number_to_str_radix(i, app.config.header_base)),
+                Cell::new(pt_to_str(phdr.p_type)),
                 Cell::new(number_to_str_radix(phdr.p_offset, app.config.header_base)),
                 Cell::new(number_to_str_radix(phdr.p_filesz, app.config.header_base)),
                 Cell::new(number_to_str_radix(phdr.p_vaddr, app.config.header_base)),
@@ -209,13 +251,24 @@ fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
             ]));
         }
 
-        let widths = [Constraint::Ratio(1, 8); 8];
+        let widths = [
+            Constraint::Length(4),  // Num
+            Constraint::Length(16), // Type
+            Constraint::Fill(1),    // Offset
+            Constraint::Fill(1),    // FileSiz
+            Constraint::Fill(1),    // VirtAddr
+            Constraint::Fill(1),    // MemSiz
+            Constraint::Fill(1),    // PhysAddr
+            Constraint::Fill(1),    // Flags
+            Constraint::Fill(1),    // Align
+        ];
 
         let header_table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
             .header(Row::new([
-                "Type", "Offset", "FileSiz", "VirtAddr", "MemSiz", "PhysAddr", "Flags", "Align",
+                "Num", "Type", "Offset", "FileSiz", "VirtAddr", "MemSiz", "PhysAddr", "Flags",
+                "Align",
             ]))
             .style(app.config.theme.main)
             .row_highlight_style(app.config.theme.highlight);
@@ -244,6 +297,7 @@ fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
 
         for (i, section) in elf.sections.iter().enumerate() {
             let mut name_cell = Cell::default();
+
             if let Some(strtab) = strtab {
                 let bytes: Vec<u8> = buf
                     .iter()
@@ -284,13 +338,27 @@ fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
             ]));
         }
 
-        let widths = [Constraint::Ratio(1, 8); 8];
+        // let widths = [Constraint::Ratio(1, 8); 8];
+
+        let widths = [
+            Constraint::Length(4), // Num
+            Constraint::Min(20),   // Name
+            Constraint::Length(7), // NameIdx
+            Constraint::Min(15),   // Type
+            Constraint::Fill(1),   // Flags
+            Constraint::Fill(1),   // Addr
+            Constraint::Fill(1),   // Offset
+            Constraint::Fill(1),   // Size
+            Constraint::Fill(1),   // Size
+            Constraint::Fill(1),   // Size
+            Constraint::Fill(1),   // Size
+        ];
 
         let header_table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
             .header(Row::new([
-                "Idx", "Name", "NameIdx", "Type", "Flags", "Addr", "Offset", "Size", "Link",
+                "Num", "Name", "NameIdx", "Type", "Flags", "Addr", "Offset", "Size", "Link",
                 "Info", "Align", " EntSize",
             ]))
             .style(app.config.theme.main)
@@ -315,44 +383,48 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
 
         let mut rows = Vec::new();
 
-        for symbol in &elf.symtab {
+        for (i, symbol) in elf.symtab.iter().enumerate() {
             let name = elf
                 .strtab
                 .get(&symbol.st_name)
                 .map(String::as_str)
                 .unwrap_or_default();
 
+            // highlight symbol functions (with offsets style)
+            let name_style = if symbol.is_function() {
+                app.config.theme.offsets
+            } else {
+                Style::default()
+            };
+
             rows.push(Row::new([
-                Cell::new(name),
+                Cell::new(number_to_str_radix(i, app.config.header_base)),
+                Cell::new(number_to_str_radix(symbol.st_value, app.config.header_base)),
+                Cell::new(number_to_str_radix(symbol.st_size, app.config.header_base)),
                 Cell::new(bind_to_str(symbol.st_bind())),
                 Cell::new(type_to_str(symbol.st_type())),
                 Cell::new(visibility_to_str(symbol.st_visibility())),
                 Cell::new(number_to_str_radix(symbol.st_shndx, app.config.header_base)),
-                Cell::new(number_to_str_radix(symbol.st_value, app.config.header_base)),
-                Cell::new(number_to_str_radix(symbol.st_size, app.config.header_base)),
+                Cell::new(name).style(name_style),
             ]));
         }
 
         let widths = [
-            Constraint::Fill(1),    // Name
-            Constraint::Length(6),  // Bind
-            Constraint::Length(6),  // Type
-            Constraint::Length(10), // Visibility
-            Constraint::Length(8),  // SecHdrIdx
-            Constraint::Length(8),  // Value
-            Constraint::Length(8),  // Size
+            Constraint::Length(4), // Num
+            Constraint::Max(16),   // Value
+            Constraint::Length(8), // Size
+            Constraint::Length(7), // Type
+            Constraint::Length(7), // Bind
+            Constraint::Length(8), // Visibility
+            Constraint::Length(5), // SecHdrIdx
+            Constraint::Fill(1),   // Name
         ];
+
         let symbol_table = Table::new(rows, widths)
             .column_spacing(1)
             .style(app.config.theme.main)
             .header(Row::new([
-                "Name",
-                "Bind",
-                "Type",
-                "Visibility",
-                "SecHdrIdx",
-                "Value",
-                "Size",
+                "Num", "Value", "Size", "Type", "Bind", "Vis", "Ndx", "Name",
             ]))
             .style(app.config.theme.main)
             .row_highlight_style(app.config.theme.highlight);

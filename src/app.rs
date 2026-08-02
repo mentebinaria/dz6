@@ -3,6 +3,7 @@ use std::{
     fs::{File, OpenOptions},
     io::{self, Seek, SeekFrom, Write},
     path::Path,
+    string::FromUtf8Error,
 };
 
 use arboard::Clipboard;
@@ -403,5 +404,18 @@ impl App {
         let b8 = buffer[offset + 7];
 
         Some(i64::from_le_bytes([b1, b2, b3, b4, b5, b6, b7, b8]))
+    }
+
+    pub fn _read_string(&mut self, offset: usize) -> Result<String, FromUtf8Error> {
+        let buffer = self.file_info.get_buffer();
+
+        let it = buffer.iter().skip(offset);
+
+        let mut v = Vec::new();
+        for e in it {
+            v.push(*e);
+        }
+
+        String::from_utf8(v)
     }
 }
