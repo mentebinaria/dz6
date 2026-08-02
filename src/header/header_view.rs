@@ -37,6 +37,9 @@ pub struct Elf {
     pub sections: goblin::elf::SectionHeaders,
     pub symtab: Vec<goblin::elf::Sym>,
     pub strtab: HashMap<usize, String>,
+    // for more detailed relactions, we need goblin::elf::reloc::reloc32::Rel, etc
+    // but we need to think about how to show it in Relocations tab
+    pub relocs: Vec<goblin::elf::reloc::Reloc>,
 }
 
 #[derive(Debug, Default)]
@@ -57,6 +60,7 @@ pub struct ElfState {
     pub program_header_table_state: TableState,
     pub sections_table_state: TableState,
     pub symbols_table_state: TableState,
+    pub relocations_table_state: TableState,
 }
 
 #[derive(Default, Debug)]

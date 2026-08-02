@@ -161,6 +161,13 @@ impl App {
                         .map(|s| s.st_name)
                         .filter_map(|idx| elf.strtab.get_at(idx).map(|name| (idx, name.to_owned())))
                         .collect(),
+                    // for now we'll just create a single vector containing all relocations as generic ones
+                    relocs: [
+                        elf.pltrelocs.to_vec(),
+                        elf.dynrelas.to_vec(),
+                        elf.dynrels.to_vec(),
+                    ]
+                    .concat(),
                 });
                 "ELF"
             }

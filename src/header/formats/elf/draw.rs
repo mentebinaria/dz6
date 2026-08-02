@@ -437,8 +437,49 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
     }
 }
 
+fn draw_relocations(app: &mut App, frame: &mut Frame, area: Rect) {
+    if let Some(elf) = &app.header_view.elf {
+        if elf.relocs.is_empty() {
+            let message = Text::from("No relocations found").centered();
+
+            frame.render_widget(message, area.centered_vertically(Constraint::Ratio(1, 4)));
+            return;
+        }
+
+        let mut rows = Vec::new();
+
+        for (i, reloc) in elf.relocs.iter().enumerate() {
+            rows.push(Row::new([
+                Cell::new(number_to_str_radix(i, app.config.header_base)),
+                Cell::new(number_to_str_radix(reloc.r_offset, app.config.header_base)),
+                Cell::new(number_to_str_radix(reloc.r_type, app.config.header_base)),
+                Cell::new(number_to_str_radix(
+                    reloc.r_addend.unwrap_or_default(),
+                    app.config.header_base,
+                )),
+                Cell::new(number_to_str_radix(reloc.r_sym, app.config.header_base)),
+            ]));
+        }
+
+        let widths = [Constraint::Ratio(1, 5); 5];
+
+        let symbol_table = Table::new(rows, widths)
+            .column_spacing(1)
+            .style(app.config.theme.main)
+            .header(Row::new(["Num", "Offset", "Type", "Addend", "Sym"]))
+            .style(app.config.theme.main)
+            .row_highlight_style(app.config.theme.highlight);
+
+        frame.render_stateful_widget(
+            symbol_table,
+            area,
+            &mut app.header_view.elf_state.relocations_table_state,
+        );
+    }
+}
+
 pub fn elf_draw(app: &mut App, frame: &mut Frame, area: Rect) {
-    let tabs = Tabs::new(["ELF", "Segments", "Sections", "Symbols"])
+    let tabs = Tabs::new(["ELF", "Segments", "Sections", "Symbols", "Relocations"])
         .style(app.config.theme.main)
         .highlight_style(app.config.theme.highlight)
         .divider("|")
@@ -456,6 +497,7 @@ pub fn elf_draw(app: &mut App, frame: &mut Frame, area: Rect) {
         1 => draw_program_header(app, frame, main),
         2 => draw_section_header(app, frame, main),
         3 => draw_symbols(app, frame, main),
+        4 => draw_relocations(app, frame, main),
         _ => {}
     }
 }

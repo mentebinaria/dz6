@@ -4,7 +4,7 @@ use ratatui::crossterm::event::{KeyCode, KeyEvent};
 
 use crate::{app::App, editor::AppView};
 
-const NUMBER_OF_TABS: usize = 4;
+const NUMBER_OF_TABS: usize = 5;
 
 fn tab_next(app: &mut App) {
     if app.header_view.tab_index < NUMBER_OF_TABS - 1 {
@@ -169,6 +169,47 @@ fn tab_symbols_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     Ok(false)
 }
 
+fn tab_relocations_events(app: &mut App, key: KeyEvent) -> Result<bool> {
+    match key.code {
+        KeyCode::Down | KeyCode::Char('j') => app
+            .header_view
+            .elf_state
+            .relocations_table_state
+            .select_next(),
+        KeyCode::Up | KeyCode::Char('k') => app
+            .header_view
+            .elf_state
+            .relocations_table_state
+            .select_previous(),
+        KeyCode::Left | KeyCode::Char('h') => tab_prev(app),
+        KeyCode::Right | KeyCode::Char('l') => tab_next(app),
+        // follow symbol value in hex view
+        // KeyCode::Char('f') => {
+        //     if let Some(idx) = app.header_view.elf_state.symbols_table_state.selected() {
+        //         // if we're here, the ELF should be valid (hopefully)
+        //         let elf = app.header_view.elf.as_ref().unwrap();
+        //         if let Some(sym) = elf.symtab.get(idx) {
+        //             let ofs = sym.st_value;
+        //             app.goto(ofs as usize);
+        //             app.editor_view = AppView::Hex;
+        //         }
+        //     }
+        // }
+        KeyCode::Char('g') | KeyCode::Home => app
+            .header_view
+            .elf_state
+            .relocations_table_state
+            .select_first(),
+        KeyCode::Char('G') | KeyCode::End => app
+            .header_view
+            .elf_state
+            .relocations_table_state
+            .select_last(),
+        _ => {}
+    }
+    Ok(false)
+}
+
 pub fn view_header_elf_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
         // change base
@@ -177,7 +218,7 @@ pub fn view_header_elf_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             Ok(true)
         }
         // global keybindings to change tabs quickly
-        KeyCode::Char(c) if ('1'..='4').contains(&c) => {
+        KeyCode::Char(c) if ('1'..='5').contains(&c) => {
             app.header_view.tab_index = c.to_string().parse::<usize>().unwrap().wrapping_sub(1);
             Ok(true)
         }
@@ -187,6 +228,7 @@ pub fn view_header_elf_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             1 => tab_program_headers_events(app, key),
             2 => tab_sections_events(app, key),
             3 => tab_symbols_events(app, key),
+            4 => tab_relocations_events(app, key),
             _ => Ok(false),
         },
     }
