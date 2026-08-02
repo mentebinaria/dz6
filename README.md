@@ -248,12 +248,12 @@ The Text view displays the file as plain text. This can be useful even when edit
 
 The Header view is a new view (expected in v0.8.0) available for executable files. It parses the executable headers and shows them in a nice way. Currently, it supports PE and ELF files, but all features from them.
 
-| Key        | Action               | Tips                                                                                                                     |
-| ---------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Arrow keys | Tab navigation       | Left/Right only. Vim-like `h`, `l` also work. To quickly pick a tab, you can also press keys `1`, `2`, etc.              |
-| Arrow keys | Field navigation     | Up/Down only. Vim-like `j`, `k` also work.                                                                               |
-| `b`        | Change number base   | Either hexadecimal (default) or decimal                                                                                  |
-| `f`        | Follow a field value | For fields that make sense (e.g., `AddressOfEntryPoint` in the PE Optional Header), follow their values in the Hex view. |
+| Key        | Action                     | Tips                                                                                                               |
+| ---------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Arrow keys | Tab navigation             | Left/Right only. Vim-like `h`, `l` also work. To quickly pick a tab, you can also press keys `1`, `2`, etc.        |
+| Arrow keys | Field navigation           | Up/Down only. Vim-like `j`, `k` also work.                                                                         |
+| `b`        | Change output numeric base | Output numbers in hexadecimal (default) or decimal                                                                 |
+| `f`        | Follow a field value       | For applicable fields (e.g., `AddressOfEntryPoint` in the PE Optional Header), follow their value in the Hex view. |
 
 ## FAQ
 
