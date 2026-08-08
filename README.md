@@ -92,11 +92,12 @@ Once you load a file in **dz6**, you can use the commands below.
 
 ### Global key bindings
 
-| Key     | Action           | Tips                      |
-| ------- | ---------------- | ------------------------- |
-| `Enter` | Switch views     | Currently Hex and Text    |
-| `Alt+l` | Open log window  |                           |
-| `:`     | Open command bar | See [Commands](#commands) |
+Cycle through Hex, Text, and Headers. Shift+Tab: Cycle backward.
+| Key | Action | Tips |
+| ------- | ---------------- | -------------------------------------------------------------------------------- |
+| `Tab` | Switch views | Cycle through Hex, Text, and Header view |
+| `Alt+l` | Open log window | |
+| `:` | Open command bar | See [Commands](#commands) |
 
 #### Commands
 
