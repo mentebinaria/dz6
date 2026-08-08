@@ -8,14 +8,13 @@ pub fn handle_global_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
         // beep in NORMAL mode
         KeyCode::Esc => beep!(),
-        // switch views
-        KeyCode::Enter => app.switch_editor_view(),
+        // cycle through views
+        KeyCode::Tab => app.editor_view.next(),
         // log window
         KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::ALT) => {
             app.state = UIState::DialogLog;
             app.dialog_renderer = Some(global::log::dialog_log_draw);
         }
-
         // command bar
         KeyCode::Char(':') => {
             app.state = UIState::Command;
