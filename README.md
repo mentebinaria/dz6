@@ -209,7 +209,7 @@ This is the main view you would expect from a hex editor. It displays file offse
 | Key         | Action                                             | Tips                           |
 | ----------- | -------------------------------------------------- | ------------------------------ |
 | Arrow keys  | Navigation                                         | Up/Down only                   |
-| `f`         | Filter strings using a regular expression          |                                |
+| `/`         | Filter strings using a regular expression          |                                |
 | `R`         | Re-read strings from file                          | Useful if you changed the file |
 | `Esc`       | Close                                              |                                |
 | `End`       | Select the last item shown                         |                                |
@@ -254,7 +254,7 @@ The Header view is a new view (expected in v0.8.0) available for executable file
 | Arrow keys | Tab navigation             | Left/Right only. Vim-like `h`, `l` also work. To quickly pick a tab, you can also press keys `1`, `2`, etc.        |
 | Arrow keys | Field navigation           | Up/Down only. Vim-like `j`, `k` also work.                                                                         |
 | `b`        | Change output numeric base | Output numbers in hexadecimal (default) or decimal                                                                 |
-| `f`        | Follow a field value       | For applicable fields (e.g., `AddressOfEntryPoint` in the PE Optional Header), follow their value in the Hex view. |
+| `Enter`    | Follow a field value       | For applicable fields (e.g., `AddressOfEntryPoint` in the PE Optional Header), follow their value in the Hex view. |
 
 ## FAQ
 
