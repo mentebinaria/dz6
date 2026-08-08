@@ -121,7 +121,7 @@ pub fn dialog_strings_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Char('R') => {
             Commands::load_strings(app, true);
         }
-        KeyCode::Char('f') => {
+        KeyCode::Char('/') => {
             app.state = UIState::DialogStringsRegex;
             app.dialog_2nd_renderer = Some(dialog_strings_regex_draw);
         }

@@ -66,7 +66,7 @@ fn tab_program_headers_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Left | KeyCode::Char('h') => tab_prev(app),
         KeyCode::Right | KeyCode::Char('l') => tab_next(app),
         // follow program header offset in hex view
-        KeyCode::Char('f') => {
+        KeyCode::Enter => {
             if let Some(idx) = app
                 .header_view
                 .elf_state
@@ -110,7 +110,7 @@ fn tab_sections_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Left | KeyCode::Char('h') => tab_prev(app),
         KeyCode::Right | KeyCode::Char('l') => tab_next(app),
         // follow section offset in hex view
-        KeyCode::Char('f') => {
+        KeyCode::Enter => {
             if let Some(idx) = app.header_view.elf_state.sections_table_state.selected() {
                 // if we're here, the ELF should be valid (hopefully)
                 let elf = app.header_view.elf.as_ref().unwrap();
@@ -147,7 +147,7 @@ fn tab_symbols_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Left | KeyCode::Char('h') => tab_prev(app),
         KeyCode::Right | KeyCode::Char('l') => tab_next(app),
         // follow symbol value in hex view
-        KeyCode::Char('f') => {
+        KeyCode::Enter => {
             if let Some(idx) = app.header_view.elf_state.symbols_table_state.selected() {
                 // if we're here, the ELF should be valid (hopefully)
                 let elf = app.header_view.elf.as_ref().unwrap();

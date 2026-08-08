@@ -37,7 +37,7 @@ fn tab_dos_header_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Left | KeyCode::Char('h') => tab_prev(app),
         KeyCode::Right | KeyCode::Char('l') => tab_next(app),
         // go to MZ header (always 0) or to PE offset header
-        KeyCode::Char('f') => {
+        KeyCode::Enter => {
             if let Some(idx) = app.header_view.pe_state.dos_header_table_state.selected() {
                 let pe = app.header_view.pe.as_ref().unwrap();
 
@@ -85,7 +85,7 @@ fn tab_coff_header_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Left | KeyCode::Char('h') => tab_prev(app),
         KeyCode::Right | KeyCode::Char('l') => tab_next(app),
         // go to entrypoint
-        KeyCode::Char('f') => {
+        KeyCode::Enter => {
             if let Some(idx) = app.header_view.pe_state.coff_header_table_state.selected()
                 && idx == 13
             {
@@ -128,7 +128,7 @@ fn tab_optional_header_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Left | KeyCode::Char('h') => tab_prev(app),
         KeyCode::Right | KeyCode::Char('l') => tab_next(app),
         // go to entrypoint
-        KeyCode::Char('f') => {
+        KeyCode::Enter => {
             if let Some(idx) = app
                 .header_view
                 .pe_state
@@ -198,7 +198,7 @@ fn tab_sections_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Left | KeyCode::Char('h') => tab_prev(app),
         KeyCode::Right | KeyCode::Char('l') => tab_next(app),
         // go to section PtrToRawData
-        KeyCode::Char('f') => {
+        KeyCode::Enter => {
             if let Some(idx) = app.header_view.pe_state.sections_table_state.selected() {
                 let pe = app.header_view.pe.as_ref().unwrap();
 
