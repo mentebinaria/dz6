@@ -3,8 +3,9 @@
 ## dz6 v0.8.0
 
 - Header view: new view to inspect ELF and PE executables.
-- Added a command to change the view (same as pressing `Enter`). Example: `:set view hex` (possible values are `text`, `hex`, and `header`). It can be used in `~/.dz6init` to set the default view when dz6 is loaded.
+- Added a command to change the view (same as pressing `Tab`). Example: `:set view hex` (possible values are `text`, `hex`, and `header`). It can be used in `~/.dz6init` to set the default view when dz6 is loaded.
 - `Tab` cycles through available views now (`Enter` no longer does that).
+- To search over the string list, press `/` (it was `f` before).
 
 ## dz6 v0.7.0
 
