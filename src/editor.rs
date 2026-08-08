@@ -13,6 +13,13 @@ impl AppView {
             AppView::Header => *self = AppView::Hex,
         }
     }
+    pub fn previous(&mut self) {
+        match self {
+            AppView::Hex => *self = AppView::Header,
+            AppView::Text => *self = AppView::Hex,
+            AppView::Header => *self = AppView::Text,
+        }
+    }
 }
 
 #[derive(PartialEq)]

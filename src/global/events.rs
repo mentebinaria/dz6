@@ -10,6 +10,7 @@ pub fn handle_global_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Esc => beep!(),
         // cycle through views
         KeyCode::Tab => app.editor_view.next(),
+        KeyCode::BackTab => app.editor_view.previous(),
         // log window
         KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::ALT) => {
             app.state = UIState::DialogLog;
