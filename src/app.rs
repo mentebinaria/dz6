@@ -154,6 +154,15 @@ impl App {
                     header: elf.header,
                     phdrs: elf.program_headers.clone(),
                     sections: elf.section_headers.clone(),
+                    dynsymtab: elf.dynsyms.to_vec(),
+                    dynstrtab: elf
+                        .dynsyms
+                        .iter()
+                        .map(|s| s.st_name)
+                        .filter_map(|idx| {
+                            elf.dynstrtab.get_at(idx).map(|name| (idx, name.to_owned()))
+                        })
+                        .collect(),
                     symtab: elf.syms.to_vec(),
                     strtab: elf
                         .syms

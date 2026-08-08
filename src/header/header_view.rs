@@ -35,6 +35,8 @@ pub struct Elf {
     pub header: goblin::elf::Header,
     pub phdrs: goblin::elf::ProgramHeaders,
     pub sections: goblin::elf::SectionHeaders,
+    pub dynsymtab: Vec<goblin::elf::Sym>,
+    pub dynstrtab: HashMap<usize, String>,
     pub symtab: Vec<goblin::elf::Sym>,
     pub strtab: HashMap<usize, String>,
     // for more detailed relactions, we need goblin::elf::reloc::reloc32::Rel, etc

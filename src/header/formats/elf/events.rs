@@ -151,7 +151,7 @@ fn tab_symbols_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             if let Some(idx) = app.header_view.elf_state.symbols_table_state.selected() {
                 // if we're here, the ELF should be valid (hopefully)
                 let elf = app.header_view.elf.as_ref().unwrap();
-                if let Some(sym) = elf.symtab.get(idx) {
+                if let Some(sym) = elf.dynsymtab.get(idx) {
                     let ofs = sym.st_value;
                     app.goto(ofs as usize);
                     app.editor_view = AppView::Hex;

@@ -1,8 +1,11 @@
-use goblin::elf::{
-    header::*,
-    program_header::pt_to_str,
-    section_header::sht_to_str,
-    sym::{bind_to_str, type_to_str, visibility_to_str},
+use goblin::{
+    elf::{
+        header::*,
+        program_header::pt_to_str,
+        section_header::sht_to_str,
+        sym::{bind_to_str, type_to_str, visibility_to_str},
+    },
+    elf64::program_header::{PF_R, PF_W, PF_X}, // works for el32 too
 };
 use ratatui::{
     Frame,
@@ -232,6 +235,17 @@ fn draw_elf_header(app: &mut App, frame: &mut Frame, area: Rect) {
     }
 }
 
+fn pflags_to_string(flags: u32) -> String {
+    let mut ret = String::with_capacity(3);
+
+    ret.push(if flags & PF_R != 0 { 'R' } else { ' ' });
+    ret.push(if flags & PF_W != 0 { 'W' } else { ' ' });
+    // readelf uses `E`, but I think `X` represents the `executable` bit better
+    ret.push(if flags & PF_X != 0 { 'X' } else { ' ' });
+
+    ret
+}
+
 fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
     if let Some(elf) = &mut app.header_view.elf {
         let mut rows = Vec::new();
@@ -246,7 +260,7 @@ fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
                 Cell::new(number_to_str_radix(phdr.p_vaddr, app.config.header_base)),
                 Cell::new(number_to_str_radix(phdr.p_memsz, app.config.header_base)),
                 Cell::new(number_to_str_radix(phdr.p_paddr, app.config.header_base)),
-                Cell::new(number_to_str_radix(phdr.p_flags, app.config.header_base)),
+                Cell::new(pflags_to_string(phdr.p_flags)),
                 Cell::new(number_to_str_radix(phdr.p_align, app.config.header_base)),
             ]));
         }
@@ -374,7 +388,7 @@ fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
 
 fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
     if let Some(elf) = &app.header_view.elf {
-        if elf.symtab.is_empty() {
+        if elf.dynsymtab.is_empty() && elf.symtab.is_empty() {
             let message = Text::from("No symbols found").centered();
 
             frame.render_widget(message, area.centered_vertically(Constraint::Ratio(1, 4)));
@@ -383,6 +397,40 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
 
         let mut rows = Vec::new();
 
+        for (i, symbol) in elf.dynsymtab.iter().enumerate() {
+            let name = elf
+                .dynstrtab
+                .get(&symbol.st_name)
+                .map(String::as_str)
+                .unwrap_or_default();
+
+            // highlight symbol functions (with offsets style)
+            let name_style = if symbol.is_function() {
+                app.config.theme.offsets
+            } else {
+                Style::default()
+            };
+
+            // show "UND" when the index is zero, just like readelf does
+            let ndx_cell = match symbol.st_shndx {
+                0 => Cell::new("UND"),
+                0xfff1 => Cell::new("ABS"),
+                _ => Cell::new(number_to_str_radix(symbol.st_shndx, app.config.header_base)),
+            };
+
+            rows.push(Row::new([
+                Cell::new(number_to_str_radix(i, app.config.header_base)),
+                Cell::new(number_to_str_radix(symbol.st_value, app.config.header_base)),
+                Cell::new(number_to_str_radix(symbol.st_size, app.config.header_base)),
+                Cell::new(type_to_str(symbol.st_type())),
+                Cell::new(bind_to_str(symbol.st_bind())),
+                Cell::new(visibility_to_str(symbol.st_visibility())),
+                ndx_cell,
+                Cell::new(name).style(name_style),
+            ]));
+        }
+
+        // syms
         for (i, symbol) in elf.symtab.iter().enumerate() {
             let name = elf
                 .strtab
@@ -397,14 +445,21 @@ fn draw_symbols(app: &mut App, frame: &mut Frame, area: Rect) {
                 Style::default()
             };
 
+            // show "UND" when the index is zero, just like readelf does
+            let ndx_cell = match symbol.st_shndx {
+                0 => Cell::new("UND"),
+                0xfff1 => Cell::new("ABS"),
+                _ => Cell::new(number_to_str_radix(symbol.st_shndx, app.config.header_base)),
+            };
+
             rows.push(Row::new([
                 Cell::new(number_to_str_radix(i, app.config.header_base)),
                 Cell::new(number_to_str_radix(symbol.st_value, app.config.header_base)),
                 Cell::new(number_to_str_radix(symbol.st_size, app.config.header_base)),
-                Cell::new(bind_to_str(symbol.st_bind())),
                 Cell::new(type_to_str(symbol.st_type())),
+                Cell::new(bind_to_str(symbol.st_bind())),
                 Cell::new(visibility_to_str(symbol.st_visibility())),
-                Cell::new(number_to_str_radix(symbol.st_shndx, app.config.header_base)),
+                ndx_cell,
                 Cell::new(name).style(name_style),
             ]));
         }
