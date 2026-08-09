@@ -1,5 +1,6 @@
 use std::io::Result;
 
+use crossterm::event::KeyModifiers;
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 
 use crate::{app::App, editor::AppView};
@@ -46,6 +47,32 @@ fn tab_elf_header_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             .elf_state
             .elf_header_table_state
             .select_last(),
+        KeyCode::Char('f') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            let height = app.screen.height;
+
+            app.header_view
+                .elf_state
+                .elf_header_table_state
+                .scroll_down_by(height.saturating_sub(5));
+        }
+        KeyCode::Char('b') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            let height = app.screen.height;
+
+            app.header_view
+                .elf_state
+                .elf_header_table_state
+                .scroll_up_by(height.saturating_sub(5));
+        }
+        KeyCode::Enter => {
+            if let Some(idx) = app.header_view.elf_state.elf_header_table_state.selected()
+                && idx == 8
+            // 8 is the index of the entrypoint field, go to it
+            {
+                let elf = app.header_view.elf.as_ref().unwrap();
+                let offset = elf.header.e_entry;
+                app.goto(offset as usize);
+            }
+        }
         _ => {}
     }
     Ok(false)
@@ -92,6 +119,22 @@ fn tab_program_headers_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             .elf_state
             .program_header_table_state
             .select_last(),
+        KeyCode::Char('f') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            let height = app.screen.height;
+
+            app.header_view
+                .elf_state
+                .program_header_table_state
+                .scroll_down_by(height.saturating_sub(5));
+        }
+        KeyCode::Char('b') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            let height = app.screen.height;
+
+            app.header_view
+                .elf_state
+                .program_header_table_state
+                .scroll_up_by(height.saturating_sub(5));
+        }
         _ => {}
     }
     Ok(false)
@@ -129,6 +172,22 @@ fn tab_sections_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Char('G') | KeyCode::End => {
             app.header_view.elf_state.sections_table_state.select_last()
         }
+        KeyCode::Char('f') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            let height = app.screen.height;
+
+            app.header_view
+                .elf_state
+                .sections_table_state
+                .scroll_down_by(height.saturating_sub(5));
+        }
+        KeyCode::Char('b') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            let height = app.screen.height;
+
+            app.header_view
+                .elf_state
+                .sections_table_state
+                .scroll_up_by(height.saturating_sub(5));
+        }
         _ => {}
     }
     Ok(false)
@@ -163,6 +222,22 @@ fn tab_symbols_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         }
         KeyCode::Char('G') | KeyCode::End => {
             app.header_view.elf_state.symbols_table_state.select_last()
+        }
+        KeyCode::Char('f') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            let height = app.screen.height;
+
+            app.header_view
+                .elf_state
+                .symbols_table_state
+                .scroll_down_by(height.saturating_sub(5));
+        }
+        KeyCode::Char('b') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            let height = app.screen.height;
+
+            app.header_view
+                .elf_state
+                .symbols_table_state
+                .scroll_up_by(height.saturating_sub(5));
         }
         _ => {}
     }
@@ -205,6 +280,22 @@ fn tab_relocations_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             .elf_state
             .relocations_table_state
             .select_last(),
+        KeyCode::Char('f') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            let height = app.screen.height;
+
+            app.header_view
+                .elf_state
+                .relocations_table_state
+                .scroll_down_by(height.saturating_sub(5));
+        }
+        KeyCode::Char('b') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            let height = app.screen.height;
+
+            app.header_view
+                .elf_state
+                .relocations_table_state
+                .scroll_up_by(height.saturating_sub(5));
+        }
         _ => {}
     }
     Ok(false)
