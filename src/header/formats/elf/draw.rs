@@ -20,13 +20,13 @@ use crate::{app::App, util::number_to_str_radix};
 fn osabi_to_str(osabi: u8) -> &'static str {
     // https://refspecs.linuxfoundation.org/elf/gabi4+/ch4.eheader.html
     match osabi {
-        ELFOSABI_NONE => "NONE",
+        ELFOSABI_NONE => "UNIX System V",
         ELFOSABI_HPUX => "Hewlett-Packard HP-UX",
         ELFOSABI_NETBSD => "NetBSD",
         ELFOSABI_LINUX => "Linux",
         ELFOSABI_SOLARIS => "Sun Solaris",
-        ELFOSABI_AIX => "AIX",
-        ELFOSABI_IRIX => "IRIX",
+        ELFOSABI_AIX => "IBM AIX",
+        ELFOSABI_IRIX => "SGI Irix",
         ELFOSABI_FREEBSD => "FreeBSD",
         ELFOSABI_TRU64 => "Compaq TRU64 UNIX",
         ELFOSABI_MODESTO => "Novell Modesto",
