@@ -310,7 +310,7 @@ pub fn view_header_elf_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         }
         // global keybindings to change tabs quickly
         KeyCode::Char(c) if ('1'..='5').contains(&c) => {
-            app.header_view.tab_index = c.to_string().parse::<usize>().unwrap().wrapping_sub(1);
+            app.header_view.tab_index = (c as u8 - b'1') as usize;
             Ok(true)
         }
         // otherwise call the tab event handlers based on tab index
