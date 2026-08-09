@@ -5,7 +5,14 @@ use goblin::{
         section_header::sht_to_str,
         sym::{bind_to_str, type_to_str, visibility_to_str},
     },
-    elf64::program_header::{PF_R, PF_W, PF_X}, // works for el32 too
+    elf64::{
+        program_header::{PF_R, PF_W, PF_X},
+        section_header::{
+            SHF_ALLOC, SHF_COMPRESSED, SHF_EXCLUDE, SHF_EXECINSTR, SHF_GROUP, SHF_INFO_LINK,
+            SHF_LINK_ORDER, SHF_MASKOS, SHF_MASKPROC, SHF_MERGE, SHF_OS_NONCONFORMING, SHF_STRINGS,
+            SHF_TLS, SHF_WRITE,
+        },
+    },
 };
 use ratatui::{
     Frame,
@@ -33,8 +40,85 @@ fn osabi_to_str(osabi: u8) -> &'static str {
         ELFOSABI_OPENBSD => "OpenBSD",
         13 => "OpenVMS",
         14 => "Hewlett-Packard Non-Stop Kernel",
-        _ => "UNKNOWN_OSABI",
+        ELFOSABI_ARM => "ARM",
+        ELFOSABI_ARM_AEABI => "ARM EABI",
+        ELFOSABI_STANDALONE => "Standalone (embedded) application",
+        _ => "Unknown",
     }
+}
+
+fn pflags_to_string(flags: u32) -> String {
+    let mut ret = String::with_capacity(3);
+
+    ret.push(if flags & PF_R != 0 { 'R' } else { ' ' });
+    ret.push(if flags & PF_W != 0 { 'W' } else { ' ' });
+    // readelf uses `E`, but I think `X` represents the `executable` bit better
+    ret.push(if flags & PF_X != 0 { 'X' } else { ' ' });
+
+    ret
+}
+
+fn shflags_to_string(flags: u32) -> String {
+    let mut ret = String::with_capacity(2); // two flags are quite common
+
+    // not complete yet -- see /usr/include/llvm-21/llvm/BinaryFormat/ELF.h
+    const SHF_GNU_RETAIN: u32 = 0x200000;
+    const SHF_GNU_MBIND: u32 = 0x1000000;
+    const SHF_X86_64_LARGE: u32 = 0x10000000;
+
+    if flags & SHF_WRITE != 0 {
+        ret.push('W');
+    }
+    if flags & SHF_ALLOC != 0 {
+        ret.push('A');
+    }
+    if flags & SHF_EXECINSTR != 0 {
+        ret.push('X');
+    }
+    if flags & SHF_MERGE != 0 {
+        ret.push('M');
+    }
+    if flags & SHF_STRINGS != 0 {
+        ret.push('S');
+    }
+    if flags & SHF_INFO_LINK != 0 {
+        ret.push('I');
+    }
+    if flags & SHF_LINK_ORDER != 0 {
+        ret.push('L');
+    }
+    if flags & SHF_OS_NONCONFORMING != 0 {
+        ret.push('O');
+    }
+    if flags & SHF_GROUP != 0 {
+        ret.push('G');
+    }
+    if flags & SHF_TLS != 0 {
+        ret.push('T');
+    }
+    if flags & SHF_COMPRESSED != 0 {
+        ret.push('C');
+    }
+    if flags & SHF_GNU_RETAIN != 0 {
+        ret.push('G');
+    }
+    if flags & SHF_MASKOS != 0 {
+        ret.push('o');
+    }
+    if flags & SHF_EXCLUDE != 0 {
+        ret.push('E');
+    }
+    if flags & SHF_GNU_MBIND != 0 {
+        ret.push('D');
+    }
+    if flags & SHF_X86_64_LARGE != 0 {
+        ret.push('l');
+    }
+    if flags & SHF_MASKPROC != 0 {
+        ret.push('p');
+    }
+
+    ret
 }
 
 /*
@@ -235,17 +319,6 @@ fn draw_elf_header(app: &mut App, frame: &mut Frame, area: Rect) {
     }
 }
 
-fn pflags_to_string(flags: u32) -> String {
-    let mut ret = String::with_capacity(3);
-
-    ret.push(if flags & PF_R != 0 { 'R' } else { ' ' });
-    ret.push(if flags & PF_W != 0 { 'W' } else { ' ' });
-    // readelf uses `E`, but I think `X` represents the `executable` bit better
-    ret.push(if flags & PF_X != 0 { 'X' } else { ' ' });
-
-    ret
-}
-
 fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
     if let Some(elf) = &mut app.header_view.elf {
         let mut rows = Vec::new();
@@ -254,7 +327,7 @@ fn draw_program_header(app: &mut App, frame: &mut Frame, area: Rect) {
         for (i, phdr) in phdrs.iter().enumerate() {
             rows.push(Row::new([
                 Cell::new(number_to_str_radix(i, app.config.header_base)),
-                Cell::new(pt_to_str(phdr.p_type)),
+                Cell::new(pt_to_str(phdr.p_type).replace("PT_", "")),
                 Cell::new(number_to_str_radix(phdr.p_offset, app.config.header_base)),
                 Cell::new(number_to_str_radix(phdr.p_filesz, app.config.header_base)),
                 Cell::new(number_to_str_radix(phdr.p_vaddr, app.config.header_base)),
@@ -328,10 +401,9 @@ fn draw_section_header(app: &mut App, frame: &mut Frame, area: Rect) {
                 Cell::new(number_to_str_radix(i, app.config.header_base)),
                 name_cell,
                 Cell::new(number_to_str_radix(section.sh_name, app.config.header_base)),
-                Cell::new(sht_to_str(section.sh_type)),
-                Cell::new(number_to_str_radix(
-                    section.sh_flags,
-                    app.config.header_base,
+                Cell::new(sht_to_str(section.sh_type).replace("SHT_", "")),
+                Cell::new(shflags_to_string(
+                    section.sh_flags.try_into().unwrap_or_default(),
                 )),
                 Cell::new(number_to_str_radix(section.sh_addr, app.config.header_base)),
                 Cell::new(number_to_str_radix(
@@ -534,7 +606,7 @@ fn draw_relocations(app: &mut App, frame: &mut Frame, area: Rect) {
 }
 
 pub fn elf_draw(app: &mut App, frame: &mut Frame, area: Rect) {
-    let tabs = Tabs::new(["ELF", "Segments", "Sections", "Symbols", "Relocations"])
+    let tabs = Tabs::new(["ELF", "Program", "Sections", "Symbols", "Relocations"])
         .style(app.config.theme.main)
         .highlight_style(app.config.theme.highlight)
         .divider("|")
