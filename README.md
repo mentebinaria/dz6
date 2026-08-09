@@ -252,7 +252,7 @@ The Header view is a new view (expected in v0.8.0) available for executable file
 | ---------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Arrow keys | Tab navigation             | Left/Right only. Vim-like `h`, `l` also work. To quickly pick a tab, you can also press keys `1`, `2`, etc.        |
 | Arrow keys | Field navigation           | Up/Down only. Vim-like `j`, `k` also work.                                                                         |
-| `b`        | Change output numeric base | Output numbers in hexadecimal (default) or decimal                                                                 |
+| `Space`    | Change output numeric base | Output numbers in hexadecimal (default) or decimal                                                                 |
 | `Enter`    | Follow a field value       | For applicable fields (e.g., `AddressOfEntryPoint` in the PE Optional Header), follow their value in the Hex view. |
 
 ## FAQ

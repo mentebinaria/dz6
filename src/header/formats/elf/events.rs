@@ -212,8 +212,8 @@ fn tab_relocations_events(app: &mut App, key: KeyEvent) -> Result<bool> {
 
 pub fn view_header_elf_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
-        // change base
-        KeyCode::Char('b') => {
+        // switch base
+        KeyCode::Char(' ') => {
             app.config.header_base = if app.config.header_base == 10 { 16 } else { 10 };
             Ok(true)
         }
