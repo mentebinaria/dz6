@@ -20,6 +20,7 @@ mod widgets;
 use std::process;
 
 use clap::Parser;
+use ratatui::crossterm::event;
 
 use app::App;
 
@@ -54,37 +55,42 @@ fn main() {
 
     // read init file ignoring errors
     let _ = app.read_initfile();
+    println!("p_start: {}, offset:", app.reader.page_start,);
 
     let mut terminal = ratatui::init();
 
     while app.running {
         terminal
             .draw(|f| {
-                // Page size is dynamically calculated as:
-                // frame height - (command line + status line + header) * bytes per line
-
-                // Prevent panic on underflow with small screen sizes
-                // Currently, we can't have them because of widgets such as Calculator,
-                // but we might add support for such small screen sizes in the future
-                let page_size = if f.area().height.checked_sub(3).is_some() {
-                    (f.area().height - 3) as usize * app.config.hex_mode_bytes_per_line
-                } else {
-                    app.config.hex_mode_bytes_per_line
-                };
-
-                if page_size != app.reader.page_current_size {
-                    app.reader.page_current_size = page_size;
-                    app.reader.page_end = app.reader.page_start + page_size.wrapping_sub(1);
-                }
+                update_page_size(&mut app, f.area().height);
                 app.screen = f.area();
                 draw::draw(f, &mut app)
             })
             .expect("failed to draw frame");
 
-        events::handle_events(&mut app).expect("unable to read events");
+        let event = event::read().expect("unable to read event");
+        events::handle_events(&mut app, event).expect("unable to read events");
     }
 
     ratatui::restore();
+}
+
+/// Page size is dynamically calculated as:
+/// frame height - (command line + status line + header) * bytes per line
+pub fn update_page_size(app: &mut App, height: u16) {
+    // Prevent panic on underflow with small screen sizes
+    // Currently, we can't have them because of widgets such as Calculator,
+    // but we might add support for such small screen sizes in the future
+    let page_size = if height.checked_sub(3).is_some() {
+        (height - 3) as usize * app.config.hex_mode_bytes_per_line
+    } else {
+        app.config.hex_mode_bytes_per_line
+    };
+
+    if page_size != app.reader.page_current_size {
+        app.reader.page_current_size = page_size;
+        app.reader.page_end = app.reader.page_start + page_size.wrapping_sub(1);
+    }
 }
 
 #[macro_export]
