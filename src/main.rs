@@ -55,7 +55,6 @@ fn main() {
 
     // read init file ignoring errors
     let _ = app.read_initfile();
-    println!("p_start: {}, offset:", app.reader.page_start,);
 
     let mut terminal = ratatui::init();
 
