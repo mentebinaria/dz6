@@ -34,3 +34,6 @@ tui-input = "0.15.0"
 [profile.dist]
 inherits = "release"
 lto = "thin"
+
+[dev-dependencies]
+pretty_assertions = "1.4.1"

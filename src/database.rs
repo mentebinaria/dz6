@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -64,7 +64,7 @@ pub struct Database {
     // but to avoid breaking existing .dz6 files, we will keep both for now
     // The `comments` format is more compact and doesn't require a new type
     // so maybe later we default to using only it
-    pub comments: HashMap<usize, String>,
+    pub comments: BTreeMap<usize, String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -90,7 +90,7 @@ fn hex_view_from_db(db: Database) -> HexView {
             .into_iter()
             .map(comment_from_db)
             .collect(),
-        comments: db.comments,
+        comments: db.comments.into_iter().collect(),
         editing_hex: true, // otherwise it defaults to false if a .dz6 file exists for the target
         ..Default::default()
     }
@@ -122,7 +122,11 @@ fn hex_view_to_db(hex_view: &HexView) -> Database {
             .iter()
             .map(comment_to_db)
             .collect(),
-        comments: hex_view.comments.clone(),
+        comments: hex_view
+            .comments
+            .iter()
+            .map(|(k, v)| (*k, v.clone()))
+            .collect(),
     }
 }
 fn colored_block_to_db(block: &ColoredBlock) -> DbColoredBlock {
@@ -143,6 +147,7 @@ fn comment_to_db(comment: &Comment) -> DbComment {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_database_round_trip() {
