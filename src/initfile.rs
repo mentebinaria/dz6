@@ -13,7 +13,11 @@ impl App {
             let path = home.join(".dz6init");
             let data = fs::read_to_string(path)?;
 
-            for cmdline in data.lines().filter(|line| !line.starts_with('#')) {
+            for cmdline in data
+                .lines()
+                .map(|line| line.trim())
+                .filter(|line| !line.starts_with('#'))
+            {
                 parse_command(self, cmdline);
             }
         }
