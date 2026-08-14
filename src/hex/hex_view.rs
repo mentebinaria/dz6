@@ -1,7 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
 use ratatui::widgets::{ListState, TableState};
-use serde::{Deserialize, Serialize};
 use tui_input::Input;
 
 use crate::hex::{blocks::ColoredBlock, comment::Comment};
@@ -13,18 +12,14 @@ pub struct Point {
     pub y: usize,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct HexView {
-    #[serde(skip)]
     pub ascii_state: TableState,
     // blocks are ByteBlock structs -- ranges with different colors
     pub blocks: Vec<ColoredBlock>,
     pub bookmarks: Vec<usize>,
-    #[serde(skip)]
     pub changed_bytes: HashMap<usize, String>,
-    #[serde(skip)]
     pub changed_history: Vec<usize>,
-    #[serde(skip)]
     pub comment_input: Input, // the input comment widget (tui-input)
 
     // `comment_name_list` is used to show comments in Names list
@@ -36,30 +31,17 @@ pub struct HexView {
     // to handle that with a hash map
     pub comments: HashMap<usize, String>,
 
-    #[serde(skip)]
     pub cursor: Point,
-    #[serde(skip)]
     pub editing_hex: bool,
-    #[serde(skip)]
     pub highlights: HashSet<u8>, // byte highlight
-    #[serde(skip)]
     pub last_visited_offset: usize,
-    #[serde(skip)]
     pub names_list_state: ListState,
-    #[serde(skip)]
     pub names_regex_input: Input,
-    #[serde(skip)]
     pub names_regex: String,
-    #[serde(skip)]
     pub offset_state: TableState,
-    #[serde(skip)]
     pub offset: usize,
-    #[serde(skip)]
     pub search: crate::hex::search::Search,
-    #[serde(skip)]
     pub selection: crate::hex::selection::Selection,
-    #[serde(skip)]
     pub strings_regex_input: Input,
-    #[serde(skip)]
     pub table_state: TableState,
 }
