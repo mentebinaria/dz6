@@ -120,7 +120,7 @@ Once you load a file in **dz6**, you can use the commands below.
 | `wq` or `x`      | Write changes to file and quit                                   |                           |                                                                                                   |
 | `q`              | Quit without saving changes                                      |                           | In replace mode, `T` (truncate) is an exception because it modifies the file immediately.         |
 
-If you need permanent settings, create a `$HOME/.dz6init` file containing any of the commands above, one per line. dz6 will load that at startup.
+> If you need permanent settings, create a `$HOME/.dz6init` file containing any of the commands above, one per line. dz6 will load that at startup. Lines starting with `#` are ignored.
 
 ### Hex view
 
