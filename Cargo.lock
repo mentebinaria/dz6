@@ -457,7 +457,7 @@ dependencies = [
 
 [[package]]
 name = "dz6"
-version = "0.7.0"
+version = "0.7.1"
 dependencies = [
  "arboard",
  "clap",
@@ -927,9 +927,9 @@ dependencies = [
 
 [[package]]
 name = "mmap-io"
-version = "0.9.4"
+version = "0.9.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a34b926fd173419d630eb9d8ee3a485345237bf699d6f7ea6e5c1ee97cf1fa47"
+checksum = "3fe18ca588f2b6483c447d2ec09e1f65470a2d8bf3f04e7f7bd78740d67e9080"
 dependencies = [
  "anyhow",
  "cfg-if",

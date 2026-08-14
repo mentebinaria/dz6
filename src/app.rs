@@ -38,7 +38,7 @@ impl FileInfo {
     /// which also takes care of unloading it if memory constrained.
     pub fn get_buffer(&mut self) -> &[u8] {
         if let Some(mmap) = self.mmap.as_mut() {
-            return mmap.as_slice(0, self.size as u64).unwrap();
+            return mmap.as_slice_bytes(0, self.size as u64).unwrap();
         }
 
         &[]

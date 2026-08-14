@@ -1,5 +1,9 @@
 # Changelog
 
+## dz6 v0.7.1
+
+- Update mmap-io (fix build issue due to mmap-io update).
+
 ## dz6 v0.7.0
 
 - Hex view:
