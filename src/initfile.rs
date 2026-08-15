@@ -15,7 +15,7 @@ impl App {
 
             for cmdline in data
                 .lines()
-                .map(|line| line.trim())
+                .map(str::trim)
                 .filter(|line| !line.starts_with('#'))
             {
                 parse_command(self, cmdline);
