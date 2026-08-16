@@ -21,6 +21,14 @@ end = 214
 bg_color = 4160309102
 fg_color = 4169677532
 
+[[comment_name_list]]
+offset = 21
+comment = " one comment"
+
+[[comment_name_list]]
+offset = 101
+comment = "comment"
+
 [comments]
 21 = " one comment"
 101 = "comment"
