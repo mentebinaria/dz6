@@ -55,22 +55,9 @@ pub struct Database {
     pub blocks: Vec<DbColoredBlock>,
     pub bookmarks: Vec<usize>,
 
-    // `comment_name_list` is used to show comments in Names list
-    // and also on the conversion from selected item on the list
-    // to file offset passed to goto()
-    pub comment_name_list: Vec<DbComment>,
-
-    // TODO: comments and comment_name_list are redundant, we should only store one of them
-    // but to avoid breaking existing .dz6 files, we will keep both for now
-    // The `comments` format is more compact and doesn't require a new type
-    // so maybe later we default to using only it
+    /// offset -> comment map
+    /// Used to populate the comment_name_list as well
     pub comments: BTreeMap<usize, String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub struct DbComment {
-    pub offset: usize,
-    pub comment: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -86,9 +73,9 @@ fn hex_view_from_db(db: Database) -> HexView {
         blocks: db.blocks.into_iter().map(colored_block_from_db).collect(),
         bookmarks: db.bookmarks,
         comment_name_list: db
-            .comment_name_list
-            .into_iter()
-            .map(comment_from_db)
+            .comments
+            .iter()
+            .map(|(&k, v)| Comment::new(k, v))
             .collect(),
         comments: db.comments.into_iter().collect(),
         editing_hex: true, // otherwise it defaults to false if a .dz6 file exists for the target
@@ -103,12 +90,6 @@ fn colored_block_from_db(db_block: DbColoredBlock) -> ColoredBlock {
         fg_color: db_block.fg_color,
     }
 }
-fn comment_from_db(db_comment: DbComment) -> Comment {
-    Comment {
-        offset: db_comment.offset,
-        comment: db_comment.comment,
-    }
-}
 
 /// HexView to Database conversion,
 /// takes a reference because we don't want to consume the live HexView that is
@@ -117,11 +98,6 @@ fn hex_view_to_db(hex_view: &HexView) -> Database {
     Database {
         blocks: hex_view.blocks.iter().map(colored_block_to_db).collect(),
         bookmarks: hex_view.bookmarks.clone(),
-        comment_name_list: hex_view
-            .comment_name_list
-            .iter()
-            .map(comment_to_db)
-            .collect(),
         comments: hex_view
             .comments
             .iter()
@@ -135,12 +111,6 @@ fn colored_block_to_db(block: &ColoredBlock) -> DbColoredBlock {
         end: block.end,
         bg_color: block.bg_color,
         fg_color: block.fg_color,
-    }
-}
-fn comment_to_db(comment: &Comment) -> DbComment {
-    DbComment {
-        offset: comment.offset,
-        comment: comment.comment.clone(),
     }
 }
 
@@ -165,5 +135,35 @@ mod tests {
         let re_deserialized: Database =
             toml::from_str(&serialized).expect("Failed to deserialize database");
         assert_eq!(db, re_deserialized);
+    }
+
+    #[test]
+    fn test_old_database_still_parses() {
+        // db file generated with the hexview serialization
+        let db_file = "test_data/old_db.toml";
+        let db_str = fs::read_to_string(db_file).expect("Failed to read test database file");
+
+        let db: Database = toml::from_str(&db_str).expect("Failed to deserialize database");
+        let serialized = toml::to_string_pretty(&db).expect("Failed to serialize database");
+
+        // tests that we can deserialize the serialized string and get the same data back
+        let re_deserialized: Database =
+            toml::from_str(&serialized).expect("Failed to deserialize database");
+        assert_eq!(db, re_deserialized);
+    }
+
+    #[test]
+    fn test_comment_name_list_gets_populated() {
+        let list = vec![
+            Comment::new(21, " one comment"),
+            Comment::new(101, "comment"),
+        ];
+
+        let db_file = "test_data/db.toml";
+        let db_str = fs::read_to_string(db_file).expect("Failed to read test database file");
+        let db: Database = toml::from_str(&db_str).expect("Failed to deserialize databse");
+        let hex_view = hex_view_from_db(db);
+
+        assert_eq!(hex_view.comment_name_list, list);
     }
 }

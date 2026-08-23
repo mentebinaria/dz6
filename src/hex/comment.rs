@@ -11,10 +11,19 @@ use tui_input::backend::crossterm::EventHandler;
 
 use crate::{app::App, commands::Commands, editor::UIState};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Comment {
     pub offset: usize,
     pub comment: String,
+}
+
+impl Comment {
+    pub fn new(offset: usize, comment: impl Into<String>) -> Self {
+        Comment {
+            offset,
+            comment: comment.into(),
+        }
+    }
 }
 
 pub fn dialog_comment_draw(app: &mut App, frame: &mut Frame) {
