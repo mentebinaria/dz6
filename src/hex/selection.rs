@@ -1,6 +1,7 @@
 use crossterm::event::KeyModifiers;
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use std::io::Result;
+use tracing::warn;
 
 use crate::app::App;
 use crate::editor::UIState;
@@ -193,8 +194,13 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                     s.push_str(&format!("{:02X}", byte));
                 }
             }
-            if let Ok(clip) = app.clipboard.as_mut() {
-                let _ = clip.set_text(s);
+            match app.clipboard.as_mut() {
+                Ok(clip) => {
+                    if let Err(error) = clip.set_text(s) {
+                        warn!(%error, "could not copy to the clipboard");
+                    }
+                }
+                Err(error) => warn!(%error, "no clipboard available"),
             }
             app.state = UIState::Normal;
             app.hex_view.selection.clear();

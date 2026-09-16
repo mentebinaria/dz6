@@ -1,6 +1,7 @@
 use crossterm::event::{Event, KeyCode};
 use ratatui::Frame;
 use std::io::{Result, Write};
+use tracing::info;
 
 use crate::{
     app::App,
@@ -22,6 +23,11 @@ pub fn dialog_truncate_events(app: &mut App, event: &Event) -> Result<bool> {
         if let KeyCode::Char('y') = key.code
             && let Some(f) = &app.file_info.file
         {
+            info!(
+                size = app.file_info.size,
+                new_size = app.hex_view.offset + 1,
+                "truncating file"
+            );
             f.set_len((app.hex_view.offset + 1) as u64)?;
             app.reload_file();
         }
@@ -49,6 +55,11 @@ pub fn dialog_reverse_truncate_events(app: &mut App, event: &Event) -> Result<bo
             let new_buff = buff.drain(app.hex_view.offset..);
 
             if let Some(f) = &mut app.file_info.file {
+                info!(
+                    size = app.file_info.size,
+                    new_size = new_buff.len(),
+                    "truncating file from the start"
+                );
                 f.write_all(new_buff.as_slice())?;
                 f.set_len(new_buff.len() as u64)?;
                 app.reload_file();

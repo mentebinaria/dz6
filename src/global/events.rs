@@ -15,6 +15,8 @@ pub fn handle_global_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::ALT) => {
             app.state = UIState::DialogLog;
             app.dialog_renderer = Some(global::log::dialog_log_draw);
+            // show the newest messages
+            app.log_view.scroll_to_end();
         }
         // command bar
         KeyCode::Char(':') => {

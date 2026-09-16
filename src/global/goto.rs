@@ -1,3 +1,5 @@
+use tracing::trace;
+
 use crate::app::App;
 use crate::editor::AppView;
 
@@ -70,6 +72,11 @@ impl App {
             self.editor_view = AppView::Hex;
         }
 
-        App::log(self, format!("goto: {:x}", offset));
+        trace!(
+            offset,
+            page_start = self.reader.page_start,
+            page_end = self.reader.page_end,
+            "cursor moved"
+        );
     }
 }

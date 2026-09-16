@@ -13,6 +13,7 @@ use std::io::Result;
 use crate::{app::App, commands::Commands, editor::UIState, util::center_widget};
 
 use regex::{Regex, RegexBuilder};
+use tracing::{debug, error, info, warn};
 
 pub struct FoundString {
     pub offset: usize,
@@ -98,10 +99,11 @@ pub fn dialog_strings_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         }
         KeyCode::Enter => {
             if let Some(choice) = app.list_state.selected() {
-                if choice > app.strings.len() {
-                    App::log(
-                        app,
-                        "wtf {choice} is greater than `app.strings.len()`, dunno how".to_string(),
+                if choice >= app.strings.len() {
+                    error!(
+                        choice,
+                        strings = app.strings.len(),
+                        "selected string is out of range"
                     );
                     return Ok(true);
                 }
@@ -191,12 +193,20 @@ impl Commands {
 
         // Read the entire file by blocks and find strings in them
 
-        let default_regex = Regex::new(".*").unwrap();
-        // let re = Regex::new(&self.string_regex).unwrap_or(default_regex);
-        let re = RegexBuilder::new(&app.string_regex)
+        let re = match RegexBuilder::new(&app.string_regex)
             .case_insensitive(true)
             .build()
-            .unwrap_or(default_regex);
+        {
+            Ok(re) => re,
+            Err(error) => {
+                warn!(
+                    regex = %app.string_regex,
+                    %error,
+                    "invalid filter regex, listing every string"
+                );
+                Regex::new(".*").expect("a literal regex always builds")
+            }
+        };
 
         let buffer = app.file_info.get_buffer();
         for (offset, byte) in buffer.iter().enumerate() {
@@ -211,7 +221,10 @@ impl Commands {
                         size: siz,
                     });
                     if app.strings.len() >= app.config.maximum_strings_to_show {
-                        // too many strings :(
+                        debug!(
+                            maximum = app.config.maximum_strings_to_show,
+                            "string list truncated"
+                        );
                         break;
                     }
                 }
@@ -219,5 +232,11 @@ impl Commands {
                 siz = 0;
             }
         }
+
+        info!(
+            strings = app.strings.len(),
+            minimum_length = app.config.minimum_string_length,
+            "scanned for strings"
+        );
     }
 }

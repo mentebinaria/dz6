@@ -95,7 +95,7 @@ Once you load a file in **dz6**, you can use the commands below.
 | Key     | Action           | Tips                                                           |
 | ------- | ---------------- | -------------------------------------------------------------- |
 | `Tab`   | Switch views     | Cycle through Hex, Text, and Headers. Backtab: Cycle backward. |
-| `Alt+l` | Open log window  |                                                                |
+| `Alt+l` | Open log window  | See [Logging](#logging)                                        |
 | `:`     | Open command bar | See [Commands](#commands)                                      |
 
 #### Commands
@@ -255,6 +255,32 @@ The Header view is a new view (expected in v0.8.0) available for executable file
 | `Ctrl+f/b` | Scroll one page forward / backword |
 | `Space`    | Change output numeric base         | Output numbers in hexadecimal (default) or decimal                                                                 |
 | `Enter`    | Follow a field value               | For applicable fields (e.g., `AddressOfEntryPoint` in the PE Optional Header), follow their value in the Hex view. |
+
+## Logging
+
+**dz6** uses [tracing](https://docs.rs/tracing), so the `RUST_LOG` environment variable controls what is logged, as in any other Rust program:
+
+    RUST_LOG=debug dz6 file.bin
+    RUST_LOG=dz6::hex::search=trace dz6 file.bin
+
+The levels are `error`, `warn`, `info`, `debug`, and `trace`. If you don't set `RUST_LOG`, dz6 logs at `info` level and the crates it uses at `warn`.
+
+Messages are shown in the log window (`Alt+l`), which keeps the most recent ones. They also go to `stderr`, but since the interface takes over the terminal, writing there while dz6 is running would mess up the screen. So it only happens if you redirect `stderr` somewhere else:
+
+    dz6 file.bin 2> dz6.log
+
+If you don't redirect it, the messages are printed after you quit dz6: warnings and errors only, or everything that matched your `RUST_LOG`, if you set one.
+
+### Log window
+
+| Key                     | Action               | Tips                                          |
+| ----------------------- | -------------------- | --------------------------------------------- |
+| `j` / `k`               | Scroll one message   | Down and Up arrow keys also work              |
+| `f` / `b`               | Scroll one page      | PgDown and PgUp also work                     |
+| `g` / `G`               | First / last message | Home and End also work                        |
+| `h` / `l`               | Scroll sideways      | Left and Right arrow keys also work           |
+| `c`                     | Clear the messages   | Only clears the window, not a redirected file  |
+| `q`                     | Close the window     | `Esc` also works                              |
 
 ## FAQ
 

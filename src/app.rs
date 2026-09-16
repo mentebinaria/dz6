@@ -11,11 +11,13 @@ use goblin::Object;
 use goblin::error;
 use mmap_io::{MemoryMappedFile, MmapMode};
 use ratatui::{Frame, layout::Rect, widgets::ListState};
+use tracing::{debug, error, info, instrument, warn};
 
 use crate::{
     config::*,
     editor::*,
     global::calculator::Calculator,
+    global::log::LogView,
     header::header_view::{Elf, HeaderView, Pe},
     hex::{hex_view::HexView, strings::FoundString},
     input_history::InputHistory,
@@ -76,8 +78,7 @@ pub struct App {
     pub hex_view: HexView,
     pub last_error: Dz6Error,
     pub list_state: ListState,
-    pub log_scroll_offset: (u16, u16),
-    pub logs: Vec<String>,
+    pub log_view: LogView,
     pub reader: Reader,
     pub running: bool,
     pub screen: Rect,
@@ -123,8 +124,7 @@ impl App {
                 ..Default::default()
             },
             list_state: ListState::default(),
-            log_scroll_offset: (0, 0),
-            logs: Vec::with_capacity(100),
+            log_view: LogView::default(),
             reader: Reader::new(),
             running: true,
             screen: Rect::default(),
@@ -223,6 +223,11 @@ impl App {
     }
 
     /// load a file
+    #[instrument(
+        level = "debug",
+        skip_all,
+        fields(path = filepath, offset = initial_offset, read_only = read_only)
+    )]
     pub fn load_file(
         &mut self,
         filepath: &str,
@@ -241,32 +246,46 @@ impl App {
         let meta = path.metadata()?;
 
         // We try to open file readwrite to use this later for saving
-        if !read_only && let Ok(file) = OpenOptions::new().read(true).write(true).open(path) {
-            self.file_info.file = Some(file);
-        } else {
+        if read_only {
             self.file_info.is_read_only = true;
+        } else {
+            match OpenOptions::new().read(true).write(true).open(path) {
+                Ok(file) => self.file_info.file = Some(file),
+                Err(error) => {
+                    warn!(%error, "cannot open for writing, continuing read-only");
+                    self.file_info.is_read_only = true;
+                }
+            }
         }
 
         // We map it on memory readonly as changed to mapped memory also changes it on disk
-        if let Ok(mmap) = MemoryMappedFile::builder(path)
+        match MemoryMappedFile::builder(path)
             .mode(MmapMode::ReadOnly)
             .open()
         {
-            self.file_info.mmap = Some(mmap);
-        } else {
-            return Err(std::io::Error::other("could not open file"));
+            Ok(mmap) => self.file_info.mmap = Some(mmap),
+            Err(error) => {
+                error!(%error, "cannot memory map the file");
+                return Err(std::io::Error::other("could not open file"));
+            }
         }
 
         self.file_info.size = meta.len() as usize;
 
         if self.file_info.size > 0 {
-            _ = self.id_file();
+            match self.id_file() {
+                Ok(()) => debug!(kind = self.file_info.r#type, "file type identified"),
+                // most files are not executables, so this is normal
+                Err(error) => debug!(%error, "unknown file format"),
+            }
         }
 
-        self.log(format!(
-            "filesize: {} (0x{:x})",
-            self.file_info.size, self.file_info.size
-        ));
+        info!(
+            path = %self.file_info.path,
+            size = self.file_info.size,
+            read_only = self.file_info.is_read_only,
+            "file loaded"
+        );
 
         if initial_offset != 0 {
             self.goto(0);
@@ -274,20 +293,26 @@ impl App {
         self.goto(initial_offset);
 
         // try to load a database for this file, but continue otherwise
-        if self.config.database {
-            let _ = self.load_database();
+        if self.config.database
+            && let Err(error) = self.load_database()
+        {
+            debug!(%error, "no database loaded");
         }
 
         Ok(())
     }
 
     pub fn reload_file(&mut self) {
-        let fp = self.file_info.path.clone();
-        self.load_file(&fp, self.hex_view.offset, self.file_info.is_read_only)
-            .expect("could not reload the file");
+        let path = self.file_info.path.clone();
+
+        if let Err(error) = self.load_file(&path, self.hex_view.offset, self.file_info.is_read_only)
+        {
+            error!(path = %path, %error, "could not reload the file");
+        }
     }
 
     /// write what's cached to the actual file
+    #[instrument(name = "write", level = "debug", skip(self))]
     pub fn write_to_file(&mut self) -> io::Result<()> {
         if self.file_info.file.is_none() {
             return Err(io::Error::other("file not open"));
@@ -311,7 +336,7 @@ impl App {
             }
         }
 
-        App::log(self, format!("{} bytes written to file", total_written));
+        info!(bytes = total_written, "wrote changes to file");
         self.hex_view.changed_bytes.clear();
         Ok(())
     }
