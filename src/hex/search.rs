@@ -98,32 +98,29 @@ pub fn search<T: AsRef<[u8]>>(app: &mut App, needle: T) -> Option<usize> {
 // string
 // hex
 pub fn dialog_search_draw(app: &mut App, frame: &mut Frame) {
-    let x;
-    let para;
-
     let prompt_char = if app.hex_view.search.direction == SearchDirection::Forward {
         '/'
     } else {
         '?'
     };
 
-    match app.hex_view.search.mode {
-        SearchMode::Utf8 => {
-            para = Paragraph::new(format!(
+    let (para, x) = match app.hex_view.search.mode {
+        SearchMode::Utf8 => (
+            Paragraph::new(format!(
                 "{}{}",
                 prompt_char,
                 app.hex_view.search.input_text.value()
-            ));
-            x = app.hex_view.search.input_text.visual_cursor();
-        }
-        SearchMode::Hex => {
-            para = Paragraph::new(format!(
+            )),
+            app.hex_view.search.input_text.visual_cursor(),
+        ),
+        SearchMode::Hex => (
+            Paragraph::new(format!(
                 "{}{}",
                 prompt_char,
                 app.hex_view.search.input_hex.value()
-            ));
-            x = app.hex_view.search.input_hex.visual_cursor();
-        }
+            )),
+            app.hex_view.search.input_hex.visual_cursor(),
+        ),
     };
 
     frame.render_widget(para, app.command_area);
