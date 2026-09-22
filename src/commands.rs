@@ -10,6 +10,7 @@ use crate::app::Dz6Error;
 use clap::{Parser, Subcommand};
 use ratatui::crossterm::event::{Event, KeyCode};
 use std::io::Result;
+use tracing::{debug, error, warn};
 use tui_input::backend::crossterm::EventHandler;
 
 pub struct Commands;
@@ -88,6 +89,19 @@ fn try_goto(app: &mut App, offset: &str) {
     }
 }
 
+/// Writes the file and the database, logging whatever fails
+fn write_and_save(app: &mut App) {
+    if let Err(error) = app.write_to_file() {
+        error!(%error, "could not write to file");
+    }
+
+    if app.config.database
+        && let Err(error) = app.save_database()
+    {
+        warn!(%error, "could not save the database");
+    }
+}
+
 pub fn parse_command(app: &mut App, cmdline: &str) {
     if cmdline.is_empty() {
         app.state = UIState::Normal;
@@ -95,7 +109,15 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
         return;
     }
 
-    let args = shell_words::split(cmdline).unwrap_or_default();
+    debug!(command = cmdline, "running command");
+
+    let args = match shell_words::split(cmdline) {
+        Ok(args) => args,
+        Err(error) => {
+            debug!(%error, "unbalanced quotes, treating the line as an offset");
+            Vec::new()
+        }
+    };
     let mut argv: Vec<&str> = Vec::with_capacity(args.len() + 1);
     argv.push("dz6");
 
@@ -109,19 +131,13 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
             Some(Command::Q) => app.running = false,
             // write to file
             Some(Command::W) => {
-                let _ = app.write_to_file();
-                if app.config.database {
-                    let _ = app.save_database();
-                }
+                write_and_save(app);
                 app.dialog_renderer = None;
                 app.state = UIState::Normal;
             }
             // write and quit
             Some(Command::Wq) | Some(Command::X) => {
-                let _ = app.write_to_file();
-                if app.config.database {
-                    let _ = app.save_database();
-                }
+                write_and_save(app);
                 app.dialog_renderer = None;
                 app.running = false;
             }
@@ -288,6 +304,7 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
         },
         Err(_) => {
             // goto as :offset
+            debug!(command = cmdline, "not a command, trying as an offset");
             try_goto(app, cmdline);
         }
     }

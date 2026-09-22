@@ -1,14 +1,17 @@
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::fs;
+use std::io;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
+use tracing::{debug, info, instrument, warn};
 
 use crate::app::App;
 use crate::hex::{blocks::ColoredBlock, comment::Comment, hex_view::HexView};
 
 impl App {
+    #[instrument(name = "save", level = "debug", skip(self))]
     pub fn save_database(&self) -> Result<(), Box<dyn Error>> {
         let target_dir: &Path = Path::new(&self.file_info.path)
             .parent()
@@ -21,8 +24,14 @@ impl App {
             && self.hex_view.comment_name_list.is_empty()
             && self.hex_view.blocks.is_empty()
         {
-            let _ = fs::remove_file(target_db);
-            let _ = fs::remove_file(cwd_db);
+            for stale in [target_db.as_path(), Path::new(&cwd_db)] {
+                match fs::remove_file(stale) {
+                    Ok(()) => info!(path = %stale.display(), "removed empty database"),
+                    Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+                    Err(error) => warn!(path = %stale.display(), %error, "cannot remove database"),
+                }
+            }
+
             return Ok(());
         }
 
@@ -31,10 +40,29 @@ impl App {
         let toml_string = toml::to_string_pretty(&db)?;
 
         // try target's path or else current directory
-        fs::write(&target_db, &toml_string).or_else(|_| fs::write(&cwd_db, &toml_string))?;
+        let saved_to = match fs::write(&target_db, &toml_string) {
+            Ok(()) => target_db,
+            Err(error) => {
+                debug!(
+                    path = %target_db.display(),
+                    %error,
+                    "cannot write next to the file, trying the current directory"
+                );
+                fs::write(&cwd_db, &toml_string)?;
+                PathBuf::from(&cwd_db)
+            }
+        };
+
+        info!(
+            path = %saved_to.display(),
+            bytes = toml_string.len(),
+            "database saved"
+        );
 
         Ok(())
     }
+
+    #[instrument(name = "load", level = "debug", skip(self))]
     pub fn load_database(&mut self) -> Result<(), Box<dyn Error>> {
         let target_dir: &Path = Path::new(&self.file_info.path)
             .parent()
@@ -43,8 +71,23 @@ impl App {
         let target_db: PathBuf = target_dir.join(&cwd_db);
         let data = fs::read_to_string(&cwd_db).or_else(|_| fs::read_to_string(&target_db))?;
 
-        let db = toml::from_str::<Database>(&data)?;
+        let db = match toml::from_str::<Database>(&data) {
+            Ok(db) => db,
+            Err(error) => {
+                warn!(%error, "ignoring malformed database");
+                return Err(error.into());
+            }
+        };
+
+        info!(
+            bookmarks = db.bookmarks.len(),
+            comments = db.comments.len(),
+            blocks = db.blocks.len(),
+            "database loaded"
+        );
+
         self.hex_view = hex_view_from_db(db);
+
         Ok(())
     }
 }

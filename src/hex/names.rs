@@ -9,6 +9,8 @@ use ratatui::{
 use ratatui::crossterm::event::{Event, KeyCode};
 use std::io::Result;
 
+use tracing::error;
+
 use crate::{app::App, commands::Commands, editor::UIState, util::center_widget};
 
 pub fn dialog_names_draw(app: &mut App, frame: &mut Frame) {
@@ -82,11 +84,11 @@ pub fn dialog_names_events(app: &mut App, event: &Event) -> Result<bool> {
             }
             KeyCode::Enter => {
                 if let Some(choice) = app.hex_view.names_list_state.selected() {
-                    if choice > app.hex_view.comment_name_list.len() {
-                        App::log(
-                            app,
-                            "wtf {choice} is greater than `app.hex_mode.comments.len()`, dunno how"
-                                .to_string(),
+                    if choice >= app.hex_view.comment_name_list.len() {
+                        error!(
+                            choice,
+                            names = app.hex_view.comment_name_list.len(),
+                            "selected name is out of range"
                         );
                         return Ok(true);
                     }

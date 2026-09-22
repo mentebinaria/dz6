@@ -5,6 +5,9 @@
 - Header view: new view to inspect ELF and PE executables.
 - Added a command to change the view (same as pressing `Tab`). Example: `:set view hex` (possible values are `text`, `hex`, and `header`). It can be used in `~/.dz6init` to set the default view when dz6 is loaded.
 - Added support for comments / lines starting with `#` in `~/.dz6init`.
+- Logging: dz6 now uses `tracing`, so the `RUST_LOG` environment variable controls what is logged. Example: `RUST_LOG=debug dz6 file.bin`. Messages are shown in the log window (`Alt+l`) and also written to `stderr` if you redirect it (`dz6 file.bin 2> dz6.log`).
+- Log window: shows the time, level, and module of each message. It scrolls with `j`/`k`, `f`/`b`, `g`/`G`, and `h`/`l`, and `c` clears it.
+- Errors that were silent before are logged now, like opening a file without write permission, a broken `.dz6` database file, an invalid regex in the string list, and a `:w` that fails.
 
 ## Breaking changes:
 - `Tab` cycles through available views now (`Enter` no longer does that).

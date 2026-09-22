@@ -4,6 +4,7 @@ use ratatui::Frame;
 use ratatui::crossterm::event::{Event, KeyCode};
 use ratatui::widgets::Paragraph;
 use std::io::Result;
+use tracing::debug;
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler;
 
@@ -52,11 +53,19 @@ pub fn hex_string_to_u8(hex_string: &str) -> Option<Vec<u8>> {
 pub fn search<T: AsRef<[u8]>>(app: &mut App, needle: T) -> Option<usize> {
     let text = needle.as_ref();
     let filesize = app.file_info.size;
-    let buffer = app.file_info.get_buffer();
 
     if filesize == 0 || text.is_empty() {
         return None;
     }
+
+    debug!(
+        bytes = text.len(),
+        from = app.hex_view.offset,
+        backward = app.hex_view.search.direction == SearchDirection::Backward,
+        "searching"
+    );
+
+    let buffer = app.file_info.get_buffer();
 
     let ofs = if app.hex_view.search.direction == SearchDirection::Forward {
         let start = app.hex_view.offset.checked_add(1)?;
@@ -74,8 +83,9 @@ pub fn search<T: AsRef<[u8]>>(app: &mut App, needle: T) -> Option<usize> {
         }
     };
 
-    if ofs.is_some() {
-        return ofs;
+    if let Some(offset) = ofs {
+        debug!(offset, wrapped = false, "pattern found");
+        return Some(offset);
     }
 
     // ofs is None, check wrap setting
@@ -86,12 +96,15 @@ pub fn search<T: AsRef<[u8]>>(app: &mut App, needle: T) -> Option<usize> {
             memchr::memmem::rfind(buffer, text)
         };
 
-        if ofs.is_some() {
-            return ofs;
+        if let Some(offset) = ofs {
+            debug!(offset, wrapped = true, "pattern found");
+            return Some(offset);
         }
     }
 
+    debug!(bytes = text.len(), "pattern not found");
     crate::beep!();
+
     None
 }
 

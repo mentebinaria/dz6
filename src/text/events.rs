@@ -1,6 +1,7 @@
 use std::io::Result;
 
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use tracing::trace;
 
 use crate::{app::App, editor::UIState, text};
 
@@ -20,7 +21,7 @@ pub fn text_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 app.text_view.lines_to_show += 1;
             }
 
-            App::log(app, format!("{:#?}", app.text_view));
+            trace!(view = ?app.text_view, "text view scrolled");
         }
         KeyCode::PageUp => {
             if app.hex_view.offset < app.reader.page_current_size {
