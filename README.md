@@ -18,7 +18,7 @@ Fast Vim-inspired hex editor for the terminal
 - Find strings and hex bytes
 - Add comments and bookmarks
 - Mark blocks with colors
-- PE/ELF headers parsing
+- PE/ELF headers parsing (WIP -- not released yet)
 - Cross-platform
 - Open source
 
@@ -244,7 +244,7 @@ The Text view displays the file as plain text. This can be useful even when edit
 
 ### Header view
 
-> This view is a work in progress.
+> This view is a work in progress. It was not released yet.
 
 The Header view is a new view (expected in v0.8.0) available for executable files. It parses the executable headers and shows them in a nice way. Currently, it supports PE and ELF files, but all features from them.
 
