@@ -1,11 +1,13 @@
 use crate::widgets::{Message, MessageType};
 use crate::{app::App, editor::UIState};
-use ratatui::Frame;
+
 use ratatui::crossterm::event::{Event, KeyCode};
+use ratatui::Frame;
 use ratatui::widgets::Paragraph;
 use std::io::Result;
-use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler;
+use tui_input::Input;
+use yara_x;
 
 #[derive(Default, Debug)]
 pub struct Search {
@@ -41,57 +43,60 @@ pub enum SearchDirection {
     Backward,
 }
 
-pub fn hex_string_to_u8(hex_string: &str) -> Option<Vec<u8>> {
-    if hex_string.is_empty() || !hex_string.len().is_multiple_of(2) {
-        return None;
-    }
-    let bytes = hex::decode(hex_string).unwrap();
-    Some(bytes)
-}
-
-pub fn search<T: AsRef<[u8]>>(app: &mut App, needle: T) -> Option<usize> {
-    let text = needle.as_ref();
-    let filesize = app.file_info.size;
-    let buffer = app.file_info.get_buffer();
-
-    if filesize == 0 || text.is_empty() {
+pub fn search_yr(app: &mut App, pattern: &str) -> Option<usize> {
+    if pattern.is_empty() {
         return None;
     }
 
-    let ofs = if app.hex_view.search.direction == SearchDirection::Forward {
-        let start = app.hex_view.offset.checked_add(1)?;
-        if start < filesize {
-            memchr::memmem::find(buffer.get(start..)?, text).map(|pos| start + pos)
-        } else {
-            None
-        }
-    } else {
-        let end = app.hex_view.offset;
-        if end > 0 {
-            memchr::memmem::rfind(buffer.get(..end)?, text)
-        } else {
-            None
-        }
+    let string_decl = match app.hex_view.search.mode {
+        SearchMode::Utf8 => format!("$a = \"{pattern}\" ascii wide nocase"),
+        SearchMode::Hex => format!("$a = {{{pattern}}}"),
     };
 
-    if ofs.is_some() {
-        return ofs;
-    }
+    let rule = format!(
+        r#"
+    rule dz6 {{
+        strings:
+            {string_decl}
+        condition:
+            $a
+    }}"#
+    );
 
-    // ofs is None, check wrap setting
-    if app.config.search_wrap {
-        let ofs = if app.hex_view.search.direction == SearchDirection::Forward {
-            memchr::memmem::find(buffer, text)
-        } else {
-            memchr::memmem::rfind(buffer, text)
-        };
+    let rules = yara_x::compile(&*rule).ok()?;
+    let mut scanner = yara_x::Scanner::new(&rules);
+    let buffer = app.file_info.get_buffer();
 
-        if ofs.is_some() {
-            return ofs;
+    if app.hex_view.search.direction == SearchDirection::Forward {
+        let start = app.hex_view.offset.checked_add(1)?;
+        let slice = buffer.get(start..)?;
+
+        // enable fast scan to return the first result only
+        scanner.fast_scan(true);
+
+        let result = scanner.scan(slice).unwrap();
+        let rule = result.matching_rules().next()?;
+        let pattern = rule.patterns().next()?;
+
+        if let Some(r#match) = pattern.matches().next() {
+            // the search result is an offset from start, so we add start to it
+            return r#match.range().start.checked_add(start);
+        }
+    } else {
+        // backward search
+        // this works, but fast_scan is not set, thus the scanner will
+        // find all matches so we can get the last one
+        let slice = buffer.get(..app.hex_view.offset)?;
+        let result = scanner.scan(slice).unwrap();
+        let rule = result.matching_rules().next()?;
+        let pattern = rule.patterns().next()?;
+
+        // get the last match
+        if let Some(r#match) = pattern.matches().last() {
+            return Some(r#match.range().start);
         }
     }
 
-    crate::beep!();
     None
 }
 
@@ -164,24 +169,30 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
                             return Ok(false);
                         }
 
-                        if let Some(ofs) = search(app, &text) {
+                        if let Some(ofs) = search_yr(app, &text) {
                             app.goto(ofs);
                             app.dialog_renderer = None;
                         } else {
                             app.dialog_renderer = Some(dialog_search_error_draw);
+                            crate::beep!();
                         }
                     }
                     SearchMode::Hex => {
+                        app.state = UIState::Normal;
+
                         let hex_string = app.hex_view.search.input_hex.value().to_string();
 
-                        if let Some(bytes) = hex_string_to_u8(&hex_string) {
-                            if let Some(ofs) = search(app, &bytes) {
-                                app.goto(ofs);
-                                app.dialog_renderer = None;
-                            } else {
-                                app.dialog_renderer = Some(dialog_search_error_draw);
-                            }
-                            app.state = UIState::Normal;
+                        if hex_string.is_empty() {
+                            app.dialog_renderer = None;
+                            return Ok(false);
+                        }
+
+                        if let Some(ofs) = search_yr(app, &hex_string) {
+                            app.goto(ofs);
+                            app.dialog_renderer = None;
+                        } else {
+                            app.dialog_renderer = Some(dialog_search_error_draw);
+                            crate::beep!();
                         }
                     }
                 };
@@ -194,7 +205,10 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
                 match app.hex_view.search.mode {
                     SearchMode::Utf8 => app.hex_view.search.input_text.handle_event(event),
                     SearchMode::Hex => {
-                        if c.is_ascii_hexdigit() {
+                        // as per https://virustotal.github.io/yara-x/docs/writing_rules/hex-patterns/
+                        let allowed = [' ', '?', '[', '-', ']', 'x', 'X', '~', '(', ')', '|'];
+
+                        if c.is_ascii_hexdigit() || allowed.contains(&c) {
                             app.hex_view.search.input_hex.handle_event(event)
                         } else {
                             None

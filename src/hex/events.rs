@@ -38,19 +38,19 @@ pub fn hex_mode_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 && !app.hex_view.search.input_text.value().is_empty()
             {
                 let needle = app.hex_view.search.input_text.value().to_string();
-                ofs = hex::search::search(app, needle);
+                ofs = hex::search::search_yr(app, &needle);
             } else if app.hex_view.search.mode == hex::search::SearchMode::Hex
                 && !app.hex_view.search.input_hex.value().is_empty()
             {
                 let hex_string = app.hex_view.search.input_hex.value().to_string();
 
-                if let Some(by) = hex::search::hex_string_to_u8(&hex_string) {
-                    ofs = hex::search::search(app, &by)
-                }
+                ofs = hex::search::search_yr(app, &hex_string)
             }
 
             if let Some(ofs) = ofs {
                 app.goto(ofs);
+            } else {
+                beep!();
             }
         }
     }

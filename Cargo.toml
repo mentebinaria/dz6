@@ -20,7 +20,6 @@ encoding_rs = "0.8.35"
 evalexpr = "13.1.*"
 goblin = "0.10.5"
 hex = "0.4.3"
-memchr = "2.8.0"
 mmap-io = "1.0.0"
 rand = "0.10.1"
 ratatui = "0.30.0"
@@ -29,6 +28,7 @@ serde = { version = "1.0.228", features = ["derive"] }
 shell-words = "1.1.0"
 toml = "1.0.1"
 tui-input = "0.15.0"
+yara-x = { version = "1.20.0", default-features = false }
 
 # The profile that 'dist' will build with
 [profile.dist]
