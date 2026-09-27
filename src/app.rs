@@ -104,7 +104,7 @@ impl App {
                 hex_mode_non_graphic_char: '.',
                 maximum_strings_to_show: 3000,
                 minimum_string_length: 4,
-                search_wrap: true,
+                search_wrap: false,
                 theme: DARK,
                 // hex_mode_dword_separator: '-',
                 // text_mode_tab_spaces: 4,
