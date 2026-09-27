@@ -1,12 +1,12 @@
 use crate::widgets::{Message, MessageType};
 use crate::{app::App, editor::UIState};
 
-use ratatui::crossterm::event::{Event, KeyCode};
 use ratatui::Frame;
+use ratatui::crossterm::event::{Event, KeyCode};
 use ratatui::widgets::Paragraph;
 use std::io::Result;
-use tui_input::backend::crossterm::EventHandler;
 use tui_input::Input;
+use tui_input::backend::crossterm::EventHandler;
 use yara_x;
 
 #[derive(Default, Debug)]
@@ -75,12 +75,27 @@ pub fn search_yr(app: &mut App, pattern: &str) -> Option<usize> {
         scanner.fast_scan(true);
 
         let result = scanner.scan(slice).unwrap();
-        let rule = result.matching_rules().next()?;
-        let pattern = rule.patterns().next()?;
 
-        if let Some(r#match) = pattern.matches().next() {
-            // the search result is an offset from start, so we add start to it
-            return r#match.range().start.checked_add(start);
+        // if we're at the end, the rule won't match...
+        if let Some(rule) = result.matching_rules().next() {
+            // na segunda vez n tem matching rule
+
+            let pattern = rule.patterns().next()?;
+
+            if let Some(r#match) = pattern.matches().next() {
+                // the search result is an offset from start, so we add start to it
+                return r#match.range().start.checked_add(start);
+            }
+        // ...so we check if wrapscan is set to try again from the beginning
+        } else if app.config.search_wrap {
+            let start = 0;
+            let slice = buffer.get(start..)?;
+            let result = scanner.scan(slice).unwrap();
+            let rule = result.matching_rules().next()?;
+            let pattern = rule.patterns().next()?;
+            let r#match = pattern.matches().next()?;
+
+            return Some(r#match.range().start);
         }
     } else {
         // backward search
@@ -88,11 +103,21 @@ pub fn search_yr(app: &mut App, pattern: &str) -> Option<usize> {
         // find all matches so we can get the last one
         let slice = buffer.get(..app.hex_view.offset)?;
         let result = scanner.scan(slice).unwrap();
-        let rule = result.matching_rules().next()?;
-        let pattern = rule.patterns().next()?;
 
-        // get the last match
-        if let Some(r#match) = pattern.matches().last() {
+        if let Some(rule) = result.matching_rules().next() {
+            let pattern = rule.patterns().next()?;
+
+            // get the last match
+            if let Some(r#match) = pattern.matches().last() {
+                return Some(r#match.range().start);
+            }
+        } else if app.config.search_wrap {
+            let slice = buffer.get(0..)?;
+            let result = scanner.scan(slice).unwrap();
+            let rule = result.matching_rules().next()?;
+            let pattern = rule.patterns().next()?;
+            let r#match = pattern.matches().last()?;
+
             return Some(r#match.range().start);
         }
     }
