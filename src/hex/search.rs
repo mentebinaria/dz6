@@ -107,6 +107,71 @@ fn find_nocase(haystack: &[u8], needle: &[u8]) -> Option<usize> {
     None
 }
 
+fn rfind_nocase(haystack: &[u8], needle: &[u8]) -> Option<usize> {
+    // get first needle char and return early if we can't / needle.len() == 0
+    let first = needle.first()?;
+    let needle_len = needle.len();
+
+    // we can't search for a needle bigger than the haystack
+    if needle_len > haystack.len() {
+        return None;
+    }
+
+    if first.is_ascii_alphabetic() {
+        // if needle's first letter is alphabetic, we use memchr2_iter to find both variants
+        for pos in memchr::memrchr2_iter(
+            first.to_ascii_lowercase(),
+            first.to_ascii_uppercase(),
+            haystack,
+        ) {
+            let mut matches = 1; // number of matching characters
+
+            for c in needle.iter().skip(1) {
+                // continue early if neddle can't fit at current pos to the end of haystack
+                if haystack.len() - pos + matches < needle_len {
+                    continue;
+                }
+
+                // if let Some(v) = haystack.get(pos + matches) {
+                if !c.eq_ignore_ascii_case(haystack.get(pos + matches)?) {
+                    break;
+                }
+
+                matches += 1;
+                // }
+            }
+
+            if matches == needle_len {
+                return Some(pos);
+            }
+        }
+    } else {
+        // otherwise we call memchr_iter, which is faster
+        for pos in memchr::memrchr_iter(*first, haystack) {
+            // same logic
+            let mut matches = 1;
+
+            for c in needle.iter().skip(1) {
+                if haystack.len() - pos + matches < needle_len {
+                    continue;
+                }
+
+                if !c.eq_ignore_ascii_case(haystack.get(pos + matches)?) {
+                    break;
+                }
+
+                matches += 1;
+            }
+
+            if matches == needle_len {
+                return Some(pos);
+            }
+        }
+    }
+
+    None
+}
+
 // main search entrypoint
 // it will decide whether to call search_literal or search_pattern
 pub fn search(app: &mut App, needle: &str, next: bool) -> Option<usize> {
@@ -155,10 +220,21 @@ pub fn search_literal<T: AsRef<[u8]>>(app: &mut App, needle: T, next: bool) -> O
             None
         }
     } else {
-        let end = app.hex_view.offset;
+        let start = if next {
+            app.hex_view.offset.checked_sub(1)?
+        } else {
+            app.hex_view.offset
+        };
 
-        if end > 0 {
-            memchr::memmem::rfind(buffer.get(..end)?, text)
+        let contais_capital_letter = text.iter().any(|b| b.is_ascii_uppercase());
+        let smart_search = contais_capital_letter && app.config.search_smartcase;
+
+        if start < filesize && start != 0 {
+            if app.config.search_ignorecase && !smart_search {
+                rfind_nocase(buffer.get(..start)?, text)
+            } else {
+                memchr::memmem::rfind(buffer.get(..start)?, text)
+            }
         } else {
             None
         }
