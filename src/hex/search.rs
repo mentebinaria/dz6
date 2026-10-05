@@ -1,13 +1,14 @@
-use crate::widgets::{Message, MessageType};
-use crate::{app::App, editor::UIState};
+use std::io::Result;
 
 use ratatui::Frame;
 use ratatui::crossterm::event::{Event, KeyCode};
 use ratatui::widgets::Paragraph;
-use std::io::Result;
+use regex::bytes::Regex;
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler;
-use yara_x;
+
+use crate::widgets::{Message, MessageType};
+use crate::{app::App, editor::UIState};
 
 #[derive(Default, Debug)]
 pub struct Search {
@@ -177,10 +178,8 @@ fn rfind_nocase(haystack: &[u8], needle: &[u8]) -> Option<usize> {
 pub fn search(app: &mut App, needle: &str, next: bool) -> Option<usize> {
     if app.hex_view.search.mode == SearchMode::Hex {
         // SearchMode::Hex will use search_pattern() if it contains patterns
-        let pattern_chars = ['?', '[', '('];
-
-        if needle.contains(|c| pattern_chars.contains(&c)) {
-            return search_pattern(app, needle, false);
+        if needle.contains(|c| ['?', '[', ']'].contains(&c)) {
+            return search_pattern(app, needle, next);
         // otherwise we use literal search, which is faster
         } else if let Some(n) = hex_string_to_u8(needle) {
             return search_literal(app, n, next);
@@ -261,87 +260,73 @@ pub fn search_literal<T: AsRef<[u8]>>(app: &mut App, needle: T, next: bool) -> O
     None
 }
 
-// search patterns with yara-x
-pub fn search_pattern(app: &mut App, pattern: &str, nocase: bool) -> Option<usize> {
+fn translate_pattern(pattern: &str) -> String {
+    let mut t = String::new();
+    let ptn = pattern.replace(" ", "");
+
+    // 42 to \x42
+    let mut next_is_first = true;
+
+    for c in ptn.chars() {
+        if c.is_ascii_hexdigit() {
+            if next_is_first {
+                t.push_str("\\x");
+                next_is_first = false;
+            } else {
+                next_is_first = true;
+            }
+
+            t.push(c);
+        } else if c == '?' {
+            if next_is_first {
+                t.push('.');
+                next_is_first = false;
+            } else {
+                next_is_first = true;
+            }
+        } else if ['[', ']', '-'].contains(&c) {
+            t.push(c);
+            next_is_first = true;
+        }
+    }
+
+    t.insert_str(0, "(?s-u)");
+    t
+}
+
+// search for patterns
+pub fn search_pattern(app: &mut App, pattern: &str, next: bool) -> Option<usize> {
     if pattern.is_empty() {
         return None;
     }
 
-    let string_decl = match app.hex_view.search.mode {
-        SearchMode::Utf8 => format!(
-            "$a = \"{}\" {}",
-            pattern,
-            if nocase { "nocase" } else { "" }
-        ),
-        SearchMode::Hex => format!("$a = {{{pattern}}}"),
-    };
+    if let Ok(re) = Regex::new(&translate_pattern(pattern)) {
+        let buffer = app.file_info.get_buffer();
 
-    let rule = format!(
-        r#"
-    rule dz6 {{
-        strings:
-            {string_decl}
-        condition:
-            $a
-    }}"#
-    );
+        if app.hex_view.search.direction == SearchDirection::Forward {
+            let start = if next {
+                app.hex_view.offset.checked_add(1)?
+            } else {
+                app.hex_view.offset
+            };
 
-    let rules = yara_x::compile(&*rule).ok()?;
-    let mut scanner = yara_x::Scanner::new(&rules);
-    let buffer = app.file_info.get_buffer();
-
-    if app.hex_view.search.direction == SearchDirection::Forward {
-        let start = app.hex_view.offset.checked_add(1)?;
-        let slice = buffer.get(start..)?;
-
-        // enable fast scan to return the first result only
-        scanner.fast_scan(true);
-
-        let result = scanner.scan(slice).unwrap();
-
-        // if we're at the end, the rule won't match...
-        if let Some(rule) = result.matching_rules().next() {
-            // na segunda vez n tem matching rule
-
-            let pattern = rule.patterns().next()?;
-
-            if let Some(r#match) = pattern.matches().next() {
-                // the search result is an offset from start, so we add start to it
-                return r#match.range().start.checked_add(start);
+            if let Some(m) = re.find(buffer.get(start..)?) {
+                return Some(m.start() + start);
+            } else if app.config.search_wrapscan
+                && let Some(m) = re.find(buffer)
+            {
+                return Some(m.start() + start);
             }
-        // ...so we check if wrapscan is set to try again from the beginning
-        } else if app.config.search_wrapscan {
-            let start = 0;
-            let slice = buffer.get(start..)?;
-            let result = scanner.scan(slice).unwrap();
-            let rule = result.matching_rules().next()?;
-            let pattern = rule.patterns().next()?;
-            let r#match = pattern.matches().next()?;
+        } else {
+            let start = app.hex_view.offset;
 
-            return Some(r#match.range().start);
-        }
-    } else {
-        // backward search
-        // this works, but fast_scan is not set, thus the scanner will
-        // find all matches so we can get the last one
-        let slice = buffer.get(..app.hex_view.offset)?;
-        let result = scanner.scan(slice).unwrap();
-
-        if let Some(rule) = result.matching_rules().next() {
-            let pattern = rule.patterns().next()?;
-
-            // get the last match
-            if let Some(r#match) = pattern.matches().last() {
-                return Some(r#match.range().start);
+            if let Some(m) = re.find_iter(buffer.get(..start)?).last() {
+                return Some(m.start());
+            } else if app.config.search_wrapscan
+                && let Some(m) = re.find_iter(buffer).last()
+            {
+                return Some(m.start());
             }
-        } else if app.config.search_wrapscan {
-            let slice = buffer.get(0..)?;
-            let result = scanner.scan(slice).unwrap();
-            let rule = result.matching_rules().next()?;
-            let pattern = rule.patterns().next()?;
-            let r#match = pattern.matches().last()?;
-
-            return Some(r#match.range().start);
         }
     }
 
@@ -430,8 +415,7 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
                 match app.hex_view.search.mode {
                     SearchMode::Utf8 => app.hex_view.search.input_text.handle_event(event),
                     SearchMode::Hex => {
-                        // as per https://virustotal.github.io/yara-x/docs/writing_rules/hex-patterns/
-                        let allowed = [' ', '?', '[', '-', ']', 'x', 'X', '~', '(', ')', '|'];
+                        let allowed = ['?', '[', '-', ']'];
 
                         if c.is_ascii_hexdigit() || allowed.contains(&c) {
                             app.hex_view.search.input_hex.handle_event(event)
@@ -508,6 +492,18 @@ mod tests {
         assert_eq!(
             find_nocase(b"\x00\x80\xCD\x6F\x00\x00\xCE\x6F\x00\x80", b"opengl"),
             None
+        );
+    }
+
+    #[test]
+    fn test_translate_pattern() {
+        assert_eq!(
+            translate_pattern("FEC01F803F??07"),
+            r"(?s-u)\xFE\xC0\x1F\x80\x3F.\x07"
+        );
+        assert_eq!(
+            translate_pattern("FEC01F803F[00-ff]07"),
+            r"(?s-u)\xFE\xC0\x1F\x80\x3F[\x00-\xff]\x07"
         );
     }
 }
