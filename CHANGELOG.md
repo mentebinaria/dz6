@@ -3,10 +3,14 @@
 ## dz6 v0.8.0
 
 - Header view: new view to inspect ELF and PE executables.
-- Added a command to change the view (same as pressing `Tab`). Example: `:set view hex` (possible values are `text`, `hex`, and `header`). It can be used in `~/.dz6init` to set the default view when dz6 is loaded.
-- Added support for comments / lines starting with `#` in `~/.dz6init`.
+- Header view: added a command to change the view (same as pressing `Tab`). Example: `:set view hex` (possible values are `text`, `hex`, and `header`). It can be used in `~/.dz6init` to set the default view when dz6 starts.
+- initfile: Added support for comments / lines starting with `#` in `~/.dz6init`.
+- Search: add basic hex pattern search. `??` matches any byte. Space characters are ignored.
+- Search: new configuration options with impact to text search: `:set ignorecase` or `:set ic` enables case-insensitive search. If smart case is also enabled with `:set smartcase` or `:set scs`, case-insensitive search is disabled when the search term contains a capital letter.
+- Search: `ws` is an alias for `wrapscan`.
 
 ## Breaking changes:
+
 - `Tab` cycles through available views now (`Enter` no longer does that).
 - To search over the string list, press `/` (it was `f` before).
 

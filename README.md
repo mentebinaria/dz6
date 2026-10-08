@@ -15,7 +15,7 @@ Fast Vim-inspired hex editor for the terminal
 - Edit in hex or ASCII
 - String list with regex filtering
 - Multiple smart ways to navigate through a file
-- Find strings and hex bytes
+- Find strings and hex patterns
 - Add comments and bookmarks
 - Mark blocks with colors
 - PE/ELF headers parsing (WIP -- not released yet)
@@ -100,25 +100,29 @@ Once you load a file in **dz6**, you can use the commands below.
 
 #### Commands
 
-| Command          | Action                                                           | Parameters                | Tips/Examples                                                                                     |
-| ---------------- | ---------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------- |
-| `<number>`       | Go to offset                                                     |                           | hex default; `t` suffix = decimal; `+` prefix = incremental jump; `-` prefix = decremental jump   |
-| `cmt`            | Add `<comment>` to `<offset>`                                    | `<offset>` `<comment>`    | `cmt 1000 "my comment"` (comment at offset 0x1000; offset obeys the same rules above)             |
-| `sel`            | Select `<length>` bytes from `<offset>`                          | `<offset>` `<length>`     | `sel 40 10t` (select 10 bytes from offset 0x40)                                                   |
-| `set byteline`   | Set the number of bytes per line                                 | `<number>` or `auto`      | `set byteline 8` (default is 16; `auto` enables automatic setting based on screen width)          |
-| `set ctrlchar`   | Set the character shown in the ASCII dump for non-graphic values | `<char>`                  | `set ctrlchar " "` would set a blankspace (default: `.`)                                          |
-| `set db`         | Turn on database file saving/loading (default)                   |                           | A database file with a `.dz6` extension will be used to store bookmarks and comments for the file |
-| `set nodb`       | Turn off database file saving/loading                            |                           |                                                                                                   |
-| `set dimzero`    | Dim (gray out) null bytes only (default)                         |                           |                                                                                                   |
-| `set dimctrl`    | Dim all control characters                                       |                           | All non-graphic characters will be dimmed                                                         |
-| `set nodim`      | Turn off byte dimming                                            |                           |                                                                                                   |
-| `set theme`      | Set the theme                                                    | `dark` or `light`         | `set theme light` (default: `dark`)                                                               |
-| `set view`       | Changes the current view                                         | `text`, `hex` or `header` | `set view header` (default: `hex`)                                                                |
-| `set wrapscan`   | Enable search results wrap                                       |                           |                                                                                                   |
-| `set nowrapscan` | Disable search results wrap                                      |                           |                                                                                                   |
-| `w`              | Write changes to file                                            |                           |                                                                                                   |
-| `wq` or `x`      | Write changes to file and quit                                   |                           |                                                                                                   |
-| `q`              | Quit without saving changes                                      |                           | In replace mode, `T` (truncate) is an exception because it modifies the file immediately.         |
+| Command            | Action                                                           | Parameters                | Tips/Examples                                                                                               |
+| ------------------ | ---------------------------------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `<number>`         | Go to offset                                                     |                           | hex default; `t` suffix = decimal; `+` prefix = incremental jump; `-` prefix = decremental jump             |
+| `cmt`              | Add `<comment>` to `<offset>`                                    | `<offset>` `<comment>`    | `cmt 1000 "my comment"` (comment at offset 0x1000; offset obeys the same rules above)                       |
+| `sel`              | Select `<length>` bytes from `<offset>`                          | `<offset>` `<length>`     | `sel 40 10t` (select 10 bytes from offset 0x40)                                                             |
+| `set byteline`     | Set the number of bytes per line                                 | `<number>` or `auto`      | `set byteline 8` (default is 16; `auto` enables automatic setting based on screen width)                    |
+| `set ctrlchar`     | Set the character shown in the ASCII dump for non-graphic values | `<char>`                  | `set ctrlchar " "` would set a blankspace (default: `.`)                                                    |
+| `set db`           | Turn on database file saving/loading (default)                   |                           | A database file with a `.dz6` extension will be used to store bookmarks and comments for the file           |
+| `set nodb`         | Turn off database file saving/loading                            |                           |                                                                                                             |
+| `set dimzero`      | Dim (gray out) null bytes only (default)                         |                           |                                                                                                             |
+| `set dimctrl`      | Dim all control characters                                       |                           | All non-graphic characters will be dimmed                                                                   |
+| `set nodim`        | Turn off byte dimming                                            |                           |                                                                                                             |
+| `set theme`        | Set the theme                                                    | `dark` or `light`         | `set theme light` (default: `dark`)                                                                         |
+| `set view`         | Changes the current view                                         | `text`, `hex` or `header` | `set view header` (default: `hex`)                                                                          |
+| `set wrapscan`     | Enable search results wrap                                       |                           | `set ws` also works                                                                                         |
+| `set nowrapscan`   | Disable search results wrap                                      |                           | `set nows` also works                                                                                       |
+| `set ignorecase`   | Enable case-insensitive search (ASCII only)                      |                           | `set ic` also works                                                                                         |
+| `set noignorecase` | Disable case-insensitive search                                  |                           | `set noic` also works                                                                                       |
+| `set smartcase`    | Enable smart case search                                         |                           | if the search term contains a capital letter and `ignorecase` is enabled, disable it. `set scs` also works. |
+| `set nosmartcase`  | Disable smart case search                                        |                           | `set noscs` also works                                                                                      |
+| `w`                | Write changes to file                                            |                           |                                                                                                             |
+| `wq` or `x`        | Write changes to file and quit                                   |                           |                                                                                                             |
+| `q`                | Quit without saving changes                                      |                           | In replace mode, `T` (truncate) is an exception because it modifies the file immediately.                   |
 
 > If you need permanent settings, create a `$HOME/.dz6init` file containing any of the commands above, one per line. dz6 will load that at startup. Lines starting with `#` are ignored.
 
@@ -144,9 +148,9 @@ This is the main view you would expect from a hex editor. It displays file offse
 | `Ctrl+x`                | Decrement byte under the cursor                                                    |                                                                   |
 | `v`                     | Enter [select mode](#hex-selection-mode)                                           |                                                                   |
 | `u`                     | Undo the last change made to the buffer                                            | Use it _before_ writing to the file (`:w`)                        |
-| `/`                     | Search (forward)                                                                   | Search the entire file. `Tab` cycles between ASCII and hex search |
+| `/`                     | Enter [search mode](#hex-search-mode) (forward)                                    | Search the entire file. `Tab` cycles between UTF-8 and hex search |
 | `n`                     | Search next (forward)                                                              |                                                                   |
-| `?`                     | Search (backward)                                                                  | Search the entire file. `Tab` cycles between ASCII and hex search |
+| `?`                     | Search (backward)                                                                  | Search the entire file. `Tab` cycles between UTF-8 and hex search |
 | `N`                     | Search next (backward)                                                             |                                                                   |
 | `s`                     | Open [Strings](#strings) window                                                    |                                                                   |
 | `Backspace`             | Go to the previously visited offset                                                | This is useful after a Go to command, for example                 |
@@ -171,6 +175,19 @@ This is the main view you would expect from a hex editor. It displays file offse
 | `y`        | Copy bytes to system's clipboard | There is no paste command yet                                                    |
 | `Alt+m`    | Mark a block with a random color | `Alt+m` again to pick another color. `[` and `]` to navigate to block boundaries |
 | `Esc`      | Go back to normal mode           |                                                                                  |
+
+#### Hex search mode
+
+This mode has two sub-modes: UTF-8 and HEX. The first is straightforward: search for UTF-8 strings,
+but if `ignorecase` is enabled, it will only work with the ASCII character set.
+
+The HEX sub-mode is used to search for byte sequences. Examples:
+
+`f0f0ca` (or `F0F0CA`) matches the sequence `f0f0ca` .
+
+It also has support for basic pattern matching:
+
+`b0 ?? ca` - `??` means "any byte", so this would match `b0b0ca`, `b0ffca`, `b042ca`...
 
 #### Hex replace mode
 

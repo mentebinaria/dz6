@@ -235,13 +235,33 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                             }
                         }
                     }
-                    // saarch wrap
-                    "wrapscan" => {
-                        app.config.search_wrap = true;
+                    // search wrap
+                    "wrapscan" | "ws" => {
+                        app.config.search_wrapscan = true;
                         app.dialog_renderer = None;
                     }
-                    "nowrapscan" => {
-                        app.config.search_wrap = false;
+                    "nowrapscan" | "nows" => {
+                        app.config.search_wrapscan = false;
+                        app.dialog_renderer = None;
+                    }
+                    // search ignorecase
+                    "ignorecase" | "ic" => {
+                        app.config.search_ignorecase = true;
+                        app.dialog_renderer = None;
+                    }
+                    "noignorecase" | "noic" => {
+                        app.config.search_ignorecase = false;
+                        app.dialog_renderer = None;
+                    }
+                    // search smartcase
+                    // if ignorecase == true and needle contains a capital letter,
+                    // then ignorecase will be set to false
+                    "smartcase" | "scs" => {
+                        app.config.search_smartcase = true;
+                        app.dialog_renderer = None;
+                    }
+                    "nosmartcase" | "noscs" => {
+                        app.config.search_smartcase = false;
                         app.dialog_renderer = None;
                     }
                     // view
