@@ -45,10 +45,12 @@ pub enum SearchDirection {
 }
 
 fn hex_string_to_u8(hex_string: &str) -> Option<Vec<u8>> {
-    if hex_string.is_empty() || !hex_string.len().is_multiple_of(2) {
+    let s = hex_string.replace(" ", "");
+
+    if s.is_empty() || !s.len().is_multiple_of(2) {
         return None;
     }
-    let bytes = hex::decode(hex_string).unwrap();
+    let bytes = hex::decode(s).unwrap();
     Some(bytes)
 }
 
@@ -183,6 +185,8 @@ pub fn search(app: &mut App, needle: &str, next: bool) -> Option<usize> {
         // otherwise we use literal search, which is faster
         } else if let Some(n) = hex_string_to_u8(needle) {
             return search_literal(app, n, next);
+        } else {
+            return None;
         }
     }
     // SearchMode::Utf8
@@ -260,9 +264,20 @@ pub fn search_literal<T: AsRef<[u8]>>(app: &mut App, needle: T, next: bool) -> O
     None
 }
 
-fn translate_pattern(pattern: &str) -> String {
+fn translate_pattern(pattern: &str) -> Option<String> {
     let mut t = String::new();
     let ptn = pattern.replace(" ", "");
+
+    // because we don't support nibble-level matching yet,
+    // # of question marks + # of hex digits should be even
+    if !ptn
+        .chars()
+        .filter(|c| c.is_ascii_hexdigit() || *c == '?')
+        .count()
+        .is_multiple_of(2)
+    {
+        return None;
+    }
 
     // 42 to \x42
     let mut next_is_first = true;
@@ -291,7 +306,7 @@ fn translate_pattern(pattern: &str) -> String {
     }
 
     t.insert_str(0, "(?s-u)");
-    t
+    Some(t)
 }
 
 // search for patterns
@@ -300,32 +315,34 @@ pub fn search_pattern(app: &mut App, pattern: &str, next: bool) -> Option<usize>
         return None;
     }
 
-    if let Ok(re) = Regex::new(&translate_pattern(pattern)) {
-        let buffer = app.file_info.get_buffer();
+    if let Some(ptn) = &translate_pattern(pattern) {
+        if let Ok(re) = Regex::new(ptn) {
+            let buffer = app.file_info.get_buffer();
 
-        if app.hex_view.search.direction == SearchDirection::Forward {
-            let start = if next {
-                app.hex_view.offset.checked_add(1)?
+            if app.hex_view.search.direction == SearchDirection::Forward {
+                let start = if next {
+                    app.hex_view.offset.checked_add(1)?
+                } else {
+                    app.hex_view.offset
+                };
+
+                if let Some(m) = re.find(buffer.get(start..)?) {
+                    return Some(m.start() + start);
+                } else if app.config.search_wrapscan
+                    && let Some(m) = re.find(buffer)
+                {
+                    return Some(m.start() + start);
+                }
             } else {
-                app.hex_view.offset
-            };
+                let start = app.hex_view.offset;
 
-            if let Some(m) = re.find(buffer.get(start..)?) {
-                return Some(m.start() + start);
-            } else if app.config.search_wrapscan
-                && let Some(m) = re.find(buffer)
-            {
-                return Some(m.start() + start);
-            }
-        } else {
-            let start = app.hex_view.offset;
-
-            if let Some(m) = re.find_iter(buffer.get(..start)?).last() {
-                return Some(m.start());
-            } else if app.config.search_wrapscan
-                && let Some(m) = re.find_iter(buffer).last()
-            {
-                return Some(m.start());
+                if let Some(m) = re.find_iter(buffer.get(..start)?).last() {
+                    return Some(m.start());
+                } else if app.config.search_wrapscan
+                    && let Some(m) = re.find_iter(buffer).last()
+                {
+                    return Some(m.start());
+                }
             }
         }
     }
@@ -397,6 +414,12 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
                     SearchMode::Hex => app.hex_view.search.input_hex.value().to_string(),
                 };
 
+                if needle.is_empty() {
+                    app.dialog_renderer = None;
+                    app.state = UIState::Normal;
+                    return Ok(true);    
+                }
+
                 if let Some(ofs) = search(app, &needle, false) {
                     app.goto(ofs);
                     app.dialog_renderer = None;
@@ -415,7 +438,7 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
                 match app.hex_view.search.mode {
                     SearchMode::Utf8 => app.hex_view.search.input_text.handle_event(event),
                     SearchMode::Hex => {
-                        let allowed = ['?', '[', '-', ']'];
+                        let allowed = [' ', '?'];
 
                         if c.is_ascii_hexdigit() || allowed.contains(&c) {
                             app.hex_view.search.input_hex.handle_event(event)
@@ -437,7 +460,7 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
 }
 
 pub fn dialog_search_error_draw(app: &mut App, frame: &mut Frame) {
-    let mut dialog = Message::from("Pattern not found");
+    let mut dialog = Message::from("Not found");
     dialog.kind = MessageType::Error;
     dialog.render(app, frame);
 }
@@ -499,11 +522,11 @@ mod tests {
     fn test_translate_pattern() {
         assert_eq!(
             translate_pattern("FEC01F803F??07"),
-            r"(?s-u)\xFE\xC0\x1F\x80\x3F.\x07"
+            Some(r"(?s-u)\xFE\xC0\x1F\x80\x3F.\x07".to_string())
         );
         assert_eq!(
             translate_pattern("FEC01F803F[00-ff]07"),
-            r"(?s-u)\xFE\xC0\x1F\x80\x3F[\x00-\xff]\x07"
+            Some(r"(?s-u)\xFE\xC0\x1F\x80\x3F[\x00-\xff]\x07".to_string())
         );
     }
 }

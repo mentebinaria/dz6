@@ -181,19 +181,13 @@ This is the main view you would expect from a hex editor. It displays file offse
 This mode has two sub-modes: UTF-8 and HEX. The first is straightforward: search for UTF-8 strings,
 but if `ignorecase` is enabled, it will only work with the ASCII character set.
 
-The HEX sub-mode supports [YARA-X patterns](https://virustotal.github.io/yara-x/docs/writing_rules/hex-patterns/):
+The HEX sub-mode is used to search for byte sequences. Examples:
 
-`f0f0ca` or `F0F0CA` match `f0f0ca` only (no pattern matching in this case).
+`f0f0ca` (or `F0F0CA`) matches the sequence `f0f0ca` .
+
+It also has support for basic pattern matching:
 
 `b0 ?? ca` - `??` means "any byte", so this would match `b0b0ca`, `b0ffca`, `b042ca`...
-
-`b? b? ca` - a single `?` means "any nibble". This would match `b0b0ca` and `babaca` for example.
-
-`ba (b0|ba) ca` matches `bab0bca` or `babaca`.
-
-`f0 [1-3] ca` matches a sequence starting with 0xf0, followed by 1, 2, or 3 bytes of any value, then followed by 0xca.
-
-`b0 ~b0 ca` negation, meaning 0xb0 followed by anything but 0xb0, followed 0xca.
 
 #### Hex replace mode
 
