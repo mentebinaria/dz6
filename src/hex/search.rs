@@ -50,6 +50,7 @@ fn hex_string_to_u8(hex_string: &str) -> Option<Vec<u8>> {
     if s.is_empty() || !s.len().is_multiple_of(2) {
         return None;
     }
+
     let bytes = hex::decode(s).unwrap();
     Some(bytes)
 }
@@ -183,10 +184,9 @@ pub fn search(app: &mut App, needle: &str, next: bool) -> Option<usize> {
         if needle.contains(|c| ['?', '[', ']'].contains(&c)) {
             return search_pattern(app, needle, next);
         // otherwise we use literal search, which is faster
-        } else if let Some(n) = hex_string_to_u8(needle) {
-            return search_literal(app, n, next);
         } else {
-            return None;
+            let n = hex_string_to_u8(needle)?;
+            return search_literal(app, n, next)
         }
     }
     // SearchMode::Utf8
@@ -315,34 +315,34 @@ pub fn search_pattern(app: &mut App, pattern: &str, next: bool) -> Option<usize>
         return None;
     }
 
-    if let Some(ptn) = &translate_pattern(pattern) {
-        if let Ok(re) = Regex::new(ptn) {
-            let buffer = app.file_info.get_buffer();
+    if let Some(ptn) = &translate_pattern(pattern)
+        && let Ok(re) = Regex::new(ptn)
+    {
+        let buffer = app.file_info.get_buffer();
 
-            if app.hex_view.search.direction == SearchDirection::Forward {
-                let start = if next {
-                    app.hex_view.offset.checked_add(1)?
-                } else {
-                    app.hex_view.offset
-                };
-
-                if let Some(m) = re.find(buffer.get(start..)?) {
-                    return Some(m.start() + start);
-                } else if app.config.search_wrapscan
-                    && let Some(m) = re.find(buffer)
-                {
-                    return Some(m.start() + start);
-                }
+        if app.hex_view.search.direction == SearchDirection::Forward {
+            let start = if next {
+                app.hex_view.offset.checked_add(1)?
             } else {
-                let start = app.hex_view.offset;
+                app.hex_view.offset
+            };
 
-                if let Some(m) = re.find_iter(buffer.get(..start)?).last() {
-                    return Some(m.start());
-                } else if app.config.search_wrapscan
-                    && let Some(m) = re.find_iter(buffer).last()
-                {
-                    return Some(m.start());
-                }
+            if let Some(m) = re.find(buffer.get(start..)?) {
+                return Some(m.start() + start);
+            } else if app.config.search_wrapscan
+                && let Some(m) = re.find(buffer)
+            {
+                return Some(m.start() + start);
+            }
+        } else {
+            let start = app.hex_view.offset;
+
+            if let Some(m) = re.find_iter(buffer.get(..start)?).last() {
+                return Some(m.start());
+            } else if app.config.search_wrapscan
+                && let Some(m) = re.find_iter(buffer).last()
+            {
+                return Some(m.start());
             }
         }
     }
@@ -417,7 +417,7 @@ pub fn dialog_search_events(app: &mut App, event: &Event) -> Result<bool> {
                 if needle.is_empty() {
                     app.dialog_renderer = None;
                     app.state = UIState::Normal;
-                    return Ok(true);    
+                    return Ok(true);
                 }
 
                 if let Some(ofs) = search(app, &needle, false) {
