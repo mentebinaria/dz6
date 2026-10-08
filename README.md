@@ -43,6 +43,10 @@ a terminal and type
 
     pacman -S dz6
 
+### Debian (unstable)
+
+    apt install dz6
+
 ### FreeBSD
 
     pkg install dz6
