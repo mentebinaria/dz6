@@ -1,0 +1,10 @@
+accepted = [
+    "AGPL-3.0-only",
+    "Apache-2.0",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "GPL-3.0-or-later",
+    "MIT",
+    "Unicode-3.0",
+    "Zlib",
+]

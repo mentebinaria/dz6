@@ -1,0 +1,7 @@
+- name: Install cargo-about
+  shell: bash
+  run: cargo install --locked --features cli cargo-about
+
+- name: Generate third-party licenses
+  shell: bash
+  run: cargo about generate about.hbs > THIRD_PARTY_LICENSES.html
