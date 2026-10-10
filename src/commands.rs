@@ -328,6 +328,8 @@ pub fn command_events(app: &mut App, event: &Event) -> Result<bool> {
     if let Event::Key(key) = event {
         match key.code {
             KeyCode::Esc => {
+                // reset it if the user has given up on running a command
+                app.command_input.input.reset();
                 app.dialog_renderer = None;
                 app.state = UIState::Normal;
             }
