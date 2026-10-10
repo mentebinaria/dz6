@@ -628,7 +628,8 @@ fn draw_imports(app: &mut App, frame: &mut Frame, area: Rect) {
         if pe.imports.is_empty() {
             let message = Text::from("No imports found").centered();
 
-            frame.render_widget(message, area.centered_vertically(Constraint::Ratio(1, 4)));
+            frame.buffer_mut().set_style(area, app.config.theme.main);
+            frame.render_widget(message, area.centered_vertically(Constraint::Length(1)));
             return;
         }
 
@@ -669,7 +670,8 @@ fn draw_exports(app: &mut App, frame: &mut Frame, area: Rect) {
         if pe.exports.is_empty() {
             let message = Text::from("No exports found").centered();
 
-            frame.render_widget(message, area.centered_vertically(Constraint::Ratio(1, 4)));
+            frame.buffer_mut().set_style(area, app.config.theme.main);
+            frame.render_widget(message, area.centered_vertically(Constraint::Length(1)));
             return;
         }
 
