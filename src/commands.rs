@@ -9,7 +9,7 @@ use crate::{editor::UIState, widgets::Message};
 use crate::app::Dz6Error;
 use clap::{Parser, Subcommand};
 use ratatui::crossterm::event::{Event, KeyCode};
-use std::io::Result;
+use std::{fs, io::Result};
 use tui_input::backend::crossterm::EventHandler;
 
 pub struct Commands;
@@ -29,6 +29,11 @@ enum Command {
         value: Option<String>,
     },
     Sel {
+        start: String,
+        length: String,
+    },
+    Dump {
+        path: String,
         start: String,
         length: String,
     },
@@ -301,6 +306,54 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                     app.hex_view.selection.end = st.saturating_add(len);
                     app.goto(st);
                 }
+            }
+            Some(Command::Dump {
+                path,
+                start,
+                length,
+            }) => {
+                // first try to parse start as number
+                let mut st = parse_offset(&start);
+
+                // if we can't, check if it's name
+                if st.is_err()
+                    && let Some(ofs) = app
+                        .hex_view
+                        .comment_name_list
+                        .iter()
+                        .find(|c| c.comment == start)
+                {
+                    st = Ok(ofs.offset);
+                }
+
+                if let Ok(st) = st
+                    && let Ok(len) = parse_offset(&length)
+                    && !path.is_empty()
+                    && len > 0
+                {
+                    let buff = app.file_info.get_buffer();
+
+                    if let Some(end) = st.checked_add(len)
+                        && let Some(chunk) = buff.get(st..end)
+                    {
+                        let res = fs::write(path.clone(), chunk);
+
+                        if res.is_err() {
+                            app.last_error = Dz6Error {
+                                message: format!("Could not write to {}", path),
+                            };
+                            app.dialog_renderer = Some(command_error_draw);
+                        }
+                    } else {
+                        app.dialog_renderer = None;
+                    }
+                } else {
+                    app.last_error = Dz6Error {
+                        message: "Invalid parameter. Usage: dump FILE START LENGTH".to_string(),
+                    };
+                    app.dialog_renderer = Some(command_error_draw);
+                }
+                app.state = UIState::Normal;
             }
             None => {
                 try_goto(app, cmdline);
