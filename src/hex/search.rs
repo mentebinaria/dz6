@@ -186,7 +186,7 @@ pub fn search(app: &mut App, needle: &str, next: bool) -> Option<usize> {
         // otherwise we use literal search, which is faster
         } else {
             let n = hex_string_to_u8(needle)?;
-            return search_literal(app, n, next)
+            return search_literal(app, n, next);
         }
     }
     // SearchMode::Utf8
