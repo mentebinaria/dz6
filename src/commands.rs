@@ -336,16 +336,18 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                     if let Some(end) = st.checked_add(len)
                         && let Some(chunk) = buff.get(st..end)
                     {
-                        let res = fs::write(path.clone(), chunk);
+                        let res = fs::write(&path, chunk);
 
                         if res.is_err() {
                             app.last_error = Dz6Error {
                                 message: format!("Could not write to {}", path),
                             };
                             app.dialog_renderer = Some(command_error_draw);
+                        } else {
+                            app.dialog_renderer = None;
                         }
                     } else {
-                        app.dialog_renderer = None;
+                        app.state = UIState::Normal;
                     }
                 } else {
                     app.last_error = Dz6Error {
