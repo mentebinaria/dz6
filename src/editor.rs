@@ -37,6 +37,7 @@ pub enum UIState {
     DialogStrings,
     DialogStringsRegex,
     DialogTruncate,
+    DialogVersion,
     Error,
     HexEditing,
     HexSelection,

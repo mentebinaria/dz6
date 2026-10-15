@@ -1,10 +1,10 @@
 [package]
 name = "dz6"
-version = "0.8.0"
+version = "0.8.1"
 edition = "2024"
 description = "Fast Vim-inspired hex editor for the terminal"
 readme = "README.md"
-homepage = "https://menteb.in/dz6"
+homepage = "https://dz6.dev.br"
 repository = "https://github.com/mentebinaria/dz6"
 license = "GPL-3.0-or-later"
 keywords = ["hex-editor", "reverse-engineering", "binary", "pe", "elf"]

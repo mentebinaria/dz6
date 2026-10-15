@@ -1,4 +1,6 @@
-use crate::{app::App, util::parse_offset, widgets::MessageType};
+use crate::{
+    app::App, global::version::dialog_version_draw, util::parse_offset, widgets::MessageType,
+};
 use ratatui::{
     Frame,
     widgets::{Clear, Paragraph},
@@ -37,6 +39,7 @@ enum Command {
         start: String,
         length: String,
     },
+    Version,
 }
 
 #[derive(Parser, Debug)]
@@ -289,6 +292,14 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                             }
                         }
                     }
+                    // "readonly" | "ro" => {
+                    //     app.file_info.is_read_only = true;
+                    //     app.dialog_renderer = None;
+                    // }
+                    // "noreadonly" | "noro" => {
+                    //     app.file_info.is_read_only = false;
+                    //     app.dialog_renderer = None;
+                    // }
                     _ => {
                         app.dialog_renderer = None;
                     }
@@ -356,6 +367,10 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                     app.dialog_renderer = Some(command_error_draw);
                 }
                 app.state = UIState::Normal;
+            }
+            Some(Command::Version) => {
+                app.dialog_renderer = Some(dialog_version_draw);
+                app.state = UIState::DialogVersion;
             }
             None => {
                 try_goto(app, cmdline);

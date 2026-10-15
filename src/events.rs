@@ -52,6 +52,7 @@ pub fn handle_events(app: &mut App, event: Event) -> Result<bool> {
                 UIState::DialogReverseTruncate => {
                     hex::truncate::dialog_reverse_truncate_events(app, &event)?
                 }
+                UIState::DialogVersion => global::version::dialog_version_events(app, &event)?,
             };
         }
         Event::Resize(width, _height) if app.config.hex_mode_bytes_per_line_auto => {
