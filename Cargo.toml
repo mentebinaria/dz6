@@ -1,6 +1,6 @@
 [package]
 name = "dz6"
-version = "0.8.1"
+version = "0.9.0"
 edition = "2024"
 description = "Fast Vim-inspired hex editor for the terminal"
 readme = "README.md"

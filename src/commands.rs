@@ -40,6 +40,9 @@ enum Command {
         length: String,
     },
     Version,
+    Colorscheme {
+        scheme: String,
+    },
 }
 
 #[derive(Parser, Debug)]
@@ -371,6 +374,37 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
             Some(Command::Version) => {
                 app.dialog_renderer = Some(dialog_version_draw);
                 app.state = UIState::DialogVersion;
+            }
+            Some(Command::Colorscheme { scheme }) => {
+                match scheme.as_str() {
+                    "dark" => {
+                        app.config.theme = crate::themes::DARK;
+                        app.dialog_renderer = None;
+                    }
+                    "light" => {
+                        app.config.theme = crate::themes::LIGHT;
+                        app.dialog_renderer = None;
+                    }
+                    "default-light" => {
+                        app.config.theme = crate::themes::DEFAULT_LIGHT;
+                        app.dialog_renderer = None;
+                    }
+                    "default-dark" => {
+                        app.config.theme = crate::themes::DEFAULT_DARK;
+                        app.dialog_renderer = None;
+                    }
+                    "blue" => {
+                        app.config.theme = crate::themes::BLUE;
+                        app.dialog_renderer = None;
+                    }
+                    _ => {
+                        app.last_error = Dz6Error {
+                            message: format!("Invalid theme: {}", scheme),
+                        };
+                        app.dialog_renderer = Some(command_error_draw);
+                    }
+                }
+                app.state = UIState::Normal;
             }
             None => {
                 try_goto(app, cmdline);
