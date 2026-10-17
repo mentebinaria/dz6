@@ -107,7 +107,7 @@ impl App {
                 search_wrapscan: false,
                 search_ignorecase: false,
                 search_smartcase: false,
-                theme: DARK,
+                theme: DEFAULT_DARK,
                 // hex_mode_dword_separator: '-',
                 // text_mode_tab_spaces: 4,
             },

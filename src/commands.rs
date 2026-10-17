@@ -40,6 +40,9 @@ enum Command {
         length: String,
     },
     Version,
+    Colorscheme {
+        scheme: String,
+    },
 }
 
 #[derive(Parser, Debug)]
@@ -292,6 +295,25 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                             }
                         }
                     }
+                    // // background (for the default theme only for now)
+                    // "background" | "bg" => {
+                    //     if let Some(val) = value && app.config.theme == DEFAULT_DARK {
+                    //         match val.as_str() {
+                    //             // we'll change only what matters in the default theme
+                    //             "dark" => {
+                    //                 app.config.theme.offsets = DEFAULT_OFFSETS_DARK;
+                    //                 app.config.theme.dialog = DEFAULT_OFFSETS_DARK;
+                    //                 app.dialog_renderer = None;
+                    //             }
+                    //             "light" => {
+                    //                 app.config.theme.offsets = DEFAULT_OFFSETS_LIGHT;
+                    //                 app.config.theme.dialog = DEFAULT_OFFSETS_LIGHT;
+                    //                 app.dialog_renderer = None;
+                    //             }
+                    //             _ => {}
+                    //         }
+                    //     }
+                    // }
                     // "readonly" | "ro" => {
                     //     app.file_info.is_read_only = true;
                     //     app.dialog_renderer = None;
@@ -372,6 +394,37 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                 app.dialog_renderer = Some(dialog_version_draw);
                 app.state = UIState::DialogVersion;
             }
+            Some(Command::Colorscheme { scheme }) => {
+                match scheme.as_str() {
+                    "dark" => {
+                        app.config.theme = crate::themes::DARK;
+                        app.dialog_renderer = None;
+                    }
+                    "light" => {
+                        app.config.theme = crate::themes::LIGHT;
+                        app.dialog_renderer = None;
+                    }
+                    "default" | "default-dark" => {
+                        app.config.theme = crate::themes::DEFAULT_DARK;
+                        app.dialog_renderer = None;
+                    }
+                    "default-light" => {
+                        app.config.theme = crate::themes::DEFAULT_LIGHT;
+                        app.dialog_renderer = None;
+                    }
+                    "darkblue" => {
+                        app.config.theme = crate::themes::DARKBLUE;
+                        app.dialog_renderer = None;
+                    }
+                    _ => {
+                        app.last_error = Dz6Error {
+                            message: format!("Invalid theme: {}", scheme),
+                        };
+                        app.dialog_renderer = Some(command_error_draw);
+                    }
+                }
+                app.state = UIState::Normal;
+            }
             None => {
                 try_goto(app, cmdline);
             }
@@ -384,9 +437,9 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
 }
 
 // command bar
-
 pub fn command_draw(app: &mut App, frame: &mut Frame) {
-    let para = Paragraph::new(format!(":{}", app.command_input.input.value()));
+    let command = app.command_input.input.value();
+    let para = Paragraph::new(format!(":{}", command)).style(app.config.theme.main);
 
     frame.render_widget(Clear, app.command_area);
     frame.render_widget(para, app.command_area);

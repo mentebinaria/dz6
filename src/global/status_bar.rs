@@ -52,7 +52,7 @@ pub fn status_bar_draw(app: &mut App, frame: &mut Frame, area: Rect) {
     };
 
     let status_bar_info_left = Paragraph::new(format!("{} {}", filename, read_only))
-        .style(app.config.theme.topbar)
+        .style(app.config.theme.status_bar)
         .alignment(Alignment::Left);
     frame.render_widget(status_bar_info_left, area);
 
@@ -72,7 +72,11 @@ pub fn status_bar_draw(app: &mut App, frame: &mut Frame, area: Rect) {
         "{} {} {} {}  {:08X}  {:3}%",
         mode, bookmarks_string, app.file_info.r#type, selected, app.hex_view.offset, percent
     ))
-    .style(app.config.theme.topbar)
+    .style(app.config.theme.status_bar)
     .alignment(Alignment::Right);
     frame.render_widget(status_bar_info_right, area);
+}
+
+pub fn command_bar_draw(app: &mut App, frame: &mut Frame, area: Rect) {
+    frame.render_widget(Paragraph::default().style(app.config.theme.main), area);
 }

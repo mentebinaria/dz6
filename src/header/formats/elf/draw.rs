@@ -607,7 +607,7 @@ fn draw_relocations(app: &mut App, frame: &mut Frame, area: Rect) {
 
 pub fn elf_draw(app: &mut App, frame: &mut Frame, area: Rect) {
     let tabs = Tabs::new(["ELF", "Program", "Sections", "Symbols", "Relocations"])
-        .style(app.config.theme.main)
+        .style(app.config.theme.offsets)
         .highlight_style(app.config.theme.highlight)
         .divider("|")
         .padding(" ", " ")
