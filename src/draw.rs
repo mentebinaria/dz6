@@ -41,6 +41,8 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
             // Draw status bar at the bottom
             global::status_bar::status_bar_draw(app, frame, vertical_layout[2]);
 
+            // Draw the command bar at the bottom
+            global::status_bar::command_bar_draw(app, frame, vertical_layout[3]);
             app.command_area = vertical_layout[3];
 
             let horizontal_layout = Layout::default()
@@ -72,6 +74,8 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
             // Draw status bar at the bottom
             global::status_bar::status_bar_draw(app, frame, vertical_layout[1]);
 
+            // Draw the command bar at the bottom
+            global::status_bar::command_bar_draw(app, frame, vertical_layout[2]);
             app.command_area = vertical_layout[2];
 
             let horizontal_layout = Layout::default()
@@ -97,6 +101,8 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
             // Draw status bar at the bottom
             global::status_bar::status_bar_draw(app, frame, vertical_layout[1]);
 
+            // Draw the command bar at the bottom
+            global::status_bar::command_bar_draw(app, frame, vertical_layout[2]);
             app.command_area = vertical_layout[2];
 
             let horizontal_layout = Layout::default()

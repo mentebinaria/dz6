@@ -13,6 +13,7 @@ pub struct Theme {
     pub dialog: Style,
 }
 
+// "old" themes left for compatiblity
 pub const DARK: Theme = Theme {
     offsets: Style::new()
         .fg(Color::from_u32(0x569cd6))
@@ -94,104 +95,84 @@ pub const LIGHT: Theme = Theme {
         .add_modifier(Modifier::RAPID_BLINK),
 };
 
-pub const DEFAULT_LIGHT: Theme = Theme {
-    offsets: Style::new()
-        .fg(Color::Indexed(130))
-        .bg(Color::Black),
-    main: Style::new()
-        .fg(Color::White)
-        .bg(Color::Black),
-    dimmed: Style::new()
-        .fg(Color::DarkGray)
-        .bg(Color::Black),
-    dialog: Style::new()
-        .fg(Color::Rgb(204, 204, 204)),
-        // .bg(Color::from_u32(0x081e32)),
-    changed_bytes: Style::new()
-        .fg(Color::Yellow)
-        .bg(Color::Black),
-    highlight: Style::new()
-        .fg(Color::Black)
-        .bg(Color::White),
-    byte_highlight: Style::new()
-        .fg(Color::White)
-        .bg(Color::LightYellow),
-    status_bar: Style::new()
-        .fg(Color::White)
-        .bg(Color::Black),
-    error: Style::new()
-        .fg(Color::White)
-        .bg(Color::Red),
-    editing: Style::new()
-        .fg(Color::from_u32(0x1e1e1e))
-        .bg(Color::Rgb(255, 215, 0))
-        .add_modifier(Modifier::RAPID_BLINK),
-};
-
+// Vim themes
+// to see these colors in Vim, use for example :hi LineNr
+// they depend on the terminal config, which is good and bad :)
+// Color::Reset means the terminal default for background or foreground
 pub const DEFAULT_DARK: Theme = Theme {
-    offsets: Style::new()
-        .fg(Color::LightYellow)
-        .bg(Color::Black),
-    main: Style::new()
-        .fg(Color::White)
-        .bg(Color::Black),
-    dimmed: Style::new()
-        .fg(Color::DarkGray)
-        .bg(Color::Black),
-    dialog: Style::new()
-        .fg(Color::Rgb(204, 204, 204)),
-        // .bg(Color::from_u32(0x081e32)),
-    changed_bytes: Style::new()
-        .fg(Color::Yellow)
-        .bg(Color::Black),
-    highlight: Style::new()
-        .fg(Color::Black)
-        .bg(Color::White),
-    byte_highlight: Style::new()
-        .fg(Color::White)
-        .bg(Color::LightYellow),
-    status_bar: Style::new()
-        .fg(Color::White)
-        .bg(Color::Black),
-    error: Style::new()
-        .fg(Color::White)
-        .bg(Color::Red),
+    // LineNr
+    offsets: Style::new().fg(Color::Indexed(11)).bg(Color::Reset),
+    // Normal
+    main: Style::new().fg(Color::Reset).bg(Color::Reset),
+    // set to DarkGray because Vim's Comment is too bright
+    dimmed: Style::new().fg(Color::DarkGray).bg(Color::Reset),
+    // Normal
+    dialog: Style::new().fg(Color::Indexed(11)).bg(Color::Reset),
+    // Constant
+    changed_bytes: Style::new().fg(Color::Indexed(13)).bg(Color::Reset),
+    // CursorColumn
+    highlight: Style::new().fg(Color::Reset).bg(Color::Indexed(242)),
+    // Search
+    byte_highlight: Style::new().fg(Color::Indexed(0)).bg(Color::Indexed(11)),
+    // Normal
+    status_bar: Style::new().fg(Color::Reset).bg(Color::Reset),
+    // ErrorMsg
+    error: Style::new().fg(Color::Indexed(15)).bg(Color::Indexed(1)),
+    // DiffChange
     editing: Style::new()
-        .fg(Color::from_u32(0x1e1e1e))
-        .bg(Color::Rgb(255, 215, 0))
+        .fg(Color::Reset)
+        .bg(Color::Indexed(5))
         .add_modifier(Modifier::RAPID_BLINK),
 };
 
-pub const BLUE: Theme = Theme {
-    offsets: Style::new()
-        .fg(Color::from_u32(0x5dffff))
-        .bg(Color::from_u32(0x001686)),
-    main: Style::new()
-        .fg(Color::from_u32(0xffd404))
-        .bg(Color::from_u32(0x001686)),
-    dimmed: Style::new()
-        .fg(Color::DarkGray)
-        .bg(Color::from_u32(0x001686)),
-    dialog: Style::new()
-        .fg(Color::Rgb(204, 204, 204)),
-        // .bg(Color::from_u32(0x081e32)),
-    changed_bytes: Style::new()
-        .fg(Color::Yellow)
-        .bg(Color::from_u32(0x001686)),
-    highlight: Style::new()
-        .fg(Color::Black)
-        .bg(Color::White),
-    byte_highlight: Style::new()
-        .fg(Color::from_u32(0x000000))
-        .bg(Color::from_u32(0xffd404)),
-    status_bar: Style::new()
-        .fg(Color::from_u32(0xffd404))
-        .bg(Color::from_u32(0x001686)),
-    error: Style::new()
-        .fg(Color::White)
-        .bg(Color::Red),
+pub const DEFAULT_LIGHT: Theme = Theme {
+    // LineNr = Brown
+    offsets: Style::new().fg(Color::Indexed(130)).bg(Color::Reset),
+    // Normal
+    main: Style::new().fg(Color::Reset).bg(Color::Reset),
+    // set to DarkGray because Vim's Comment is too bright
+    dimmed: Style::new().fg(Color::DarkGray).bg(Color::Reset),
+    // Normal
+    dialog: Style::new().fg(Color::Indexed(130)).bg(Color::Reset),
+    // Constant = Magenta
+    changed_bytes: Style::new().fg(Color::Magenta).bg(Color::Reset),
+    // CursorColumn
+    highlight: Style::new().fg(Color::Reset).bg(Color::Indexed(7)),
+    // Search
+    byte_highlight: Style::new().fg(Color::Indexed(0)).bg(Color::Indexed(11)),
+    // Normal
+    status_bar: Style::new().fg(Color::Reset).bg(Color::Reset),
+    // ErrorMsg
+    error: Style::new().fg(Color::Indexed(15)).bg(Color::Indexed(1)),
+    // DiffChange
     editing: Style::new()
-        .fg(Color::from_u32(0x1e1e1e))
-        .bg(Color::Rgb(255, 215, 0))
+        .fg(Color::Reset)
+        .bg(Color::LightMagenta)
+        .add_modifier(Modifier::RAPID_BLINK),
+};
+
+pub const DARKBLUE: Theme = Theme {
+    // LineNr = Brown
+    offsets: Style::new().fg(Color::Indexed(118)).bg(Color::Indexed(17)),
+    // Normal
+    main: Style::new().fg(Color::Indexed(252)).bg(Color::Indexed(17)),
+    // set to DarkGray because Vim's Comment is too bright
+    dimmed: Style::new().fg(Color::Indexed(102)).bg(Color::Indexed(17)),
+    // Normal
+    dialog: Style::new().fg(Color::Indexed(118)).bg(Color::Indexed(17)),
+    // Constant
+    changed_bytes: Style::new().fg(Color::Indexed(217)).bg(Color::Indexed(17)),
+    // CursorColumn
+    highlight: Style::new().fg(Color::from_u32(0xffffff)).bg(Color::from_u32(0x8489ff)),
+    // Search
+    byte_highlight: Style::new().fg(Color::Indexed(123)).bg(Color::Indexed(27)),
+    // Normal
+    status_bar: Style::new().fg(Color::Reset).bg(Color::Indexed(17)),
+    // ErrorMsg
+    error: Style::new().fg(Color::Indexed(15)).bg(Color::Indexed(1)),
+    // DiffChange
+    editing: Style::new()
+        .fg(Color::Reset)
+        .bg(Color::LightMagenta)
         .add_modifier(Modifier::RAPID_BLINK),
 };

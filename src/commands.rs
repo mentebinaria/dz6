@@ -393,8 +393,8 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                         app.config.theme = crate::themes::DEFAULT_DARK;
                         app.dialog_renderer = None;
                     }
-                    "blue" => {
-                        app.config.theme = crate::themes::BLUE;
+                    "darkblue" => {
+                        app.config.theme = crate::themes::DARKBLUE;
                         app.dialog_renderer = None;
                     }
                     _ => {
@@ -418,9 +418,9 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
 }
 
 // command bar
-
 pub fn command_draw(app: &mut App, frame: &mut Frame) {
-    let para = Paragraph::new(format!(":{}", app.command_input.input.value()));
+    let command = app.command_input.input.value();
+    let para = Paragraph::new(format!(":{}", command)).style(app.config.theme.main);
 
     frame.render_widget(Clear, app.command_area);
     frame.render_widget(para, app.command_area);

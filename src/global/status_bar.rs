@@ -76,3 +76,7 @@ pub fn status_bar_draw(app: &mut App, frame: &mut Frame, area: Rect) {
     .alignment(Alignment::Right);
     frame.render_widget(status_bar_info_right, area);
 }
+
+pub fn command_bar_draw(app: &mut App, frame: &mut Frame, area: Rect) {
+    frame.render_widget(Paragraph::default().style(app.config.theme.main), area);
+}
