@@ -24,6 +24,8 @@ use ratatui::crossterm::event;
 
 use app::App;
 
+use crate::themes::DEFAULT_LIGHT;
+
 /// vim-like hexadecimal editor
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -52,6 +54,13 @@ fn main() {
         });
 
     app.list_state.select_first();
+
+    // choose Vim-inspired colorscheme based on terminal colors
+    // Vim uses https://github.com/vim/vim/blob/5a9a0518b153b8571ff4d55c5727b72341080cef/src/term.c#L6098
+    // but we simplify by using the terminal_light crate
+    if terminal_light::luma().is_ok_and(|luma| luma > 0.6) {
+        app.config.theme = DEFAULT_LIGHT;
+    }
 
     // read init file ignoring errors
     let _ = app.read_initfile();
