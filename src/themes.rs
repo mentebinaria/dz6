@@ -1,4 +1,4 @@
-use ratatui::style::{Color, Modifier, Style};
+use ratatui::style::{Color, Style};
 
 pub struct Theme {
     pub main: Style,
@@ -11,6 +11,7 @@ pub struct Theme {
     pub error: Style,
     pub editing: Style,
     pub dialog: Style,
+    pub selection: Style,
 }
 
 // "old" themes left for compatiblity
@@ -18,23 +19,26 @@ pub const DARK: Theme = Theme {
     offsets: Style::new()
         .fg(Color::from_u32(0x569cd6))
         .bg(Color::from_u32(0x1e1e1e))
-        .add_modifier(Modifier::BOLD),
+        .bold(),
     main: Style::new()
         .fg(Color::from_u32(0xd4d4d4))
         .bg(Color::from_u32(0x1e1e1e))
-        .add_modifier(Modifier::BOLD),
+        .bold(),
     dimmed: Style::new()
         .fg(Color::from_u32(0x949494))
         .bg(Color::from_u32(0x1e1e1e))
-        .add_modifier(Modifier::BOLD),
+        .bold(),
     dialog: Style::new()
         .fg(Color::Rgb(204, 204, 204))
         .bg(Color::from_u32(0x081e32))
-        .add_modifier(Modifier::BOLD),
+        .bold(),
     changed_bytes: Style::new()
         .fg(Color::Rgb(255, 215, 0))
         .bg(Color::from_u32(0x1e1e1e)),
     highlight: Style::new()
+        .fg(Color::Rgb(255, 255, 255))
+        .bg(Color::Rgb(38, 79, 120)),
+    selection: Style::new()
         .fg(Color::Rgb(255, 255, 255))
         .bg(Color::Rgb(38, 79, 120)),
     byte_highlight: Style::new().fg(Color::White).bg(Color::Red),
@@ -47,58 +51,53 @@ pub const DARK: Theme = Theme {
     editing: Style::new()
         .fg(Color::from_u32(0x1e1e1e))
         .bg(Color::Rgb(255, 215, 0))
-        .add_modifier(Modifier::RAPID_BLINK),
+        .rapid_blink(),
 };
 
 pub const LIGHT: Theme = Theme {
     offsets: Style::new()
         .fg(Color::from_u32(0x237893))
         .bg(Color::from_u32(0xffffff))
-        .add_modifier(Modifier::BOLD),
-
+        .bold(),
     main: Style::new()
         .fg(Color::from_u32(0x000000))
         .bg(Color::from_u32(0xffffff))
-        .add_modifier(Modifier::BOLD),
-
+        .bold(),
     dimmed: Style::new()
         .fg(Color::from_u32(0xa0a0a0))
         .bg(Color::from_u32(0xffffff))
-        .add_modifier(Modifier::BOLD),
-
+        .bold(),
     dialog: Style::new()
         .fg(Color::from_u32(0x333333))
         .bg(Color::from_u32(0xe7f3ff))
-        .add_modifier(Modifier::BOLD),
-
+        .bold(),
     changed_bytes: Style::new()
         .fg(Color::from_u32(0x795e00))
         .bg(Color::from_u32(0xffffff)),
-
     highlight: Style::new()
         .fg(Color::from_u32(0x000000))
         .bg(Color::from_u32(0xadd6ff)),
-
+    selection: Style::new()
+        .fg(Color::from_u32(0x000000))
+        .bg(Color::from_u32(0xadd6ff)),
     byte_highlight: Style::new().fg(Color::Black).bg(Color::from_u32(0xffb3b3)),
-
     status_bar: Style::new()
         .fg(Color::from_u32(0x333333))
         .bg(Color::from_u32(0xf3f3f3)),
-
     error: Style::new()
         .fg(Color::from_u32(0xe51400))
         .bg(Color::from_u32(0xf2dede)),
-
     editing: Style::new()
         .fg(Color::from_u32(0xffffff))
         .bg(Color::from_u32(0xffcc00))
-        .add_modifier(Modifier::RAPID_BLINK),
+        .rapid_blink(),
 };
 
 // Vim themes
 // to see these colors in Vim, use for example :hi LineNr
 // they depend on the terminal config, which is good and bad :)
 // Color::Reset means the terminal default for background or foreground
+// the comment before each member field refers to Vim's variable name
 pub const DEFAULT_DARK: Theme = Theme {
     // LineNr
     offsets: Style::new().fg(Color::Indexed(11)).bg(Color::Reset),
@@ -111,18 +110,24 @@ pub const DEFAULT_DARK: Theme = Theme {
     // Constant
     changed_bytes: Style::new().fg(Color::Indexed(13)).bg(Color::Reset),
     // CursorColumn
-    highlight: Style::new().fg(Color::Reset).bg(Color::Indexed(242)),
+    highlight: Style::new().fg(Color::Reset).bg(Color::Reset).reversed(),
+    // Visual
+    selection: Style::new().fg(Color::Indexed(0)).bg(Color::Indexed(248)),
     // Search
     byte_highlight: Style::new().fg(Color::Indexed(0)).bg(Color::Indexed(11)),
-    // Normal
-    status_bar: Style::new().fg(Color::Reset).bg(Color::Reset),
+    // StatusLine
+    status_bar: Style::new()
+        .fg(Color::Reset)
+        .bg(Color::Reset)
+        .reversed()
+        .bold(),
     // ErrorMsg
     error: Style::new().fg(Color::Indexed(15)).bg(Color::Indexed(1)),
     // DiffChange
     editing: Style::new()
         .fg(Color::Reset)
         .bg(Color::Indexed(5))
-        .add_modifier(Modifier::RAPID_BLINK),
+        .rapid_blink(),
 };
 
 pub const DEFAULT_LIGHT: Theme = Theme {
@@ -137,18 +142,24 @@ pub const DEFAULT_LIGHT: Theme = Theme {
     // Constant = Magenta
     changed_bytes: Style::new().fg(Color::Magenta).bg(Color::Reset),
     // CursorColumn
-    highlight: Style::new().fg(Color::Reset).bg(Color::Indexed(7)),
+    highlight: Style::new().fg(Color::Reset).bg(Color::Reset).reversed(),
+    // Visual
+    selection: Style::new().fg(Color::Indexed(0)).bg(Color::Indexed(248)),
     // Search
     byte_highlight: Style::new().fg(Color::Indexed(0)).bg(Color::Indexed(11)),
-    // Normal
-    status_bar: Style::new().fg(Color::Reset).bg(Color::Reset),
+    // StatusLine
+    status_bar: Style::new()
+        .fg(Color::Reset)
+        .bg(Color::Reset)
+        .reversed()
+        .bold(),
     // ErrorMsg
     error: Style::new().fg(Color::Indexed(15)).bg(Color::Indexed(1)),
     // DiffChange
     editing: Style::new()
         .fg(Color::Reset)
         .bg(Color::LightMagenta)
-        .add_modifier(Modifier::RAPID_BLINK),
+        .rapid_blink(),
 };
 
 pub const DARKBLUE: Theme = Theme {
@@ -163,7 +174,9 @@ pub const DARKBLUE: Theme = Theme {
     // Constant
     changed_bytes: Style::new().fg(Color::Indexed(217)).bg(Color::Indexed(17)),
     // CursorColumn
-    highlight: Style::new().fg(Color::from_u32(0xffffff)).bg(Color::from_u32(0x8489ff)),
+    highlight: Style::new()
+        .fg(Color::from_u32(0xffffff))
+        .bg(Color::from_u32(0x8489ff)),
     // Search
     byte_highlight: Style::new().fg(Color::Indexed(123)).bg(Color::Indexed(27)),
     // Normal
@@ -174,5 +187,9 @@ pub const DARKBLUE: Theme = Theme {
     editing: Style::new()
         .fg(Color::Reset)
         .bg(Color::LightMagenta)
-        .add_modifier(Modifier::RAPID_BLINK),
+        .rapid_blink(),
+
+    selection: Style::new()
+        .fg(Color::from_u32(0xffffff))
+        .bg(Color::from_u32(0x8489ff)),
 };
