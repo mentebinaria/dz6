@@ -17,7 +17,7 @@ pub struct Theme {
     pub selection: Style,
 }
 
-// "old" themes left for compatiblity
+// "old" themes left for compatibility
 pub const DARK: Theme = Theme {
     offsets: Style::new()
         .fg(Color::from_u32(0x569cd6))
@@ -101,74 +101,74 @@ pub const LIGHT: Theme = Theme {
 // they depend on the terminal config, which is good and bad :)
 // Color::Reset means the terminal default for background or foreground
 // the comment before each member field refers to Vim's variable name
+
+// these colors differ
+const DEFAULT_OFFSETS_DARK: Style = Style::new().fg(Color::Indexed(11)).bg(Color::Reset);
+const DEFAULT_OFFSETS_LIGHT: Style = Style::new().fg(Color::Indexed(130)).bg(Color::Reset);
+
+// these are common between dark and light
+const DEFAULT_MAIN: Style = Style::new().fg(Color::Reset).bg(Color::Reset);
+const DEFAULT_DIMMED: Style = Style::new().fg(Color::DarkGray).bg(Color::Reset);
+const DEFAULT_CHANGED_BYTES: Style = Style::new().fg(Indexed(12)).bg(Color::Reset);
+const DEFAULT_HIGHLIGHT: Style = DEFAULT_MAIN.reversed();
+const DEFAULT_SELECTION: Style = Style::new().fg(Color::Indexed(0)).bg(Color::Indexed(248));
+const DEFAULT_BYTE_HIGHLIGHT: Style = Style::new().fg(Color::Indexed(0)).bg(Color::Indexed(11));
+const DEFAULT_STATUS_BAR: Style = DEFAULT_MAIN.reversed().bold();
+const DEFAULT_ERROR: Style = Style::new().fg(Color::Indexed(15)).bg(Color::Indexed(1));
+const DEFAULT_EDITING: Style = DEFAULT_CHANGED_BYTES.reversed().rapid_blink();
+
 pub const DEFAULT_DARK: Theme = Theme {
     // LineNr
-    offsets: Style::new().fg(Color::Indexed(11)).bg(Color::Reset),
+    offsets: DEFAULT_OFFSETS_DARK,
     // Normal
-    main: Style::new().fg(Color::Reset).bg(Color::Reset),
+    main: DEFAULT_MAIN,
     // set to DarkGray because Vim's Comment is too bright
-    dimmed: Style::new().fg(Color::DarkGray).bg(Color::Reset),
+    dimmed: DEFAULT_DIMMED,
     // Normal
-    dialog: Style::new().fg(Color::Indexed(11)).bg(Color::Reset),
+    dialog: DEFAULT_OFFSETS_DARK,
     // Changed
-    changed_bytes: Style::new().fg(Indexed(12)).bg(Color::Reset),
+    changed_bytes: DEFAULT_CHANGED_BYTES,
     // CursorColumn
-    highlight: Style::new().fg(Color::Reset).bg(Color::Reset).reversed(),
+    highlight: DEFAULT_HIGHLIGHT,
     // Visual
-    selection: Style::new().fg(Color::Indexed(0)).bg(Color::Indexed(248)),
+    selection: DEFAULT_SELECTION,
     // Search
-    byte_highlight: Style::new().fg(Color::Indexed(0)).bg(Color::Indexed(11)),
+    byte_highlight: DEFAULT_BYTE_HIGHLIGHT,
     // StatusLine
-    status_bar: Style::new()
-        .fg(Color::Reset)
-        .bg(Color::Reset)
-        .reversed()
-        .bold(),
+    status_bar: DEFAULT_STATUS_BAR,
     // ErrorMsg
-    error: Style::new().fg(Color::Indexed(15)).bg(Color::Indexed(1)),
-    // Changed, but reversed
-    editing: Style::new()
-        .fg(Indexed(12))
-        .bg(Color::Reset)
-        .reversed()
-        .rapid_blink(),
+    error: DEFAULT_ERROR,
+    // changed_bytes, but reversed
+    editing: DEFAULT_EDITING,
 };
 
 pub const DEFAULT_LIGHT: Theme = Theme {
     // LineNr = Brown
-    offsets: Style::new().fg(Color::Indexed(130)).bg(Color::Reset),
+    offsets: DEFAULT_OFFSETS_LIGHT,
     // Normal
-    main: Style::new().fg(Color::Reset).bg(Color::Reset),
+    main: DEFAULT_MAIN,
     // set to DarkGray because Vim's Comment is too bright
-    dimmed: Style::new().fg(Color::DarkGray).bg(Color::Reset),
+    dimmed: DEFAULT_DIMMED,
     // Normal
-    dialog: Style::new().fg(Color::Indexed(130)).bg(Color::Reset),
+    dialog: DEFAULT_OFFSETS_LIGHT,
     // Changed
-    changed_bytes: Style::new().fg(Indexed(12)).bg(Color::Reset),
+    changed_bytes: DEFAULT_CHANGED_BYTES,
     // CursorColumn
-    highlight: Style::new().fg(Color::Reset).bg(Color::Reset).reversed(),
+    highlight: DEFAULT_HIGHLIGHT,
     // Visual
-    selection: Style::new().fg(Color::Indexed(0)).bg(Color::Indexed(248)),
+    selection: DEFAULT_SELECTION,
     // Search
-    byte_highlight: Style::new().fg(Color::Indexed(0)).bg(Color::Indexed(11)),
+    byte_highlight: DEFAULT_BYTE_HIGHLIGHT,
     // StatusLine
-    status_bar: Style::new()
-        .fg(Color::Reset)
-        .bg(Color::Reset)
-        .reversed()
-        .bold(),
+    status_bar: DEFAULT_STATUS_BAR,
     // ErrorMsg
-    error: Style::new().fg(Color::Indexed(15)).bg(Color::Indexed(1)),
-    // Changed, but reversed
-    editing: Style::new()
-        .fg(Indexed(12))
-        .bg(Color::Reset)
-        .reversed()
-        .rapid_blink(),
+    error: DEFAULT_ERROR,
+    // changed_bytes, but reversed
+    editing: DEFAULT_EDITING,
 };
 
 pub const DARKBLUE: Theme = Theme {
-    // LineNr = Brown
+    // LineNr
     offsets: Style::new().fg(Color::Indexed(118)).bg(Color::Indexed(17)),
     // Normal
     main: Style::new().fg(Color::Indexed(252)).bg(Color::Indexed(17)),
@@ -176,25 +176,27 @@ pub const DARKBLUE: Theme = Theme {
     dimmed: Style::new().fg(Color::Indexed(102)).bg(Color::Indexed(17)),
     // Normal
     dialog: Style::new().fg(Color::Indexed(118)).bg(Color::Indexed(17)),
-    // Constant
-    changed_bytes: Style::new().fg(Color::Indexed(217)).bg(Color::Indexed(17)),
+    // Changed
+    changed_bytes: Style::new().fg(Color::Indexed(12)).bg(Color::Indexed(17)),
     // CursorColumn
-    highlight: Style::new()
-        .fg(Color::from_u32(0xffffff))
-        .bg(Color::from_u32(0x8489ff)),
+    highlight: Style::new().fg(Color::Indexed(252)).bg(Color::Indexed(59)),
+    // Visual
+    selection: Style::new().fg(Color::Indexed(231)).bg(Color::Indexed(105)),
     // Search
-    byte_highlight: Style::new().fg(Color::Indexed(123)).bg(Color::Indexed(27)),
-    // Normal
-    status_bar: Style::new().fg(Color::Reset).bg(Color::Indexed(17)),
+    byte_highlight: Style::new()
+        .fg(Color::Indexed(123))
+        .bg(Color::Indexed(27))
+        .reversed(),
+    // StatusLine
+    status_bar: Style::new()
+        .fg(Color::Indexed(252))
+        .bg(Color::Indexed(17))
+        .reversed(),
     // ErrorMsg
-    error: Style::new().fg(Color::Indexed(15)).bg(Color::Indexed(1)),
-    // DiffChange
+    error: DEFAULT_ERROR,
+    // changed_bytes, but reversed
     editing: Style::new()
-        .fg(Color::Reset)
-        .bg(Color::LightMagenta)
-        .rapid_blink(),
-
-    selection: Style::new()
-        .fg(Color::from_u32(0xffffff))
-        .bg(Color::from_u32(0x8489ff)),
+        .fg(Color::Indexed(12))
+        .bg(Color::Indexed(17))
+        .reversed(),
 };

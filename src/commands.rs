@@ -295,6 +295,25 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                             }
                         }
                     }
+                    // // background (for the default theme only for now)
+                    // "background" | "bg" => {
+                    //     if let Some(val) = value && app.config.theme == DEFAULT_DARK {
+                    //         match val.as_str() {
+                    //             // we'll change only what matters in the default theme
+                    //             "dark" => {
+                    //                 app.config.theme.offsets = DEFAULT_OFFSETS_DARK;
+                    //                 app.config.theme.dialog = DEFAULT_OFFSETS_DARK;
+                    //                 app.dialog_renderer = None;
+                    //             }
+                    //             "light" => {
+                    //                 app.config.theme.offsets = DEFAULT_OFFSETS_LIGHT;
+                    //                 app.config.theme.dialog = DEFAULT_OFFSETS_LIGHT;
+                    //                 app.dialog_renderer = None;
+                    //             }
+                    //             _ => {}
+                    //         }
+                    //     }
+                    // }
                     // "readonly" | "ro" => {
                     //     app.file_info.is_read_only = true;
                     //     app.dialog_renderer = None;
@@ -385,12 +404,12 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                         app.config.theme = crate::themes::LIGHT;
                         app.dialog_renderer = None;
                     }
-                    "default-light" => {
-                        app.config.theme = crate::themes::DEFAULT_LIGHT;
+                    "default" | "default-dark" => {
+                        app.config.theme = crate::themes::DEFAULT_DARK;
                         app.dialog_renderer = None;
                     }
-                    "default-dark" => {
-                        app.config.theme = crate::themes::DEFAULT_DARK;
+                    "default-light" => {
+                        app.config.theme = crate::themes::DEFAULT_LIGHT;
                         app.dialog_renderer = None;
                     }
                     "darkblue" => {
