@@ -752,7 +752,7 @@ pub fn pe_draw(app: &mut App, frame: &mut Frame, area: Rect) {
         "Exports",
         "Overlay",
     ])
-    .style(app.config.theme.main)
+    .style(app.config.theme.offsets)
     .highlight_style(app.config.theme.highlight)
     .divider("|")
     .padding(" ", " ")
