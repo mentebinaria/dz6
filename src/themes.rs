@@ -1,4 +1,7 @@
-use ratatui::style::{Color, Style};
+use ratatui::style::{
+    Color::{self, Indexed},
+    Style,
+};
 
 pub struct Theme {
     pub main: Style,
@@ -107,8 +110,8 @@ pub const DEFAULT_DARK: Theme = Theme {
     dimmed: Style::new().fg(Color::DarkGray).bg(Color::Reset),
     // Normal
     dialog: Style::new().fg(Color::Indexed(11)).bg(Color::Reset),
-    // Constant
-    changed_bytes: Style::new().fg(Color::Indexed(13)).bg(Color::Reset),
+    // Changed
+    changed_bytes: Style::new().fg(Indexed(12)).bg(Color::Reset),
     // CursorColumn
     highlight: Style::new().fg(Color::Reset).bg(Color::Reset).reversed(),
     // Visual
@@ -123,10 +126,11 @@ pub const DEFAULT_DARK: Theme = Theme {
         .bold(),
     // ErrorMsg
     error: Style::new().fg(Color::Indexed(15)).bg(Color::Indexed(1)),
-    // DiffChange
+    // Changed, but reversed
     editing: Style::new()
-        .fg(Color::Reset)
-        .bg(Color::Indexed(5))
+        .fg(Indexed(12))
+        .bg(Color::Reset)
+        .reversed()
         .rapid_blink(),
 };
 
@@ -139,8 +143,8 @@ pub const DEFAULT_LIGHT: Theme = Theme {
     dimmed: Style::new().fg(Color::DarkGray).bg(Color::Reset),
     // Normal
     dialog: Style::new().fg(Color::Indexed(130)).bg(Color::Reset),
-    // Constant = Magenta
-    changed_bytes: Style::new().fg(Color::Magenta).bg(Color::Reset),
+    // Changed
+    changed_bytes: Style::new().fg(Indexed(12)).bg(Color::Reset),
     // CursorColumn
     highlight: Style::new().fg(Color::Reset).bg(Color::Reset).reversed(),
     // Visual
@@ -155,10 +159,11 @@ pub const DEFAULT_LIGHT: Theme = Theme {
         .bold(),
     // ErrorMsg
     error: Style::new().fg(Color::Indexed(15)).bg(Color::Indexed(1)),
-    // DiffChange
+    // Changed, but reversed
     editing: Style::new()
-        .fg(Color::Reset)
-        .bg(Color::LightMagenta)
+        .fg(Indexed(12))
+        .bg(Color::Reset)
+        .reversed()
         .rapid_blink(),
 };
 
