@@ -44,7 +44,16 @@ impl Selection {
                 self.start = self.start.saturating_sub(step);
             }
             Some(Direction::LeftOrUp) => self.start = self.start.saturating_sub(step),
-            Some(Direction::RightOrDown) => self.end = self.end.saturating_sub(step),
+            Some(Direction::RightOrDown) => {
+                let new_end = self.end.saturating_sub(step);
+                if new_end < self.start {
+                    self.end = self.start;
+                    self.start = new_end;
+                    self.direction = Some(Direction::LeftOrUp);
+                } else {
+                    self.end = new_end;
+                }
+            }
         }
 
         if self.start == self.end {
@@ -57,7 +66,16 @@ impl Selection {
                 self.direction = Some(Direction::RightOrDown);
                 self.end = (self.start + step).min(offset_max);
             }
-            Some(Direction::LeftOrUp) => self.start = (self.start + step).min(offset_max),
+            Some(Direction::LeftOrUp) => {
+                let new_start = (self.start + step).min(offset_max);
+                if new_start > self.end {
+                    self.start = self.end;
+                    self.end = new_start;
+                    self.direction = Some(Direction::RightOrDown);
+                } else {
+                    self.start = new_start;
+                }
+            }
             Some(Direction::RightOrDown) => self.end = (self.end + step).min(offset_max),
         }
         if self.start == self.end {
@@ -92,7 +110,7 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
 
             app.hex_view
                 .selection
-                .select_right_or_down(app.file_info.size, 1);
+                .select_right_or_down(app.file_info.size - 1, 1);
             app.goto(new_offset);
         }
         KeyCode::Up | KeyCode::Char('k') => {
@@ -100,12 +118,6 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 .hex_view
                 .offset
                 .saturating_sub(app.config.hex_mode_bytes_per_line);
-
-            if app.hex_view.selection.direction == Some(Direction::RightOrDown)
-                && new_offset < app.hex_view.selection.start
-            {
-                return Ok(true);
-            }
 
             app.hex_view
                 .selection
@@ -119,15 +131,9 @@ pub fn select_events(app: &mut App, key: KeyEvent) -> Result<bool> {
                 .saturating_add(app.config.hex_mode_bytes_per_line)
                 .min(app.file_info.size - 1);
 
-            if app.hex_view.selection.direction == Some(Direction::LeftOrUp)
-                && new_offset > app.hex_view.selection.end
-            {
-                return Ok(true);
-            }
-
             app.hex_view
                 .selection
-                .select_right_or_down(app.file_info.size, app.config.hex_mode_bytes_per_line);
+                .select_right_or_down(app.file_info.size - 1, app.config.hex_mode_bytes_per_line);
             app.goto(new_offset);
         }
 
