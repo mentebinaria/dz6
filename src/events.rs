@@ -131,4 +131,154 @@ mod tests {
             assert_eq!(new_offset, expected_offset, "Test case '{name}' failed");
         }
     }
+
+    #[test]
+    fn test_select_mode_movements() {
+        use crate::hex::selection::Direction;
+        use KeyCode::*;
+
+        let mut app = test_app();
+        let end = app.file_info.size - 1;
+
+        type SelectCase = (
+            &'static str,
+            usize,
+            &'static [KeyCode],
+            usize,
+            usize,
+            usize,
+            Option<Direction>,
+        );
+
+        // (name, initial offset, keys, expected offset, expected selection start/end/direction)
+        let cases: &[SelectCase] = &[
+            (
+                "up after right",
+                0x15,
+                &[Char('v'), Char('l'), Char('k')],
+                6,
+                6,
+                0x15,
+                Some(Direction::LeftOrUp),
+            ),
+            (
+                "down after left",
+                0x15,
+                &[Char('v'), Char('h'), Char('j')],
+                0x15 + 0xf,
+                0x15,
+                0x15 + 0xf,
+                Some(Direction::RightOrDown),
+            ),
+            (
+                "up after right across line boundary",
+                0x10,
+                &[Char('v'), Char('l'), Char('k')],
+                1,
+                1,
+                0x10,
+                Some(Direction::LeftOrUp),
+            ),
+            (
+                "down after left across line boundary",
+                0x10,
+                &[Char('v'), Char('h'), Char('j')],
+                0x10 + 0xf,
+                0x10,
+                0x10 + 0xf,
+                Some(Direction::RightOrDown),
+            ),
+            (
+                "up after right at start of file",
+                5,
+                &[Char('v'), Char('l'), Char('k')],
+                0,
+                0,
+                5,
+                Some(Direction::LeftOrUp),
+            ),
+            (
+                "down after left at end of file",
+                end - 3,
+                &[Char('v'), Char('h'), Char('j')],
+                end,
+                end - 3,
+                end,
+                Some(Direction::RightOrDown),
+            ),
+            (
+                "up then down after right",
+                0x15,
+                &[Char('v'), Char('l'), Char('k'), Char('j')],
+                0x15 + 1,
+                0x15,
+                0x15 + 1,
+                Some(Direction::RightOrDown),
+            ),
+            (
+                "right at end of file",
+                end,
+                &[Char('v'), Char('l')],
+                end,
+                end,
+                end,
+                None,
+            ),
+            (
+                "left at start of file",
+                0,
+                &[Char('v'), Char('h')],
+                0,
+                0,
+                0,
+                None,
+            ),
+            (
+                "up at start of file",
+                0,
+                &[Char('v'), Char('k')],
+                0,
+                0,
+                0,
+                None,
+            ),
+            (
+                "down at end of file",
+                end,
+                &[Char('v'), Char('j')],
+                end,
+                end,
+                end,
+                None,
+            ),
+        ];
+
+        for &(name, initial_offset, keys, expected_offset, start, end, direction) in cases {
+            app.state = UIState::Normal;
+            app.hex_view.selection.clear();
+            app.goto(initial_offset);
+
+            for &key in keys {
+                let event = Event::Key(KeyEvent::new(key, KeyModifiers::NONE));
+                handle_events(&mut app, event).unwrap();
+            }
+
+            assert_eq!(
+                app.hex_view.offset, expected_offset,
+                "Test case '{name}' failed: offset"
+            );
+            assert_eq!(
+                app.hex_view.selection.start, start,
+                "Test case '{name}' failed: selection start"
+            );
+            assert_eq!(
+                app.hex_view.selection.end, end,
+                "Test case '{name}' failed: selection end"
+            );
+            assert_eq!(
+                app.hex_view.selection.direction, direction,
+                "Test case '{name}' failed: selection direction"
+            );
+        }
+    }
 }
