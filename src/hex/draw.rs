@@ -48,7 +48,6 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
     // A cell for each byte as they need different styles when edited
     let mut byte_row: Vec<Cell> = Vec::with_capacity(app.reader.page_current_size);
     let mut cell_hl_style = app.config.theme.highlight;
-    let mut byte_style = app.config.theme.main;
     let mut col_len = 2u16;
 
     let buffer = app.file_info.get_buffer();
@@ -64,7 +63,7 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
         let offset = i + app.reader.page_start;
 
         let mut byte_content = format!("{byte:02X}");
-        byte_style =
+        let mut byte_style =
             if app.state == UIState::HexSelection && app.hex_view.selection.contains(offset) {
                 app.config.theme.selection
             } else if (*byte == b'\0' && app.config.dim_zeroes)
@@ -145,7 +144,7 @@ pub fn draw_hex_contents(app: &mut App, frame: &mut Frame, area: Rect) {
 
     let table = Table::new(rows, constraints)
         .column_spacing(3 - col_len)
-        .style(byte_style)
+        .style(app.config.theme.main)
         .cell_highlight_style(cell_hl_style);
 
     frame.render_widget(Clear, area);
@@ -169,8 +168,6 @@ pub fn draw_hex_ascii(app: &mut App, frame: &mut Frame, area: Rect) {
     let mut rows: Vec<Row> = Vec::new();
 
     // O estilo que será usado no caractere individual
-    let mut char_style = app.config.theme.main;
-
     // Se estiver editando e apertou tab para editar via ASCII, usa o highlight
     // correto a partir do tema
     let cell_hl_style = if app.state == UIState::HexEditing && !app.hex_view.editing_hex {
@@ -197,6 +194,7 @@ pub fn draw_hex_ascii(app: &mut App, frame: &mut Frame, area: Rect) {
         // O conteúdo e o estilo da célula agora vai depender se
         // o offset atual está no hashmap de bytes alterados
         let offset = i + app.reader.page_start;
+        let char_style;
         let cell = if app.hex_view.changed_bytes.contains_key(&offset) {
             // Set regular highlight style if selection is happening
             char_style = if app.hex_view.selection.contains(offset) {
@@ -266,10 +264,82 @@ pub fn draw_hex_ascii(app: &mut App, frame: &mut Frame, area: Rect) {
     // Cria a tabela
     let table = Table::new(rows, constraint)
         .column_spacing(0)
-        .style(char_style)
+        .style(app.config.theme.main)
         .cell_highlight_style(cell_hl_style);
 
     // Desenha a tabela
     frame.render_widget(Clear, area);
     frame.render_stateful_widget(table, area, &mut app.hex_view.ascii_state);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{draw::draw, events::handle_events, update_page_size};
+    use ratatui::{
+        Terminal,
+        backend::TestBackend,
+        crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers},
+    };
+
+    #[test]
+    fn selecting_last_byte_of_page_does_not_style_whole_table() {
+        let mut app = App::new();
+        app.config.database = false;
+        app.load_file("test_data/test.bin", 0, true).unwrap();
+        update_page_size(&mut app, 5); // 32-byte page
+
+        let page_end = app.reader.page_start + app.reader.page_current_size - 1;
+        app.goto(page_end);
+
+        let event = Event::Key(KeyEvent::new(KeyCode::Char('v'), KeyModifiers::NONE));
+        handle_events(&mut app, event).unwrap();
+
+        assert!(
+            matches!(app.state, UIState::HexSelection),
+            "expected select mode"
+        );
+        assert_eq!(app.hex_view.selection.start, page_end);
+        assert_eq!(app.hex_view.selection.end, page_end);
+
+        let mut terminal = Terminal::new(TestBackend::new(80, 12)).unwrap();
+        terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+
+        let selection_bg = app.config.theme.selection.bg;
+        let count_selection_cells = |terminal: &Terminal<TestBackend>| {
+            terminal
+                .backend()
+                .buffer()
+                .content
+                .iter()
+                .filter(|cell| Some(cell.bg) == selection_bg)
+                .count()
+        };
+
+        // The cursor cell uses the highlight style, so a one-byte selection
+        // may not show the selection background at all. What matters is that
+        // it does not leak to the rest of the table.
+        let styled_cells = count_selection_cells(&terminal);
+        assert!(
+            styled_cells <= 3,
+            "selection background leaked to {styled_cells} cells"
+        );
+
+        // Empty cells in the ASCII dump must keep the default style too.
+        let empty_ascii_cell = terminal.backend().buffer().cell((79, 8)).unwrap();
+        assert!(
+            !empty_ascii_cell
+                .modifier
+                .contains(ratatui::style::Modifier::REVERSED),
+            "empty ASCII cells must not inherit the last byte style"
+        );
+
+        // Extending the selection must still style the selected bytes: only
+        // the cursor is excluded because it keeps the highlight style.
+        let event = Event::Key(KeyEvent::new(KeyCode::Char('h'), KeyModifiers::NONE));
+        handle_events(&mut app, event).unwrap();
+        terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+
+        assert_eq!(count_selection_cells(&terminal), 3);
+    }
 }
