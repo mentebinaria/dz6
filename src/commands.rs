@@ -34,11 +34,6 @@ enum Command {
         start: String,
         length: String,
     },
-    Dump {
-        path: String,
-        start: String,
-        length: String,
-    },
     Version,
     Colorscheme {
         scheme: String,
@@ -97,6 +92,33 @@ fn try_goto(app: &mut App, offset: &str) {
         };
         app.dialog_renderer = Some(command_error_draw);
     }
+}
+
+fn cmd_dump(app: &mut App, start: usize, end: usize, path: &str) {
+    if end >= start && !path.is_empty() {
+        let buff = app.file_info.get_buffer();
+
+        if let Some(chunk) = buff.get(start..=end) {
+            let res = fs::write(path, chunk);
+
+            if res.is_err() {
+                app.last_error = Dz6Error {
+                    message: format!("Could not write to {}", path),
+                };
+                app.dialog_renderer = Some(command_error_draw);
+            } else {
+                app.dialog_renderer = None;
+            }
+        } else {
+            app.state = UIState::Normal;
+        }
+    } else {
+        app.last_error = Dz6Error {
+            message: "Invalid parameter. Usage: dump FILE START LENGTH".to_string(),
+        };
+        app.dialog_renderer = Some(command_error_draw);
+    }
+    app.state = UIState::Normal;
 }
 
 pub fn parse_command(app: &mut App, cmdline: &str) {
@@ -340,56 +362,6 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
                     app.goto(st);
                 }
             }
-            Some(Command::Dump {
-                path,
-                start,
-                length,
-            }) => {
-                // first try to parse start as number
-                let mut st = parse_offset(&start);
-
-                // if we can't, check if it's name
-                if st.is_err()
-                    && let Some(ofs) = app
-                        .hex_view
-                        .comment_name_list
-                        .iter()
-                        .find(|c| c.comment == start)
-                {
-                    st = Ok(ofs.offset);
-                }
-
-                if let Ok(st) = st
-                    && let Ok(len) = parse_offset(&length)
-                    && !path.is_empty()
-                    && len > 0
-                {
-                    let buff = app.file_info.get_buffer();
-
-                    if let Some(end) = st.checked_add(len)
-                        && let Some(chunk) = buff.get(st..end)
-                    {
-                        let res = fs::write(&path, chunk);
-
-                        if res.is_err() {
-                            app.last_error = Dz6Error {
-                                message: format!("Could not write to {}", path),
-                            };
-                            app.dialog_renderer = Some(command_error_draw);
-                        } else {
-                            app.dialog_renderer = None;
-                        }
-                    } else {
-                        app.state = UIState::Normal;
-                    }
-                } else {
-                    app.last_error = Dz6Error {
-                        message: "Invalid parameter. Usage: dump FILE START LENGTH".to_string(),
-                    };
-                    app.dialog_renderer = Some(command_error_draw);
-                }
-                app.state = UIState::Normal;
-            }
             Some(Command::Version) => {
                 app.dialog_renderer = Some(dialog_version_draw);
                 app.state = UIState::DialogVersion;
@@ -430,8 +402,48 @@ pub fn parse_command(app: &mut App, cmdline: &str) {
             }
         },
         Err(_) => {
-            // goto as :offset
-            try_goto(app, cmdline);
+            // 10,30w /tmp/file will write from offset 10 to 30 (inclusive)
+            // to /tmp/file
+            // the code is the scariest thing I've ever done...
+            // ...make sense of it if you can!
+            if cmdline.contains(",") {
+                let mut it = cmdline.split(",");
+
+                if let Some(start) = it.next()
+                    && let Some(tail) = it.next()
+                {
+                    let mut tail = tail.split(&['w', ' ']);
+
+                    if let Some(end) = tail.next()
+                        && let Some(path) = tail.nth(1)
+                        && let Ok(start) = parse_offset(start)
+                    {
+                        let mut final_end = None;
+
+                        if end.starts_with('+') {
+                            if let Ok(ofs) = parse_offset(end) {
+                                final_end = Some(start.saturating_add(ofs));
+                            }
+                        } else if let Ok(end) = parse_offset(end) {
+                            final_end = Some(end);
+                        }
+
+                        if let Some(final_end) = final_end
+                            && final_end < app.file_info.size
+                        {
+                            cmd_dump(app, start, final_end, path);
+                        }
+                    } else {
+                        app.last_error = Dz6Error {
+                            message: "Invalid format. It should be START,ENDw PATH".to_string(),
+                        };
+                        app.dialog_renderer = Some(command_error_draw);
+                    }
+                }
+            } else {
+                // goto as :offset
+                try_goto(app, cmdline);
+            }
         }
     }
 }
