@@ -1,5 +1,6 @@
 use std::io::Result;
 
+use crossterm::event::KeyModifiers;
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 
 use crate::{app::App, editor::AppView};
@@ -65,6 +66,21 @@ fn tab_dos_header_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             .pe_state
             .dos_header_table_state
             .select_last(),
+        // change base and scroll up
+        KeyCode::Char('b') => {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                // scroll up
+                let height = app.screen.height;
+
+                app.header_view
+                    .pe_state
+                    .dos_header_table_state
+                    .scroll_up_by(height.saturating_sub(5));
+            } else {
+                // change base
+                app.config.header_base = if app.config.header_base == 10 { 16 } else { 10 };
+            }
+        }
         _ => {}
     }
     Ok(false)
@@ -108,6 +124,21 @@ fn tab_coff_header_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             .pe_state
             .coff_header_table_state
             .select_last(),
+        // change base and scroll up
+        KeyCode::Char('b') => {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                // scroll up
+                let height = app.screen.height;
+
+                app.header_view
+                    .pe_state
+                    .coff_header_table_state
+                    .scroll_up_by(height.saturating_sub(5));
+            } else {
+                // change base
+                app.config.header_base = if app.config.header_base == 10 { 16 } else { 10 };
+            }
+        }
         _ => {}
     }
     Ok(false)
@@ -155,6 +186,21 @@ fn tab_optional_header_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             .pe_state
             .optional_header_table_state
             .select_last(),
+        // change base and scroll up
+        KeyCode::Char('b') => {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                // scroll up
+                let height = app.screen.height;
+
+                app.header_view
+                    .pe_state
+                    .optional_header_table_state
+                    .scroll_up_by(height.saturating_sub(5));
+            } else {
+                // change base
+                app.config.header_base = if app.config.header_base == 10 { 16 } else { 10 };
+            }
+        }
         _ => {}
     }
     Ok(false)
@@ -179,6 +225,21 @@ fn tab_data_dirs_events(app: &mut App, key: KeyEvent) -> Result<bool> {
             .select_first(),
         KeyCode::Char('G') | KeyCode::End => {
             app.header_view.pe_state.data_dirs_table_state.select_last()
+        }
+        // change base and scroll up
+        KeyCode::Char('b') => {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                // scroll up
+                let height = app.screen.height;
+
+                app.header_view
+                    .pe_state
+                    .data_dirs_table_state
+                    .scroll_up_by(height.saturating_sub(5));
+            } else {
+                // change base
+                app.config.header_base = if app.config.header_base == 10 { 16 } else { 10 };
+            }
         }
         _ => {}
     }
@@ -215,6 +276,21 @@ fn tab_sections_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Char('G') | KeyCode::End => {
             app.header_view.pe_state.sections_table_state.select_last()
         }
+        // change base and scroll up
+        KeyCode::Char('b') => {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                // scroll up
+                let height = app.screen.height;
+
+                app.header_view
+                    .pe_state
+                    .sections_table_state
+                    .scroll_up_by(height.saturating_sub(5));
+            } else {
+                // change base
+                app.config.header_base = if app.config.header_base == 10 { 16 } else { 10 };
+            }
+        }
         _ => {}
     }
     Ok(false)
@@ -237,6 +313,21 @@ fn tab_imports_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         }
         KeyCode::Char('G') | KeyCode::End => {
             app.header_view.pe_state.imports_table_sate.select_last()
+        }
+        // change base and scroll up
+        KeyCode::Char('b') => {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                // scroll up
+                let height = app.screen.height;
+
+                app.header_view
+                    .pe_state
+                    .imports_table_sate
+                    .scroll_up_by(height.saturating_sub(5));
+            } else {
+                // change base
+                app.config.header_base = if app.config.header_base == 10 { 16 } else { 10 };
+            }
         }
         _ => {}
     }
@@ -261,6 +352,21 @@ fn tab_exports_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Char('G') | KeyCode::End => {
             app.header_view.pe_state.exports_table_sate.select_last()
         }
+        // change base and scroll up
+        KeyCode::Char('b') => {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                // scroll up
+                let height = app.screen.height;
+
+                app.header_view
+                    .pe_state
+                    .exports_table_sate
+                    .scroll_up_by(height.saturating_sub(5));
+            } else {
+                // change base
+                app.config.header_base = if app.config.header_base == 10 { 16 } else { 10 };
+            }
+        }
         _ => {}
     }
     Ok(false)
@@ -284,6 +390,21 @@ fn tab_overlay_events(app: &mut App, key: KeyEvent) -> Result<bool> {
         KeyCode::Char('G') | KeyCode::End => {
             app.header_view.pe_state.overlay_table_sate.select_last()
         }
+        // change base and scroll up
+        KeyCode::Char('b') => {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                // scroll up
+                let height = app.screen.height;
+
+                app.header_view
+                    .pe_state
+                    .overlay_table_sate
+                    .scroll_up_by(height.saturating_sub(5));
+            } else {
+                // change base
+                app.config.header_base = if app.config.header_base == 10 { 16 } else { 10 };
+            }
+        }
         _ => {}
     }
     Ok(false)
@@ -291,11 +412,6 @@ fn tab_overlay_events(app: &mut App, key: KeyEvent) -> Result<bool> {
 
 pub fn view_header_pe_events(app: &mut App, key: KeyEvent) -> Result<bool> {
     match key.code {
-        // change base
-        KeyCode::Char('b') => {
-            app.config.header_base = if app.config.header_base == 10 { 16 } else { 10 };
-            Ok(true)
-        }
         // global keybindings to change tabs quickly
         KeyCode::Char(c) if ('1'..='8').contains(&c) => {
             app.header_view.tab_index = c.to_string().parse::<usize>().unwrap().wrapping_sub(1);
